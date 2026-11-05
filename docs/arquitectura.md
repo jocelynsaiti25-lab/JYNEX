@@ -23,10 +23,10 @@ definidas en Application (principio de inversión de dependencias).
 ## Flujo de una petición
 
 1. Angular llama `POST /api/sesiones/iniciar` (HU-01).
-2. `SesionesController` envía `IniciarSesionCommand` con MediatR.
-3. `IniciarSesionHandler` llama a `IniciarSesionValidator.Validar(...)`.
-   Si hay errores lanza `ValidacionException` → HTTP 400 con la lista de errores.
-4. Si no hay errores, ejecuta la lógica del caso de uso y devuelve el resultado.
+2. `InicioSesionController` envía `IniciarSesionCommand` con MediatR.
+3. `ValidationBehavior` (pipeline de MediatR) ejecuta `IniciarSesionValidator`.
+   Si hay errores lanza `ValidacionException` → HTTP 400 y el handler NO se ejecuta.
+4. Si no hay errores, `IniciarSesionHandler` coordina el caso de uso y devuelve el resultado.
 5. Si se lanza `DomainException` → HTTP 422. Cualquier otro error → HTTP 500.
 
 ## Decisiones
@@ -34,7 +34,8 @@ definidas en Application (principio de inversión de dependencias).
 | Decisión | Motivo |
 |----------|--------|
 | MediatR 12.5.0 | Última versión con licencia libre (Apache 2.0) |
-| Validadores propios (`XxxValidator`) | Sin librerías: un `if` por regla, llamados de forma visible desde cada handler. Más fácil de leer y aprender |
+| Validadores propios (`IValidator<T>`) + `ValidationBehavior` | Sin librerías: un `if` por regla; MediatR los ejecuta antes de cada handler |
+| Carpetas por tipo y por historia | `Commands/`, `Validators/`, `Handlers/`, `Dtos/` con una subcarpeta por historia; un controller por historia para evitar conflictos en Git |
 | Sesión por cookie (HU-01) | Los criterios exigen invalidar sesiones en el servidor (HU-02, HU-05) |
 | Proxy de Angular a la API | Mismo origen en desarrollo: las cookies funcionan sin configurar CORS |
 | `IDateTimeProvider` | Permite probar el semáforo de caducidad con fechas fijas |

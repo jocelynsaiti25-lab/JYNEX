@@ -10,7 +10,7 @@ salidas FEFO, bitácora de movimientos y exportación a Excel.
 | Frontend | Angular 20 (componentes standalone, signals) |
 | Backend | .NET 10 / ASP.NET Core (C#) |
 | Arquitectura | Clean Architecture + CQRS (MediatR) + vertical slices |
-| Validaciones | Clases `XxxValidator` propias (un `if` por regla) |
+| Validaciones | Clases `IValidator<T>` propias (un `if` por regla), ejecutadas por MediatR |
 | Base de datos | Por definir (EF Core, migraciones) |
 | Pruebas | xUnit |
 
@@ -25,8 +25,10 @@ etbotfarma-web/
 │  ├─ src/
 │  │  ├─ EtbotFarma.Domain/           Entidades y reglas de negocio
 │  │  ├─ EtbotFarma.Application/      Casos de uso (CQRS) y validadores
-│  │  │  ├─ Common/                   Behaviors, interfaces, ICommand/IQuery
-│  │  │  └─ Features/                 Una carpeta por módulo / historia
+│  │  │  ├─ Common/                   ValidationBehavior, IValidator, interfaces
+│  │  │  ├─ Commands/ Queries/        Por tipo, con una subcarpeta por historia
+│  │  │  ├─ Validators/ Handlers/     (ej.: Handlers/InicioSesion/)
+│  │  │  └─ Dtos/
 │  │  ├─ EtbotFarma.Infrastructure/   BD, servicios técnicos
 │  │  └─ EtbotFarma.Api/              Controladores y manejo de errores
 │  └─ tests/                          Pruebas unitarias
@@ -81,17 +83,19 @@ Abre `http://localhost:4200`. Si ves "API conectada", todo funciona.
 
 ## Cómo agregar una historia de usuario
 
-1. Crear la carpeta `backend/src/EtbotFarma.Application/Features/<Modulo>/HU<NN>_<CasoDeUso>/`.
-2. Agregar `Command` o `Query`, `Handler`, `Validator` y `Dto` (copiar el ejemplo `Sesiones/HU01_IniciarSesion`).
-3. Las reglas de negocio van en las entidades de `Domain`.
-4. Exponer el endpoint en un controlador de `Api/Controllers` (solo llama `Sender.Send(...)`).
-5. Crear la pantalla en `frontend/src/app/features/<modulo>/`.
-6. Escribir pruebas en `backend/tests/`.
+Las reglas completas están en [`CLAUDE.md`](CLAUDE.md). En resumen (copiar HU-01 como molde):
+
+1. Buscar el nombre de carpeta de la historia en `backend/src/EtbotFarma.Application/README.md` (ej.: HU-02 → `CierreSesion`).
+2. Crear en Application: `Commands/<Historia>/`, `Validators/<Historia>/`, `Handlers/<Historia>/`, `Dtos/<Historia>/`.
+3. Las reglas de negocio van en las entidades de `Domain/Entities/`.
+4. Crear `Api/Controllers/<Historia>Controller.cs` y `Api/Contracts/<Historia>/` (el controller solo llama `Sender.Send(...)`).
+5. Crear la pantalla en `frontend/src/app/features/<historia-en-kebab>/`.
+6. Escribir pruebas en `backend/tests/` (`Handlers/<Historia>/`, `Validators/<Historia>/`).
 
 ## Flujo de trabajo en Git
 
 - `main`: versión estable.
 - `develop`: integración.
-- `feature/HU-01-inicio-sesion`: una rama por historia, con Pull Request hacia `develop`.
+- `feature/<historia>` (ej.: `feature/cierre-sesion`): una rama por historia, con Pull Request hacia `develop`.
 
 Mensajes de commit sugeridos: `feat(HU-01): ...`, `fix(HU-02): ...`, `docs: ...`, `test: ...`.
