@@ -10,7 +10,7 @@ salidas FEFO, bitácora de movimientos y exportación a Excel.
 | Frontend | Angular 20 (componentes standalone, signals) |
 | Backend | .NET 10 / ASP.NET Core (C#) |
 | Arquitectura | Clean Architecture + CQRS (MediatR) + vertical slices |
-| Validaciones | FluentValidation |
+| Validaciones | Clases `XxxValidator` propias (un `if` por regla) |
 | Base de datos | Por definir (EF Core, migraciones) |
 | Pruebas | xUnit |
 

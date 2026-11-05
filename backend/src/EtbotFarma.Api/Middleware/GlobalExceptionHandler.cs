@@ -1,5 +1,5 @@
+using EtbotFarma.Application.Common.Exceptions;
 using EtbotFarma.Domain.Common;
-using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,9 +8,9 @@ namespace EtbotFarma.Api.Middleware;
 /// <summary>
 /// Atrapa todas las excepciones en un solo lugar y las convierte en respuestas HTTP claras.
 /// Así los controladores no necesitan try/catch.
-///   ValidationException (FluentValidation) → 400 con la lista de errores por campo
-///   DomainException (regla de negocio)     → 422 con el mensaje
-///   Cualquier otra                         → 500 sin mostrar detalles internos
+///   ValidacionException (datos incorrectos) → 400 con la lista de errores
+///   DomainException (regla de negocio)      → 422 con el mensaje
+///   Cualquier otra                          → 500 sin mostrar detalles internos
 /// </summary>
 public sealed class GlobalExceptionHandler(
     IProblemDetailsService problemDetailsService,
@@ -21,34 +21,35 @@ public sealed class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
-        ProblemDetails problem = exception switch
+        ProblemDetails problem;
+
+        if (exception is ValidacionException ve)
         {
-            ValidationException ve => new ValidationProblemDetails(
-                ve.Errors
-                    .GroupBy(e => e.PropertyName)
-                    .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray()))
+            problem = new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
-                Title = "Error de validación"
-            },
-
-            DomainException de => new ProblemDetails
+                Title = "Error de validación",
+                Detail = ve.Message
+            };
+            problem.Extensions["errores"] = ve.Errores;
+        }
+        else if (exception is DomainException de)
+        {
+            problem = new ProblemDetails
             {
                 Status = StatusCodes.Status422UnprocessableEntity,
                 Title = "Regla de negocio no cumplida",
                 Detail = de.Message
-            },
-
-            _ => new ProblemDetails
+            };
+        }
+        else
+        {
+            logger.LogError(exception, "Error no controlado");
+            problem = new ProblemDetails
             {
                 Status = StatusCodes.Status500InternalServerError,
                 Title = "Ocurrió un error inesperado"
-            }
-        };
-
-        if (problem.Status == StatusCodes.Status500InternalServerError)
-        {
-            logger.LogError(exception, "Error no controlado");
+            };
         }
 
         httpContext.Response.StatusCode = problem.Status!.Value;

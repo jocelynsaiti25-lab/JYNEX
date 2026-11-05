@@ -4,5 +4,25 @@
 GET {{Api}}/api/sistema/estado
 Accept: application/json
 
+### EJEMPLO ProductoValidator: datos CORRECTOS → 200
+POST {{Api}}/api/ejemplo/producto
+Content-Type: application/json
+
+{
+  "nombre": "Paracetamol 500 mg",
+  "precio": 35.50,
+  "cantidad": 10
+}
+
+### EJEMPLO ProductoValidator: datos INCORRECTOS → 400 con la lista de errores
+POST {{Api}}/api/ejemplo/producto
+Content-Type: application/json
+
+{
+  "nombre": "",
+  "precio": 0,
+  "cantidad": -5
+}
+
 ### Documento OpenAPI
 GET {{Api}}/openapi/v1.json

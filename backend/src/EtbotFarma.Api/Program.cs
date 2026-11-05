@@ -15,7 +15,7 @@ public class Program
 
         // ---------- 1. Registrar servicios ----------
         builder.Services
-            .AddApplication()                              // CQRS + FluentValidation
+            .AddApplication()                              // CQRS (commands y queries)
             .AddInfrastructure(builder.Configuration);     // BD, servicios técnicos
 
         builder.Services.AddControllers();
