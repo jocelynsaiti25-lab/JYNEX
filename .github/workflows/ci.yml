@@ -157,7 +157,7 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Pruebas de HU-01 en el navegador
         working-directory: frontend
-        run: node e2e/hu01-login.mjs
+        run: node e2e/hu01-iniciar-sesion.mjs
       - name: Guardar capturas de pantalla
         if: always()
         uses: actions/upload-artifact@v4

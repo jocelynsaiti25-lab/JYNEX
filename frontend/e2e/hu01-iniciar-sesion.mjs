@@ -24,7 +24,7 @@ const pagina = await navegador.newPage({ viewport: { width: 1000, height: 700 } 
 // 1. Sin sesión, una pantalla protegida manda al login (criterio 5)
 await pagina.goto(`${URL}/inicio`);
 await pagina.waitForURL('**/iniciar-sesion**');
-revisar('Sin sesión, /inicio redirige a /iniciar-sesion', pagina.url().includes('/login'));
+revisar('Sin sesión, /inicio redirige a /iniciar-sesion', pagina.url().includes('/iniciar-sesion'));
 await pagina.screenshot({ path: `${CARPETA}/1-login.png` });
 
 // 2. Campos obligatorios (criterio 1)
@@ -76,7 +76,7 @@ revisar('Con sesión, /iniciar-sesion redirige a /inicio', pagina.url().includes
 execSync(`mysql -h127.0.0.1 -uroot -proot etbotfarma -e "UPDATE sesion SET ultima_actividad = UTC_TIMESTAMP() - INTERVAL 30 MINUTE"`);
 await pagina.goto(`${URL}/inicio`);
 await pagina.waitForURL('**/iniciar-sesion**');
-revisar('Sesión expirada: regresa a iniciar sesión', pagina.url().includes('/login'));
+revisar('Sesión expirada: regresa a iniciar sesión', pagina.url().includes('/iniciar-sesion'));
 await pagina.getByText('Tu sesión expiró por inactividad').waitFor({ timeout: 10000 });
 revisar('Sesión expirada: muestra "Tu sesión expiró por inactividad"', true);
 await pagina.screenshot({ path: `${CARPETA}/5-sesion-expirada.png` });
