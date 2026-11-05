@@ -15,6 +15,9 @@
     <!-- Proveedor de MySQL para Entity Framework Core.
          Pomelo 9.0.0 usa EF Core 9 (funciona en .NET 10; todavía no hay versión para EF Core 10). -->
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
+    <!-- Seguridad: Pomelo trae MySqlConnector 2.4.0, que tiene la vulnerabilidad GHSA-473q-m89c-ghf8.
+         Se fuerza una versión corregida (2.6.1 o superior). -->
+    <PackageReference Include="MySqlConnector" Version="2.6.2" />
   </ItemGroup>
 
   <ItemGroup>

@@ -4,11 +4,12 @@ import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import { credencialesInterceptor } from './core/interceptors/credenciales.interceptor';
+import { sesionExpiradaInterceptor } from './core/interceptors/sesion-expirada.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([credencialesInterceptor])),
+    provideHttpClient(withInterceptors([credencialesInterceptor, sesionExpiradaInterceptor])),
   ],
 };

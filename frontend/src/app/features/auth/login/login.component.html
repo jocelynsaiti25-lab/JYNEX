@@ -1,0 +1,42 @@
+<section class="login">
+  <form class="tarjeta" [formGroup]="formulario" (ngSubmit)="iniciarSesion()" novalidate>
+    <h1>Iniciar sesión</h1>
+    <p class="subtitulo">ETBOTFARMA WEB</p>
+
+    @if (sesionExpirada) {
+      <p class="alerta aviso" role="status">Tu sesión expiró por inactividad. Vuelve a iniciar sesión.</p>
+    }
+
+    @if (mensajeError(); as mensaje) {
+      <p class="alerta error" role="alert">{{ mensaje }}</p>
+    }
+
+    <label for="nombreUsuario">Nombre de usuario</label>
+    <input
+      id="nombreUsuario"
+      type="text"
+      formControlName="nombreUsuario"
+      autocomplete="username"
+      [class.invalido]="campoInvalido('nombreUsuario')"
+    />
+    @if (campoInvalido('nombreUsuario')) {
+      <small class="texto-error">El nombre de usuario es obligatorio.</small>
+    }
+
+    <label for="contrasenia">Contraseña</label>
+    <input
+      id="contrasenia"
+      type="password"
+      formControlName="contrasenia"
+      autocomplete="current-password"
+      [class.invalido]="campoInvalido('contrasenia')"
+    />
+    @if (campoInvalido('contrasenia')) {
+      <small class="texto-error">La contraseña es obligatoria.</small>
+    }
+
+    <button type="submit" [disabled]="enviando()">
+      {{ enviando() ? 'Entrando...' : 'Entrar' }}
+    </button>
+  </form>
+</section>
