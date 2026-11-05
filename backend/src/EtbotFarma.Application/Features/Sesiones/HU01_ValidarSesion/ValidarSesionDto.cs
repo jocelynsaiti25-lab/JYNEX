@@ -1,7 +1,7 @@
-namespace EtbotFarma.Application.Features.Auth.ValidarSesion;
+namespace EtbotFarma.Application.Features.Sesiones.HU01_ValidarSesion;
 
 /// <summary>Datos del usuario dueño de una sesión vigente.</summary>
-public sealed record UsuarioSesionDto(
+public sealed record ValidarSesionDto(
     int IdUsuario,
     string NombreUsuario,
     string NombreCompleto,

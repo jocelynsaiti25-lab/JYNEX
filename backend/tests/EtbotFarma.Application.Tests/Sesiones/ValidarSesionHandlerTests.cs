@@ -1,8 +1,8 @@
 using EtbotFarma.Application.Common.Configuracion;
-using EtbotFarma.Application.Features.Auth.ValidarSesion;
+using EtbotFarma.Application.Features.Sesiones.HU01_ValidarSesion;
 using EtbotFarma.Domain.Entities;
 
-namespace EtbotFarma.Application.Tests.Auth;
+namespace EtbotFarma.Application.Tests.Sesiones;
 
 /// <summary>Pruebas de HU-01: validar la sesión en cada petición.</summary>
 public class ValidarSesionHandlerTests

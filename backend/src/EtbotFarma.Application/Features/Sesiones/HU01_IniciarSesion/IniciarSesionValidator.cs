@@ -1,4 +1,4 @@
-namespace EtbotFarma.Application.Features.Auth.IniciarSesion;
+namespace EtbotFarma.Application.Features.Sesiones.HU01_IniciarSesion;
 
 /// <summary>
 /// HU-01 criterio 1: nombre de usuario y contraseña son obligatorios.

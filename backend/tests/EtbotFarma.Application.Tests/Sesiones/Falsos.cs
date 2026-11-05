@@ -2,7 +2,7 @@ using EtbotFarma.Application.Common.Interfaces;
 using EtbotFarma.Application.Common.Interfaces.Repositorios;
 using EtbotFarma.Domain.Entities;
 
-namespace EtbotFarma.Application.Tests.Auth;
+namespace EtbotFarma.Application.Tests.Sesiones;
 
 // =====================================================================
 // Implementaciones FALSAS de las interfaces, solo para pruebas.

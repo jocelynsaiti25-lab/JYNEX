@@ -22,9 +22,9 @@ definidas en Application (principio de inversión de dependencias).
 
 ## Flujo de una petición
 
-1. Angular llama `POST /api/ejemplo/producto`.
-2. `EjemploController` envía el command `Producto` con MediatR.
-3. `ProductoHandler` llama a `ProductoValidator.Validar(...)`.
+1. Angular llama `POST /api/sesiones/iniciar` (HU-01).
+2. `SesionesController` envía `IniciarSesionCommand` con MediatR.
+3. `IniciarSesionHandler` llama a `IniciarSesionValidator.Validar(...)`.
    Si hay errores lanza `ValidacionException` → HTTP 400 con la lista de errores.
 4. Si no hay errores, ejecuta la lógica del caso de uso y devuelve el resultado.
 5. Si se lanza `DomainException` → HTTP 422. Cualquier otro error → HTTP 500.

@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 
 import { EstadoSistema } from '../../core/models/estado-sistema.model';
-import { AuthService } from '../../core/services/auth.service';
+import { SesionService } from '../../core/services/sesion.service';
 import { SistemaService } from '../../core/services/sistema.service';
 
 /**
@@ -13,7 +13,7 @@ import { SistemaService } from '../../core/services/sistema.service';
   selector: 'app-inicio',
   imports: [DatePipe],
   template: `
-    @if (auth.usuario(); as usuario) {
+    @if (sesion.usuario(); as usuario) {
       <h1>Hola, {{ usuario.nombreCompleto }}</h1>
       <p>Rol: {{ usuario.rol }}</p>
     }
@@ -36,7 +36,7 @@ import { SistemaService } from '../../core/services/sistema.service';
 })
 export class InicioComponent implements OnInit {
   private readonly sistemaService = inject(SistemaService);
-  readonly auth = inject(AuthService);
+  readonly sesion = inject(SesionService);
 
   readonly estado = signal<EstadoSistema | null>(null);
   readonly error = signal<string | null>(null);

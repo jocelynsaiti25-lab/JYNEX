@@ -2,24 +2,24 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { map } from 'rxjs';
 
-import { AuthService } from '../services/auth.service';
+import { SesionService } from '../services/sesion.service';
 
 /**
  * HU-01 criterio 5: solo deja entrar a las pantallas protegidas si hay sesión válida.
  * Si no la hay, manda al inicio de sesión. Si antes había sesión, avisa que expiró.
  */
-export const authGuard: CanActivateFn = () => {
-  const auth = inject(AuthService);
+export const sesionGuard: CanActivateFn = () => {
+  const sesion = inject(SesionService);
   const router = inject(Router);
-  const habiaSesion = auth.habiaSesion();
+  const habiaSesion = sesion.habiaSesion();
 
-  return auth.verificarSesion().pipe(
+  return sesion.verificarSesion().pipe(
     map((sesionValida) => {
       if (sesionValida) {
         return true;
       }
-      auth.limpiarSesion();
-      return router.createUrlTree(['/login'], {
+      sesion.limpiarSesion();
+      return router.createUrlTree(['/iniciar-sesion'], {
         queryParams: habiaSesion ? { expirada: 1 } : {},
       });
     }),
@@ -28,10 +28,10 @@ export const authGuard: CanActivateFn = () => {
 
 /** Si el usuario ya tiene sesión, no tiene sentido mostrarle el login: va directo al inicio. */
 export const invitadoGuard: CanActivateFn = () => {
-  const auth = inject(AuthService);
+  const sesion = inject(SesionService);
   const router = inject(Router);
 
-  return auth
+  return sesion
     .verificarSesion()
     .pipe(map((sesionValida) => (sesionValida ? router.createUrlTree(['/inicio']) : true)));
 };

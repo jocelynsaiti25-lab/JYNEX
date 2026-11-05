@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
-using EtbotFarma.Application.Features.Auth.ValidarSesion;
+using EtbotFarma.Application.Features.Sesiones.HU01_ValidarSesion;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;

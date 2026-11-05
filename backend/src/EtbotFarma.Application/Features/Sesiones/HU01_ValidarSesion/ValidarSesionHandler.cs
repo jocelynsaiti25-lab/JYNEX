@@ -3,7 +3,7 @@ using EtbotFarma.Application.Common.Interfaces;
 using EtbotFarma.Application.Common.Interfaces.Repositorios;
 using EtbotFarma.Application.Common.Messaging;
 
-namespace EtbotFarma.Application.Features.Auth.ValidarSesion;
+namespace EtbotFarma.Application.Features.Sesiones.HU01_ValidarSesion;
 
 /// <summary>
 /// HU-01: valida la sesión de la cookie. Solo coordina; las reglas
@@ -14,9 +14,9 @@ public sealed class ValidarSesionHandler(
     ITokenSesionService tokenService,
     IUnitOfWork unitOfWork,
     IDateTimeProvider reloj,
-    ConfiguracionSesion configuracion) : ICommandHandler<ValidarSesionCommand, UsuarioSesionDto?>
+    ConfiguracionSesion configuracion) : ICommandHandler<ValidarSesionCommand, ValidarSesionDto?>
 {
-    public async Task<UsuarioSesionDto?> Handle(ValidarSesionCommand command, CancellationToken cancellationToken)
+    public async Task<ValidarSesionDto?> Handle(ValidarSesionCommand command, CancellationToken cancellationToken)
     {
         // 1. Sin token no hay sesión
         if (string.IsNullOrWhiteSpace(command.Token))
@@ -45,7 +45,7 @@ public sealed class ValidarSesionHandler(
         sesion.RegistrarActividad(ahora);
         await unitOfWork.GuardarCambiosAsync(cancellationToken);
 
-        return new UsuarioSesionDto(
+        return new ValidarSesionDto(
             sesion.Usuario.Id,
             sesion.Usuario.NombreUsuario,
             sesion.Usuario.NombreCompleto,

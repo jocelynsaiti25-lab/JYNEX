@@ -1,7 +1,7 @@
-namespace EtbotFarma.Api.Contracts.Auth;
+namespace EtbotFarma.Api.Contracts.Sesiones;
 
 /// <summary>
-/// CONTRATO de entrada (JSON) para POST api/auth/iniciar-sesion.
+/// CONTRATO de entrada (JSON) para POST api/sesiones/iniciar.
 /// Ejemplo:
 /// {
 ///   "nombreUsuario": "admin",

@@ -81,8 +81,8 @@ Abre `http://localhost:4200`. Si ves "API conectada", todo funciona.
 
 ## Cómo agregar una historia de usuario
 
-1. Crear la carpeta `backend/src/EtbotFarma.Application/Features/<Modulo>/<CasoDeUso>/`.
-2. Agregar `Command` o `Query`, `Handler`, `Validator` y `Dto` (copiar el ejemplo `Sistema/ObtenerEstado`).
+1. Crear la carpeta `backend/src/EtbotFarma.Application/Features/<Modulo>/HU<NN>_<CasoDeUso>/`.
+2. Agregar `Command` o `Query`, `Handler`, `Validator` y `Dto` (copiar el ejemplo `Sesiones/HU01_IniciarSesion`).
 3. Las reglas de negocio van en las entidades de `Domain`.
 4. Exponer el endpoint en un controlador de `Api/Controllers` (solo llama `Sender.Send(...)`).
 5. Crear la pantalla en `frontend/src/app/features/<modulo>/`.

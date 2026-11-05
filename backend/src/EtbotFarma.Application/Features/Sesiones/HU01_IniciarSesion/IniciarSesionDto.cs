@@ -1,10 +1,10 @@
-namespace EtbotFarma.Application.Features.Auth.IniciarSesion;
+namespace EtbotFarma.Application.Features.Sesiones.HU01_IniciarSesion;
 
 /// <summary>
 /// Resultado de iniciar sesión.
 /// Token es el valor que la API guarda en la cookie; nunca se envía en el JSON.
 /// </summary>
-public sealed record SesionIniciadaDto(
+public sealed record IniciarSesionDto(
     string Token,
     int IdUsuario,
     string NombreUsuario,

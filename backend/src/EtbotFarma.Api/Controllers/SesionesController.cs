@@ -1,28 +1,28 @@
 using System.Security.Claims;
-using EtbotFarma.Api.Contracts.Auth;
+using EtbotFarma.Api.Contracts.Sesiones;
 using EtbotFarma.Api.Seguridad;
-using EtbotFarma.Application.Features.Auth.IniciarSesion;
+using EtbotFarma.Application.Features.Sesiones.HU01_IniciarSesion;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EtbotFarma.Api.Controllers;
 
 /// <summary>
-/// HU-01: autenticación.
+/// HU-01: autenticación e inicio de sesión.
 /// El controller solo: recibe el contrato JSON → envía el command → devuelve la respuesta.
 /// No tiene lógica de negocio ni acceso a la base de datos.
 /// </summary>
-public sealed class AuthController : ApiControllerBase
+public sealed class SesionesController : ApiControllerBase
 {
     /// <summary>
-    /// POST api/auth/iniciar-sesion
+    /// POST api/sesiones/iniciar
     ///   200 → sesión creada (cookie + datos del usuario)
     ///   400 → faltan datos
     ///   401 → usuario o contraseña incorrectos (mensaje genérico)
     /// </summary>
     [AllowAnonymous]
-    [HttpPost("iniciar-sesion")]
-    public async Task<ActionResult<SesionUsuarioResponse>> IniciarSesion(
+    [HttpPost("iniciar")]
+    public async Task<ActionResult<IniciarSesionResponse>> IniciarSesion(
         [FromBody] IniciarSesionRequest request,
         CancellationToken cancellationToken)
     {
@@ -32,17 +32,17 @@ public sealed class AuthController : ApiControllerBase
 
         CookieSesion.Escribir(Response, sesion.Token);
 
-        return Ok(new SesionUsuarioResponse(sesion.IdUsuario, sesion.NombreUsuario, sesion.NombreCompleto, sesion.Rol));
+        return Ok(new IniciarSesionResponse(sesion.IdUsuario, sesion.NombreUsuario, sesion.NombreCompleto, sesion.Rol));
     }
 
     /// <summary>
-    /// GET api/auth/sesion → datos del usuario con sesión activa.
+    /// GET api/sesiones/actual → datos del usuario con sesión activa.
     /// Angular lo usa para saber si hay sesión (401 si no la hay o expiró).
     /// </summary>
-    [HttpGet("sesion")]
-    public ActionResult<SesionUsuarioResponse> ObtenerSesion()
+    [HttpGet("actual")]
+    public ActionResult<IniciarSesionResponse> ObtenerSesionActual()
     {
-        return Ok(new SesionUsuarioResponse(
+        return Ok(new IniciarSesionResponse(
             int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!),
             User.FindFirstValue(ClaimTypes.Name)!,
             User.FindFirstValue(SesionAuthenticationHandler.ClaimNombreCompleto)!,

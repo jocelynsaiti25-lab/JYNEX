@@ -23,8 +23,8 @@ const pagina = await navegador.newPage({ viewport: { width: 1000, height: 700 } 
 
 // 1. Sin sesión, una pantalla protegida manda al login (criterio 5)
 await pagina.goto(`${URL}/inicio`);
-await pagina.waitForURL('**/login**');
-revisar('Sin sesión, /inicio redirige a /login', pagina.url().includes('/login'));
+await pagina.waitForURL('**/iniciar-sesion**');
+revisar('Sin sesión, /inicio redirige a /iniciar-sesion', pagina.url().includes('/login'));
 await pagina.screenshot({ path: `${CARPETA}/1-login.png` });
 
 // 2. Campos obligatorios (criterio 1)
@@ -68,15 +68,15 @@ await pagina.getByText('Hola, Administrador del Sistema').waitFor({ timeout: 100
 revisar('Al recargar, la sesión se conserva', pagina.url().includes('/inicio'));
 
 // 7. Si ya hay sesión, /login manda al inicio
-await pagina.goto(`${URL}/login`);
+await pagina.goto(`${URL}/iniciar-sesion`);
 await pagina.waitForURL('**/inicio');
-revisar('Con sesión, /login redirige a /inicio', pagina.url().includes('/inicio'));
+revisar('Con sesión, /iniciar-sesion redirige a /inicio', pagina.url().includes('/inicio'));
 
 // 8. Sesión expirada por inactividad (criterio 6): se simulan 30 minutos sin actividad
 execSync(`mysql -h127.0.0.1 -uroot -proot etbotfarma -e "UPDATE sesion SET ultima_actividad = UTC_TIMESTAMP() - INTERVAL 30 MINUTE"`);
 await pagina.goto(`${URL}/inicio`);
-await pagina.waitForURL('**/login**');
-revisar('Sesión expirada: regresa al login', pagina.url().includes('/login'));
+await pagina.waitForURL('**/iniciar-sesion**');
+revisar('Sesión expirada: regresa a iniciar sesión', pagina.url().includes('/login'));
 await pagina.getByText('Tu sesión expiró por inactividad').waitFor({ timeout: 10000 });
 revisar('Sesión expirada: muestra "Tu sesión expiró por inactividad"', true);
 await pagina.screenshot({ path: `${CARPETA}/5-sesion-expirada.png` });

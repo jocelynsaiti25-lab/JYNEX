@@ -3,7 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { AuthService } from '../../../core/services/auth.service';
+import { SesionService } from '../../../core/services/sesion.service';
 
 /**
  * HU-01: pantalla de inicio de sesión.
@@ -13,14 +13,14 @@ import { AuthService } from '../../../core/services/auth.service';
  *   Alerta de sesión expirada cuando se llega aquí con ?expirada=1.
  */
 @Component({
-  selector: 'app-login',
+  selector: 'app-iniciar-sesion',
   imports: [ReactiveFormsModule],
-  templateUrl: './login.component.html',
-  styleUrl: './login.component.scss',
+  templateUrl: './iniciar-sesion.component.html',
+  styleUrl: './iniciar-sesion.component.scss',
 })
-export class LoginComponent {
+export class IniciarSesionComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly auth = inject(AuthService);
+  private readonly sesion = inject(SesionService);
   private readonly router = inject(Router);
 
   readonly formulario = this.fb.nonNullable.group({
@@ -41,7 +41,7 @@ export class LoginComponent {
     this.enviando.set(true);
     this.mensajeError.set(null);
 
-    this.auth.iniciarSesion(this.formulario.getRawValue()).subscribe({
+    this.sesion.iniciarSesion(this.formulario.getRawValue()).subscribe({
       next: () => this.router.navigate(['/inicio']),
       error: (error: HttpErrorResponse) => {
         this.enviando.set(false);

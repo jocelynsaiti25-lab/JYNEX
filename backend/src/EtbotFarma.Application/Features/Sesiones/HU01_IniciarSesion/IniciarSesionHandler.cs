@@ -4,7 +4,7 @@ using EtbotFarma.Application.Common.Interfaces.Repositorios;
 using EtbotFarma.Application.Common.Messaging;
 using EtbotFarma.Domain.Entities;
 
-namespace EtbotFarma.Application.Features.Auth.IniciarSesion;
+namespace EtbotFarma.Application.Features.Sesiones.HU01_IniciarSesion;
 
 /// <summary>
 /// HU-01: inicia la sesión de un usuario.
@@ -17,11 +17,11 @@ public sealed class IniciarSesionHandler(
     IPasswordHasher passwordHasher,
     ITokenSesionService tokenService,
     IUnitOfWork unitOfWork,
-    IDateTimeProvider reloj) : ICommandHandler<IniciarSesionCommand, SesionIniciadaDto>
+    IDateTimeProvider reloj) : ICommandHandler<IniciarSesionCommand, IniciarSesionDto>
 {
     private readonly IniciarSesionValidator _validator = new();
 
-    public async Task<SesionIniciadaDto> Handle(IniciarSesionCommand command, CancellationToken cancellationToken)
+    public async Task<IniciarSesionDto> Handle(IniciarSesionCommand command, CancellationToken cancellationToken)
     {
         // 1. Validar los datos recibidos
         var errores = _validator.Validar(command);
@@ -50,7 +50,7 @@ public sealed class IniciarSesionHandler(
         await unitOfWork.GuardarCambiosAsync(cancellationToken);
 
         // 5. Devolver el resultado
-        return new SesionIniciadaDto(
+        return new IniciarSesionDto(
             token,
             usuario.Id,
             usuario.NombreUsuario,

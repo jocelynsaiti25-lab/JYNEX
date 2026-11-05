@@ -1,5 +1,5 @@
-/** Debe coincidir con SesionUsuarioResponse del backend. */
-export interface SesionUsuario {
+/** Debe coincidir con IniciarSesionResponse del backend. */
+export interface IniciarSesionResponse {
   idUsuario: number;
   nombreUsuario: string;
   nombreCompleto: string;

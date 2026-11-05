@@ -3,7 +3,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Observable, catchError, map, of, tap } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { IniciarSesionRequest, SesionUsuario } from '../models/sesion-usuario.model';
+import { IniciarSesionRequest, IniciarSesionResponse } from '../models/sesion.model';
 
 /** Marca (sin datos sensibles) para saber, aunque se recargue la página, que hubo una sesión. */
 const MARCA_SESION = 'etbotfarma_habia_sesion';
@@ -14,22 +14,22 @@ const MARCA_SESION = 'etbotfarma_habia_sesion';
  * El token NO se guarda aquí: viaja en una cookie HttpOnly que JavaScript no puede leer.
  */
 @Injectable({ providedIn: 'root' })
-export class AuthService {
+export class SesionService {
   private readonly http = inject(HttpClient);
-  private readonly url = `${environment.apiUrl}/auth`;
+  private readonly url = `${environment.apiUrl}/sesiones`;
 
   /** Usuario con sesión activa (null si no hay sesión). */
-  readonly usuario = signal<SesionUsuario | null>(null);
+  readonly usuario = signal<IniciarSesionResponse | null>(null);
 
-  iniciarSesion(datos: IniciarSesionRequest): Observable<SesionUsuario> {
+  iniciarSesion(datos: IniciarSesionRequest): Observable<IniciarSesionResponse> {
     return this.http
-      .post<SesionUsuario>(`${this.url}/iniciar-sesion`, datos)
+      .post<IniciarSesionResponse>(`${this.url}/iniciar`, datos)
       .pipe(tap((usuario) => this.guardarUsuario(usuario)));
   }
 
   /** Pregunta a la API si la cookie sigue siendo válida. Devuelve true o false. */
   verificarSesion(): Observable<boolean> {
-    return this.http.get<SesionUsuario>(`${this.url}/sesion`).pipe(
+    return this.http.get<IniciarSesionResponse>(`${this.url}/actual`).pipe(
       tap((usuario) => this.guardarUsuario(usuario)),
       map(() => true),
       catchError(() => {
@@ -49,7 +49,7 @@ export class AuthService {
     sessionStorage.removeItem(MARCA_SESION);
   }
 
-  private guardarUsuario(usuario: SesionUsuario): void {
+  private guardarUsuario(usuario: IniciarSesionResponse): void {
     this.usuario.set(usuario);
     sessionStorage.setItem(MARCA_SESION, '1');
   }
