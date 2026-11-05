@@ -28,11 +28,18 @@ revisar('Sin sesión, /inicio redirige a /login', pagina.url().includes('/login'
 await pagina.screenshot({ path: `${CARPETA}/1-login.png` });
 
 // 2. Campos obligatorios (criterio 1)
+async function aparece(texto) {
+  try {
+    await pagina.getByText(texto).waitFor({ timeout: 5000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 await pagina.click('button[type=submit]');
-revisar('Muestra "El nombre de usuario es obligatorio."',
-  await pagina.getByText('El nombre de usuario es obligatorio.').isVisible());
-revisar('Muestra "La contraseña es obligatoria."',
-  await pagina.getByText('La contraseña es obligatoria.').isVisible());
+revisar('Muestra "El nombre de usuario es obligatorio."', await aparece('El nombre de usuario es obligatorio.'));
+revisar('Muestra "La contraseña es obligatoria."', await aparece('La contraseña es obligatoria.'));
 await pagina.screenshot({ path: `${CARPETA}/2-campos-obligatorios.png` });
 
 // 3. Contraseña incorrecta: mensaje genérico (criterio 4)
