@@ -1,21 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Infrastructure: detalles técnicos (base de datos, Excel, hash de contraseñas).
+  <!-- Infrastructure: detalles técnicos (base de datos, hash de contraseñas, tokens).
        Implementa las interfaces que define Application. -->
   <PropertyGroup>
     <RootNamespace>EtbotFarma.Infrastructure</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Da acceso a IServiceCollection, IConfiguration, etc. -->
+    <!-- Da acceso a IServiceCollection, IConfiguration y PasswordHasher -->
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
-  <!-- Cuando definamos el motor de base de datos se agregará aquí EF Core, por ejemplo:
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
+    <!-- Proveedor de MySQL para Entity Framework Core.
+         Pomelo 9.0.0 usa EF Core 9 (funciona en .NET 10; todavía no hay versión para EF Core 10). -->
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
+    <!-- Seguridad: Pomelo trae MySqlConnector 2.4.0, que tiene la vulnerabilidad GHSA-473q-m89c-ghf8.
+         Se fuerza una versión corregida (2.6.1 o superior). -->
+    <PackageReference Include="MySqlConnector" Version="2.6.2" />
   </ItemGroup>
-  -->
 
   <ItemGroup>
     <ProjectReference Include="..\EtbotFarma.Application\EtbotFarma.Application.csproj" />

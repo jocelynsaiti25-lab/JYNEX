@@ -1,0 +1,79 @@
+.login {
+  display: flex;
+  justify-content: center;
+  padding-top: 3rem;
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 360px;
+  padding: 2rem;
+  background: #fff;
+  border: 1px solid #d9e2ec;
+  border-radius: 12px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.subtitulo {
+  margin: 0 0 1rem;
+  color: #627d98;
+}
+
+label {
+  margin-top: 0.6rem;
+  font-weight: 500;
+}
+
+input {
+  padding: 0.6rem;
+  font-size: 1rem;
+  border: 1px solid #bcccdc;
+  border-radius: 8px;
+
+  &.invalido {
+    border-color: #a32d2d;
+  }
+}
+
+.texto-error {
+  color: #a32d2d;
+}
+
+.alerta {
+  margin: 0;
+  padding: 0.6rem;
+  border-radius: 8px;
+
+  &.error {
+    color: #791f1f;
+    background: #fcebeb;
+  }
+
+  &.aviso {
+    color: #633806;
+    background: #faeeda;
+  }
+}
+
+button {
+  margin-top: 1.2rem;
+  padding: 0.7rem;
+  font-size: 1rem;
+  color: #fff;
+  background: #0f6e56;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}

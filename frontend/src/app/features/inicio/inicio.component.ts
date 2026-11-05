@@ -2,17 +2,21 @@ import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 
 import { EstadoSistema } from '../../core/models/estado-sistema.model';
+import { AuthService } from '../../core/services/auth.service';
 import { SistemaService } from '../../core/services/sistema.service';
 
 /**
- * Pantalla de inicio temporal: muestra si Angular se conecta con la API.
- * Se reemplazará por el módulo inicial según permisos (HU-01).
+ * Módulo inicial (HU-01 criterio 3). Protegido: solo se ve con sesión activa.
+ * Por ahora es igual para Administrador y Empleado; cada fase le agregará su menú.
  */
 @Component({
   selector: 'app-inicio',
   imports: [DatePipe],
   template: `
-    <h1>Solución base funcionando</h1>
+    @if (auth.usuario(); as usuario) {
+      <h1>Hola, {{ usuario.nombreCompleto }}</h1>
+      <p>Rol: {{ usuario.rol }}</p>
+    }
 
     @if (cargando()) {
       <p>Conectando con la API...</p>
@@ -32,6 +36,7 @@ import { SistemaService } from '../../core/services/sistema.service';
 })
 export class InicioComponent implements OnInit {
   private readonly sistemaService = inject(SistemaService);
+  readonly auth = inject(AuthService);
 
   readonly estado = signal<EstadoSistema | null>(null);
   readonly error = signal<string | null>(null);
