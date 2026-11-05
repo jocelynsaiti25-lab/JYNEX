@@ -1,4 +1,5 @@
-using EtbotFarma.Application.Features.Sistema.ObtenerEstado;
+using EtbotFarma.Application.Dtos.EstadoSistema;
+using EtbotFarma.Application.Queries.EstadoSistema;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

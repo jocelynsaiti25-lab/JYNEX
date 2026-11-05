@@ -13,7 +13,7 @@ export const routes: Routes = [
     path: 'iniciar-sesion',
     canActivate: [invitadoGuard],
     loadComponent: () =>
-      import('./features/sesiones/iniciar-sesion/iniciar-sesion.component').then((m) => m.IniciarSesionComponent),
+      import('./features/inicio-sesion/iniciar-sesion.component').then((m) => m.IniciarSesionComponent),
   },
   {
     path: 'inicio',
