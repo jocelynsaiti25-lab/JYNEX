@@ -71,11 +71,11 @@ CREATE TABLE IF NOT EXISTS usuario (
   CONSTRAINT fk_usuario_rol            FOREIGN KEY (rol_id) REFERENCES rol (id)
                                        ON UPDATE RESTRICT ON DELETE RESTRICT,
   -- HU-03: formato de teléfono (10 dígitos, México) -> confirmar con el equipo
-  CONSTRAINT ck_usuario_telefono       CHECK (telefono REGEXP '^[0-9]{10}$')
-) ENGINE = InnoDB;
+  CONSTRAINT ck_usuario_telefono       CHECK (telefono REGEXP '^[0-9]{10}$'),
 
--- HU-04: búsqueda y listado por nombre
-CREATE INDEX ix_usuario_nombre_completo ON usuario (nombre_completo);
+  -- HU-04: búsqueda y listado por nombre
+  INDEX ix_usuario_nombre_completo (nombre_completo)
+) ENGINE = InnoDB;
 
 
 -- =====================================================================
@@ -101,11 +101,11 @@ CREATE TABLE IF NOT EXISTS sesion (
   CONSTRAINT uq_sesion_token_hash UNIQUE (token_hash),
   CONSTRAINT fk_sesion_usuario    FOREIGN KEY (usuario_id) REFERENCES usuario (id)
                                   ON UPDATE RESTRICT ON DELETE RESTRICT,
-  CONSTRAINT ck_sesion_cierre     CHECK (revocada = FALSE OR fecha_cierre IS NOT NULL)
-) ENGINE = InnoDB;
+  CONSTRAINT ck_sesion_cierre     CHECK (revocada = FALSE OR fecha_cierre IS NOT NULL),
 
--- HU-05: buscar rápido las sesiones abiertas de un usuario para revocarlas
-CREATE INDEX ix_sesion_usuario_revocada ON sesion (usuario_id, revocada);
+  -- HU-05: buscar rápido las sesiones abiertas de un usuario para revocarlas
+  INDEX ix_sesion_usuario_revocada (usuario_id, revocada)
+) ENGINE = InnoDB;
 
 
 -- =====================================================================
@@ -128,12 +128,12 @@ CREATE TABLE IF NOT EXISTS medicamento (
   CONSTRAINT pk_medicamento           PRIMARY KEY (id),
   -- HU-06 criterio 3: regla de NO duplicidad del catálogo -> confirmar con el equipo
   CONSTRAINT uq_medicamento_identidad UNIQUE (nombre_comercial, sustancia_activa, presentacion, concentracion),
-  CONSTRAINT ck_medicamento_stock_min CHECK (stock_minimo >= 0)
-) ENGINE = InnoDB;
+  CONSTRAINT ck_medicamento_stock_min CHECK (stock_minimo >= 0),
 
--- HU-07: búsqueda por sustancia activa (la búsqueda por nombre comercial
--- ya usa el índice único, porque nombre_comercial es su primera columna)
-CREATE INDEX ix_medicamento_sustancia ON medicamento (sustancia_activa);
+  -- HU-07: búsqueda por sustancia activa (la búsqueda por nombre comercial
+  -- ya usa el índice único, porque nombre_comercial es su primera columna)
+  INDEX ix_medicamento_sustancia (sustancia_activa)
+) ENGINE = InnoDB;
 
 
 -- =====================================================================
@@ -161,15 +161,15 @@ CREATE TABLE IF NOT EXISTS lote (
   CONSTRAINT fk_lote_medicamento     FOREIGN KEY (medicamento_id) REFERENCES medicamento (id)
                                      ON UPDATE RESTRICT ON DELETE RESTRICT,
   -- HU-11 criterio 5: nunca existencias negativas
-  CONSTRAINT ck_lote_existencias     CHECK (existencias >= 0)
-) ENGINE = InnoDB;
+  CONSTRAINT ck_lote_existencias     CHECK (existencias >= 0),
 
--- HU-11 / FEFO: lotes de un medicamento ordenados por caducidad (empate por id)
-CREATE INDEX ix_lote_fefo        ON lote (medicamento_id, fecha_caducidad, id);
--- HU-09: filtros del semáforo por rango de fechas
-CREATE INDEX ix_lote_caducidad   ON lote (fecha_caducidad);
--- HU-07: búsqueda por número de lote
-CREATE INDEX ix_lote_numero_lote ON lote (numero_lote);
+  -- HU-11 / FEFO: lotes de un medicamento ordenados por caducidad (empate por id)
+  INDEX ix_lote_fefo (medicamento_id, fecha_caducidad, id),
+  -- HU-09: filtros del semáforo por rango de fechas
+  INDEX ix_lote_caducidad (fecha_caducidad),
+  -- HU-07: búsqueda por número de lote
+  INDEX ix_lote_numero_lote (numero_lote)
+) ENGINE = InnoDB;
 
 
 -- =====================================================================
@@ -194,15 +194,15 @@ CREATE TABLE IF NOT EXISTS movimiento_inventario (
                                        ON UPDATE RESTRICT ON DELETE RESTRICT,
   CONSTRAINT ck_movimiento_cantidad    CHECK (cantidad_total > 0),
   -- HU-12 criterio 3: la baja exige motivo
-  CONSTRAINT ck_movimiento_motivo_baja CHECK (tipo <> 'BAJA' OR (motivo IS NOT NULL AND CHAR_LENGTH(TRIM(motivo)) > 0))
-) ENGINE = InnoDB;
+  CONSTRAINT ck_movimiento_motivo_baja CHECK (tipo <> 'BAJA' OR (motivo IS NOT NULL AND CHAR_LENGTH(TRIM(motivo)) > 0)),
 
--- HU-10 criterio 4 y 5: filtros por fecha, medicamento, usuario y tipo,
--- siempre ordenados del más reciente al más antiguo
-CREATE INDEX ix_movimiento_fecha             ON movimiento_inventario (fecha);
-CREATE INDEX ix_movimiento_medicamento_fecha ON movimiento_inventario (medicamento_id, fecha);
-CREATE INDEX ix_movimiento_usuario_fecha     ON movimiento_inventario (usuario_id, fecha);
-CREATE INDEX ix_movimiento_tipo_fecha        ON movimiento_inventario (tipo, fecha);
+  -- HU-10 criterio 4 y 5: filtros por fecha, medicamento, usuario y tipo,
+  -- siempre ordenados del más reciente al más antiguo
+  INDEX ix_movimiento_fecha (fecha),
+  INDEX ix_movimiento_medicamento_fecha (medicamento_id, fecha),
+  INDEX ix_movimiento_usuario_fecha (usuario_id, fecha),
+  INDEX ix_movimiento_tipo_fecha (tipo, fecha)
+) ENGINE = InnoDB;
 
 
 -- =====================================================================
@@ -225,11 +225,11 @@ CREATE TABLE IF NOT EXISTS movimiento_detalle (
                                          ON UPDATE RESTRICT ON DELETE RESTRICT,
   CONSTRAINT fk_detalle_lote             FOREIGN KEY (lote_id) REFERENCES lote (id)
                                          ON UPDATE RESTRICT ON DELETE RESTRICT,
-  CONSTRAINT ck_detalle_cantidad         CHECK (cantidad > 0)
-) ENGINE = InnoDB;
+  CONSTRAINT ck_detalle_cantidad         CHECK (cantidad > 0),
 
--- Historial de un lote (bitácora por lote)
-CREATE INDEX ix_detalle_lote ON movimiento_detalle (lote_id);
+  -- Historial de un lote (bitácora por lote)
+  INDEX ix_detalle_lote (lote_id)
+) ENGINE = InnoDB;
 
 
 -- =====================================================================
@@ -253,12 +253,12 @@ CREATE TABLE IF NOT EXISTS auditoria (
 
   CONSTRAINT pk_auditoria         PRIMARY KEY (id),
   CONSTRAINT fk_auditoria_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id)
-                                  ON UPDATE RESTRICT ON DELETE RESTRICT
-) ENGINE = InnoDB;
+                                  ON UPDATE RESTRICT ON DELETE RESTRICT,
 
-CREATE INDEX ix_auditoria_entidad       ON auditoria (entidad, entidad_id, fecha);
-CREATE INDEX ix_auditoria_usuario_fecha ON auditoria (usuario_id, fecha);
-CREATE INDEX ix_auditoria_fecha         ON auditoria (fecha);
+  INDEX ix_auditoria_entidad (entidad, entidad_id, fecha),
+  INDEX ix_auditoria_usuario_fecha (usuario_id, fecha),
+  INDEX ix_auditoria_fecha (fecha)
+) ENGINE = InnoDB;
 
 
 -- =====================================================================
