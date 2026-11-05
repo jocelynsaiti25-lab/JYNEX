@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, 'feature/**']
   pull_request:
     branches: [main, develop]
 
@@ -35,3 +35,31 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npm run build
+
+  database:
+    name: Base de datos (MySQL 8)
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Crear la base de datos
+        run: mysql -h127.0.0.1 -uroot -proot < database/etbotfarma_mysql.sql
+      - name: Ejecutar el script otra vez (debe poder repetirse sin errores)
+        run: mysql -h127.0.0.1 -uroot -proot < database/etbotfarma_mysql.sql
+      - name: Datos de prueba y verificaciones
+        run: |
+          mysql -h127.0.0.1 -uroot -proot -N < database/pruebas/datos_prueba.sql | tee resultado.txt
+          ! grep -q "FALLA" resultado.txt
+      - name: Reglas que deben ser rechazadas
+        run: bash database/pruebas/reglas_que_deben_fallar.sh
