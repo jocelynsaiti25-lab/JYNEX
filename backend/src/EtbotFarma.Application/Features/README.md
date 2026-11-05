@@ -14,11 +14,11 @@ Features/
 
 | Módulo        | Historias                          |
 |---------------|------------------------------------|
-| Auth          | HU-01, HU-02                       |
-| Usuarios      | HU-03, HU-04, HU-05                |
-| Medicamentos  | HU-06, HU-08, HU-13                |
-| Inventario    | HU-07, HU-09, HU-11, HU-12, HU-14  |
-| Bitacora      | HU-10, HU-15                       |
+| Auth          | HU-01, HU-02                              |
+| Usuarios      | HU-03, HU-04, HU-05                       |
+| Medicamentos  | HU-06, HU-09, HU-11                       |
+| Inventario    | HU-07, HU-08, HU-10, HU-12, HU-13, HU-14  |
+| Bitacora      | HU-15, HU-16                              |
 
 ## Ejemplos para aprender
 

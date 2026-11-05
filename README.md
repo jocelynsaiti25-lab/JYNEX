@@ -49,6 +49,14 @@ etbotfarma-web/
 
 ## Cómo ejecutar
 
+**0. Base de datos y configuración local** (solo la primera vez)
+
+1. Crea la base en MySQL 8 con `database/etbotfarma_mysql.sql` (ver `database/README.md`).
+2. En `backend/src/EtbotFarma.Api/`, copia `appsettings.Local.example.json` como
+   **`appsettings.Local.json`** y escribe tu contraseña de MySQL y la contraseña que tendrá el usuario `admin`.
+   Ese archivo **no se sube a GitHub** (está en `.gitignore`).
+3. Al arrancar la API por primera vez se crea el usuario `admin` con esa contraseña.
+
 **1. Backend** (terminal 1)
 
 ```bash
