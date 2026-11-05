@@ -1,4 +1,5 @@
 using EtbotFarma.Application.Features.Ejemplo;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EtbotFarma.Api.Controllers;
@@ -7,6 +8,7 @@ namespace EtbotFarma.Api.Controllers;
 /// EJEMPLO DE APRENDIZAJE: endpoint para probar ProductoValidator.
 /// Pruébalo con el archivo EtbotFarma.Api.http.
 /// </summary>
+[AllowAnonymous]
 public sealed class EjemploController : ApiControllerBase
 {
     /// <summary>

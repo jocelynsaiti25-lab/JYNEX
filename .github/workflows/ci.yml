@@ -63,3 +63,46 @@ jobs:
           ! grep -q "FALLA" resultado.txt
       - name: Reglas que deben ser rechazadas
         run: bash database/pruebas/reglas_que_deben_fallar.sh
+
+  e2e:
+    name: Punta a punta (API + MySQL)
+    runs-on: ubuntu-latest
+    needs: backend
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__EtbotFarma: "Server=127.0.0.1;Port=3306;Database=etbotfarma;User=root;Password=root;"
+      AdministradorInicial__Contrasenia: "Prueba123!"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Crear la base de datos
+        run: mysql -h127.0.0.1 -uroot -proot < database/etbotfarma_mysql.sql
+      - name: Compilar la API
+        run: dotnet build backend/src/EtbotFarma.Api -c Release
+      - name: Arrancar la API
+        run: |
+          nohup dotnet run --no-build -c Release --project backend/src/EtbotFarma.Api --urls http://127.0.0.1:5080 > api.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -s http://127.0.0.1:5080/api/sistema/estado > /dev/null && break
+            sleep 2
+          done
+          cat api.log
+      - name: Pruebas de HU-01
+        run: bash backend/tests/e2e/hu01_inicio_sesion.sh
+      - name: Registro de la API (si algo falla)
+        if: failure()
+        run: cat api.log
