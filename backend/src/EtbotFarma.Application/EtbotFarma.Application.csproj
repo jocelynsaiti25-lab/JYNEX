@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Application: casos de uso (CQRS). Solo depende de Domain. -->
+  <PropertyGroup>
+    <RootNamespace>EtbotFarma.Application</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- MediatR 12.5.0: última versión con licencia libre (Apache 2.0) -->
+    <PackageReference Include="MediatR" Version="12.5.0" />
+    <PackageReference Include="FluentValidation" Version="12.0.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EtbotFarma.Domain\EtbotFarma.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

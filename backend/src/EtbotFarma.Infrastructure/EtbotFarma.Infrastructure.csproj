@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Infrastructure: detalles técnicos (base de datos, Excel, hash de contraseñas).
+       Implementa las interfaces que define Application. -->
+  <PropertyGroup>
+    <RootNamespace>EtbotFarma.Infrastructure</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Da acceso a IServiceCollection, IConfiguration, etc. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <!-- Cuando definamos el motor de base de datos se agregará aquí EF Core, por ejemplo:
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
+  </ItemGroup>
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\EtbotFarma.Application\EtbotFarma.Application.csproj" />
+  </ItemGroup>
+
+</Project>

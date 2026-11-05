@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!-- Api: punto de entrada HTTP. Controladores delgados que solo envían commands/queries. -->
+  <PropertyGroup>
+    <RootNamespace>EtbotFarma.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EtbotFarma.Application\EtbotFarma.Application.csproj" />
+    <ProjectReference Include="..\EtbotFarma.Infrastructure\EtbotFarma.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

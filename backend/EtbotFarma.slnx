@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EtbotFarma.Domain/EtbotFarma.Domain.csproj" />
+    <Project Path="src/EtbotFarma.Application/EtbotFarma.Application.csproj" />
+    <Project Path="src/EtbotFarma.Infrastructure/EtbotFarma.Infrastructure.csproj" />
+    <Project Path="src/EtbotFarma.Api/EtbotFarma.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/EtbotFarma.Domain.Tests/EtbotFarma.Domain.Tests.csproj" />
+    <Project Path="tests/EtbotFarma.Application.Tests/EtbotFarma.Application.Tests.csproj" />
+  </Folder>
+</Solution>

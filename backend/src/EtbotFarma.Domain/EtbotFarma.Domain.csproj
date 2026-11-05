@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Domain: el centro de la arquitectura. NO depende de ningún otro proyecto ni librería. -->
+  <PropertyGroup>
+    <RootNamespace>EtbotFarma.Domain</RootNamespace>
+  </PropertyGroup>
+
+</Project>
