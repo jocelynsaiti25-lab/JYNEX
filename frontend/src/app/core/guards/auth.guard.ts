@@ -11,15 +11,16 @@ import { AuthService } from '../services/auth.service';
 export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  const teniaSesion = auth.usuario() !== null;
+  const habiaSesion = auth.habiaSesion();
 
   return auth.verificarSesion().pipe(
     map((sesionValida) => {
       if (sesionValida) {
         return true;
       }
+      auth.limpiarSesion();
       return router.createUrlTree(['/login'], {
-        queryParams: teniaSesion ? { expirada: 1 } : {},
+        queryParams: habiaSesion ? { expirada: 1 } : {},
       });
     }),
   );
