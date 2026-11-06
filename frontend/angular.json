@@ -49,6 +49,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "allowedHosts": [".app.github.dev"]
+          },
           "configurations": {
             "production": {
               "buildTarget": "etbotfarma-frontend:build:production"

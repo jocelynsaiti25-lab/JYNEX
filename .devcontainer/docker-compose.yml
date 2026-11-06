@@ -1,0 +1,21 @@
+# Entorno de desarrollo en GitHub Codespaces: la app y MySQL 8 en la nube.
+# Contraseñas SOLO de desarrollo (iguales a las del CI). No usar en producción.
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu-24.04
+    volumes:
+      - ../..:/workspaces:cached
+    command: sleep infinity
+    # Comparte la red con MySQL: la base se ve como localhost:3306
+    network_mode: service:db
+
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql-datos:/var/lib/mysql
+
+volumes:
+  mysql-datos:
