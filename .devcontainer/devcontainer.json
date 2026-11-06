@@ -1,0 +1,33 @@
+{
+  "name": "Etbot Farma (Angular + .NET + MySQL)",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "features": {
+    "ghcr.io/devcontainers/features/dotnet:2": { "version": "10.0" },
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" }
+  },
+  "containerEnv": {
+    "ConnectionStrings__EtbotFarma": "Server=127.0.0.1;Port=3306;Database=etbotfarma;User=root;Password=root;",
+    "AdministradorInicial__Contrasenia": "Prueba123!"
+  },
+  "forwardPorts": [4200, 5080],
+  "portsAttributes": {
+    "4200": { "label": "Etbot Farma (Angular)", "onAutoForward": "openBrowser" },
+    "5080": { "label": "API .NET", "onAutoForward": "silent" }
+  },
+  "postCreateCommand": "bash .devcontainer/preparar.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csdevkit",
+        "angular.ng-template",
+        "esbenp.prettier-vscode"
+      ]
+    },
+    "codespaces": {
+      "openFiles": ["README.md"]
+    }
+  },
+  "hostRequirements": { "cpus": 2, "memory": "8gb" }
+}

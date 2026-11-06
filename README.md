@@ -81,6 +81,14 @@ npm start
 
 Abre `http://localhost:4200`. Si ves "API conectada", todo funciona.
 
+## Ejecutar en el navegador (GitHub Codespaces, sin instalar nada)
+
+1. En GitHub, en la rama `develop`: botón verde **Code → Codespaces → Create codespace on develop**.
+2. Espera a que termine de prepararse (la primera vez tarda unos minutos: instala .NET, Node, MySQL y crea la base).
+3. En la terminal escribe `bash .devcontainer/iniciar.sh`.
+4. Se abre la app en otra pestaña. Usuario `admin`, contraseña `Prueba123!` (solo de desarrollo).
+5. Al terminar: en github.com/codespaces detén el Codespace para no gastar horas gratis.
+
 ## Cómo agregar una historia de usuario
 
 Las reglas completas están en [`CLAUDE.md`](CLAUDE.md). En resumen (copiar HU-01 como molde):
