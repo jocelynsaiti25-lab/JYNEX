@@ -17,7 +17,7 @@ export interface OpcionMenu {
   descripcion: string;
   /** Nombre del ícono de Material Symbols (https://fonts.google.com/icons). */
   icono: string;
-  /** Historias de usuario que se atienden en esta pantalla. */
+  /** Historias de usuario que se atienden en esta pantalla (solo referencia del equipo; no se muestra). */
   historias: string[];
   ruta?: string;
   roles?: Rol[];

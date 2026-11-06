@@ -23,7 +23,6 @@
           </span>
           <h3>{{ modulo.etiqueta }}</h3>
           <p class="modulo__descripcion">{{ modulo.descripcion }}</p>
-          <p class="modulo__historias">{{ modulo.historias.join(' · ') }}</p>
           @if (modulo.ruta) {
             <a class="boton boton--secundario" [routerLink]="modulo.ruta">
               Abrir <span class="icono" aria-hidden="true">arrow_forward</span>
@@ -42,11 +41,10 @@
   <section class="tarjeta" aria-labelledby="titulo-semaforo">
     <div class="tarjeta__encabezado">
       <h2 id="titulo-semaforo">Semáforo de caducidad</h2>
-      <span class="etiqueta etiqueta--neutra">HU-10</span>
     </div>
     <ul class="semaforos">
       <li><app-semaforo estado="verde" /> Caduca en más de 12 meses.</li>
-      <li><app-semaforo estado="amarillo" /> Caduca en más de 3 y hasta 12 meses. Priorizar su salida.</li>
+      <li><app-semaforo estado="amarillo" /> Entre 6 y 12 meses para vencer. Priorizar rotación.</li>
       <li><app-semaforo estado="rojo" /> Caduca en 3 meses o menos. Se puede dar de baja.</li>
       <li><app-semaforo estado="caducado" /> Ya venció: no se puede usar en salidas.</li>
       <li><app-semaforo estado="agotado" /> No hay unidades vigentes del medicamento.</li>
