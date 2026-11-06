@@ -23,7 +23,6 @@
           </span>
           <h3>{{ modulo.etiqueta }}</h3>
           <p class="modulo__descripcion">{{ modulo.descripcion }}</p>
-          <p class="modulo__historias">{{ modulo.historias.join(' · ') }}</p>
           @if (modulo.ruta) {
             <a class="boton boton--secundario" [routerLink]="modulo.ruta">
               Abrir <span class="icono" aria-hidden="true">arrow_forward</span>
@@ -42,7 +41,6 @@
   <section class="tarjeta" aria-labelledby="titulo-semaforo">
     <div class="tarjeta__encabezado">
       <h2 id="titulo-semaforo">Semáforo de caducidad</h2>
-      <span class="etiqueta etiqueta--neutra">HU-10</span>
     </div>
     <ul class="semaforos">
       <li><app-semaforo estado="verde" /> Caduca en más de 12 meses.</li>
