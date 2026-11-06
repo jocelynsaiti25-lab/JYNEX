@@ -4,6 +4,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# Si la preparación no terminó, instala lo que falte
+if [ ! -d frontend/node_modules ]; then
+  echo "==> Faltan los paquetes de Angular: instalándolos (solo la primera vez)"
+  (cd frontend && npm install --no-audit --no-fund)
+fi
+
 echo "==> Iniciando la API en el puerto 5080 (registro en api.log)"
 dotnet run --project backend/src/EtbotFarma.Api --launch-profile http > api.log 2>&1 &
 API_PID=$!

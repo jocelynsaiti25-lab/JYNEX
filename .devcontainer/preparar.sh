@@ -4,7 +4,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 echo "==> Instalando cliente de MySQL"
-sudo apt-get update -qq && sudo apt-get install -y -qq mysql-client >/dev/null
+sudo apt-get update -qq || true
+sudo apt-get install -y -qq mysql-client >/dev/null || sudo apt-get install -y -qq default-mysql-client >/dev/null
 
 echo "==> Esperando a MySQL"
 for i in $(seq 1 60); do
