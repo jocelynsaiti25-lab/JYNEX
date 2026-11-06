@@ -1,0 +1,70 @@
+<a class="saltar-contenido" href="#contenido">Saltar al contenido</a>
+
+<!-- Barra superior: solo en celular y tableta -->
+<header class="barra-superior">
+  <button
+    type="button"
+    class="barra-superior__menu"
+    aria-controls="barra-lateral"
+    [attr.aria-expanded]="menuAbierto()"
+    (click)="alternarMenu()"
+  >
+    <span class="icono" aria-hidden="true">{{ menuAbierto() ? 'close' : 'menu' }}</span>
+    <span class="solo-lector">{{ menuAbierto() ? 'Cerrar menú' : 'Abrir menú' }}</span>
+  </button>
+  <img src="logo-etbotfarma.png" alt="" width="36" height="36" class="barra-superior__logo" />
+  <span class="barra-superior__marca">Etbot Farma</span>
+</header>
+
+@if (menuAbierto()) {
+  <div class="velo" (click)="cerrarMenu()" aria-hidden="true"></div>
+}
+
+<aside id="barra-lateral" class="barra-lateral" [class.barra-lateral--abierta]="menuAbierto()">
+  <div class="marca">
+    <span class="marca__logo">
+      <img src="logo-etbotfarma.png" alt="" width="40" height="40" />
+    </span>
+    <span>
+      <strong class="marca__nombre">Etbot Farma</strong>
+      <span class="marca__lema">Inventario de medicamentos</span>
+    </span>
+  </div>
+
+  @if (sesion.usuario(); as usuario) {
+    <div class="usuario">
+      <span class="usuario__avatar" aria-hidden="true">{{ iniciales() }}</span>
+      <span class="usuario__datos">
+        <span class="usuario__nombre">{{ usuario.nombreCompleto }}</span>
+        <span class="usuario__rol">{{ usuario.rol }}</span>
+      </span>
+    </div>
+  }
+
+  <nav aria-label="Menú principal" class="navegacion">
+    <ul>
+      @for (opcion of opciones(); track opcion.etiqueta) {
+        <li>
+          <a
+            class="navegacion__enlace"
+            [routerLink]="opcion.ruta"
+            routerLinkActive="navegacion__enlace--activo"
+            ariaCurrentWhenActive="page"
+          >
+            <span class="icono" aria-hidden="true">{{ opcion.icono }}</span>
+            {{ opcion.etiqueta }}
+          </a>
+        </li>
+      }
+    </ul>
+  </nav>
+
+  <div class="barra-lateral__pie">
+    <!-- HU-02: aquí va el botón "Cerrar sesión" (con <app-confirmacion>) -->
+    <p class="version">ETBOT FARMA WEB</p>
+  </div>
+</aside>
+
+<main id="contenido" class="contenido" tabindex="-1">
+  <router-outlet />
+</main>

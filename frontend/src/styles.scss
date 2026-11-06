@@ -1,13 +1,7 @@
-/* Estilos globales */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  color: #1f2933;
-  background: #f5f7fa;
-}
+/* =====================================================================
+   Estilos globales de ETBOT FARMA WEB.
+   No escribas estilos aquí: agrégalos en src/styles/.
+   ===================================================================== */
+@use 'styles/tokens';
+@use 'styles/base';
+@use 'styles/componentes';

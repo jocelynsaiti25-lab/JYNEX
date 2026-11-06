@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { SesionService } from '../../core/services/sesion.service';
+import { AlertaComponent } from '../../shared/components/alerta/alerta.component';
 
 /**
  * HU-01: pantalla de inicio de sesión.
@@ -11,10 +12,13 @@ import { SesionService } from '../../core/services/sesion.service';
  *   Criterio 3: con datos correctos redirige al módulo inicial.
  *   Criterio 4: con datos incorrectos muestra un mensaje genérico.
  *   Alerta de sesión expirada cuando se llega aquí con ?expirada=1.
+ *   Aviso de sesión cerrada (HU-02) cuando se llega con ?cerrada=1.
+ * Diseño: Stitch "Inicio de sesión – login limpio"
+ * (sin selector de rol ni bloqueo por intentos, que no piden las historias).
  */
 @Component({
   selector: 'app-iniciar-sesion',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, AlertaComponent],
   templateUrl: './iniciar-sesion.component.html',
   styleUrl: './iniciar-sesion.component.scss',
 })
@@ -28,13 +32,19 @@ export class IniciarSesionComponent {
     contrasenia: ['', Validators.required],
   });
 
-  readonly sesionExpirada = inject(ActivatedRoute).snapshot.queryParamMap.has('expirada');
+  private readonly parametros = inject(ActivatedRoute).snapshot.queryParamMap;
+  readonly sesionExpirada = this.parametros.has('expirada');
+  readonly sesionCerrada = this.parametros.has('cerrada');
+  readonly mostrarContrasenia = signal(false);
   readonly enviando = signal(false);
   readonly mensajeError = signal<string | null>(null);
 
   iniciarSesion(): void {
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
+      // Accesibilidad: lleva el cursor al primer campo con error
+      const primero = this.formulario.controls.nombreUsuario.invalid ? 'nombreUsuario' : 'contrasenia';
+      document.getElementById(primero)?.focus();
       return;
     }
 

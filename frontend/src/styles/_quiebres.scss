@@ -1,0 +1,27 @@
+// =====================================================================
+// PUNTOS DE QUIEBRE (responsive). Solo variables y mixins: no genera CSS,
+// así que se puede importar en cualquier componente sin duplicar estilos.
+//   @use 'quiebres' as *;   (la carpeta src/styles ya está en includePaths)
+//   @include tableta { ... }   @include escritorio { ... }
+// Móvil primero: lo que se escribe fuera de un mixin es para celular.
+// =====================================================================
+$quiebre-tableta: 640px;
+$quiebre-escritorio: 1024px;
+
+@mixin tableta {
+  @media (min-width: $quiebre-tableta) {
+    @content;
+  }
+}
+
+@mixin escritorio {
+  @media (min-width: $quiebre-escritorio) {
+    @content;
+  }
+}
+
+@mixin solo-movil {
+  @media (max-width: ($quiebre-escritorio - 1px)) {
+    @content;
+  }
+}

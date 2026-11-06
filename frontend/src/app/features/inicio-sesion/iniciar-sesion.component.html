@@ -1,42 +1,105 @@
-<section class="login">
-  <form class="tarjeta" [formGroup]="formulario" (ngSubmit)="iniciarSesion()" novalidate>
-    <h1>Iniciar sesión</h1>
-    <p class="subtitulo">ETBOTFARMA WEB</p>
+<main class="login">
+  <header class="login__marca">
+    <span class="login__logo">
+      <img src="logo-etbotfarma.png" alt="" width="88" height="88" />
+    </span>
+    <p class="login__nombre">Etbot Farma</p>
+    <p class="login__lema">Control de inventario de medicamentos</p>
+  </header>
 
-    @if (sesionExpirada) {
-      <p class="alerta aviso" role="status">Tu sesión expiró por inactividad. Vuelve a iniciar sesión.</p>
-    }
+  <!-- Avisos que llegan desde otras pantallas -->
+  @if (sesionExpirada) {
+    <app-alerta tipo="aviso" titulo="Sesión expirada">
+      Tu sesión expiró por inactividad. Vuelve a iniciar sesión.
+    </app-alerta>
+  }
+  @if (sesionCerrada) {
+    <app-alerta tipo="info">Cerraste sesión correctamente.</app-alerta>
+  }
 
+  <section class="tarjeta login__tarjeta" aria-labelledby="titulo-login">
+    <h1 id="titulo-login">Iniciar sesión</h1>
+    <p class="login__descripcion">Escribe el usuario y la contraseña que te asignó el administrador.</p>
+
+    <!-- HU-01 criterio 4: mensaje genérico, sin decir qué dato falló -->
     @if (mensajeError(); as mensaje) {
-      <p class="alerta error" role="alert">{{ mensaje }}</p>
+      <app-alerta tipo="error">{{ mensaje }}</app-alerta>
     }
 
-    <label for="nombreUsuario">Nombre de usuario</label>
-    <input
-      id="nombreUsuario"
-      type="text"
-      formControlName="nombreUsuario"
-      autocomplete="username"
-      [class.invalido]="campoInvalido('nombreUsuario')"
-    />
-    @if (campoInvalido('nombreUsuario')) {
-      <small class="texto-error">El nombre de usuario es obligatorio.</small>
-    }
+    <form class="formulario" [formGroup]="formulario" (ngSubmit)="iniciarSesion()" novalidate>
+      <div class="campo">
+        <label class="campo__etiqueta" for="nombreUsuario">
+          Nombre de usuario <span class="obligatorio" aria-hidden="true">*</span>
+        </label>
+        <div class="campo__caja">
+          <span class="icono" aria-hidden="true">person</span>
+          <input
+            id="nombreUsuario"
+            class="campo__control"
+            type="text"
+            formControlName="nombreUsuario"
+            autocomplete="username"
+            autocapitalize="none"
+            spellcheck="false"
+            required
+            [attr.aria-invalid]="campoInvalido('nombreUsuario')"
+            [attr.aria-describedby]="campoInvalido('nombreUsuario') ? 'error-usuario' : null"
+          />
+        </div>
+        @if (campoInvalido('nombreUsuario')) {
+          <p id="error-usuario" class="campo__error">
+            <span class="icono" aria-hidden="true">error</span>El nombre de usuario es obligatorio.
+          </p>
+        }
+      </div>
 
-    <label for="contrasenia">Contraseña</label>
-    <input
-      id="contrasenia"
-      type="password"
-      formControlName="contrasenia"
-      autocomplete="current-password"
-      [class.invalido]="campoInvalido('contrasenia')"
-    />
-    @if (campoInvalido('contrasenia')) {
-      <small class="texto-error">La contraseña es obligatoria.</small>
-    }
+      <div class="campo">
+        <label class="campo__etiqueta" for="contrasenia">
+          Contraseña <span class="obligatorio" aria-hidden="true">*</span>
+        </label>
+        <div class="campo__caja">
+          <span class="icono" aria-hidden="true">lock</span>
+          <input
+            id="contrasenia"
+            class="campo__control"
+            [type]="mostrarContrasenia() ? 'text' : 'password'"
+            formControlName="contrasenia"
+            autocomplete="current-password"
+            required
+            [attr.aria-invalid]="campoInvalido('contrasenia')"
+            [attr.aria-describedby]="campoInvalido('contrasenia') ? 'error-contrasenia' : null"
+          />
+          <button
+            type="button"
+            class="campo__boton"
+            [attr.aria-pressed]="mostrarContrasenia()"
+            (click)="mostrarContrasenia.set(!mostrarContrasenia())"
+          >
+            <span class="icono" aria-hidden="true">{{ mostrarContrasenia() ? 'visibility_off' : 'visibility' }}</span>
+            <span class="solo-lector">Mostrar contraseña</span>
+          </button>
+        </div>
+        @if (campoInvalido('contrasenia')) {
+          <p id="error-contrasenia" class="campo__error">
+            <span class="icono" aria-hidden="true">error</span>La contraseña es obligatoria.
+          </p>
+        }
+      </div>
 
-    <button type="submit" [disabled]="enviando()">
-      {{ enviando() ? 'Entrando...' : 'Entrar' }}
-    </button>
-  </form>
-</section>
+      <button type="submit" class="boton boton--primario boton--bloque" [disabled]="enviando()">
+        @if (enviando()) {
+          <span class="cargando" aria-hidden="true"></span>
+          Entrando...
+        } @else {
+          Iniciar sesión
+          <span class="icono" aria-hidden="true">login</span>
+        }
+      </button>
+    </form>
+
+    <p class="login__ayuda">
+      <span class="icono" aria-hidden="true">help</span>
+      ¿Olvidaste tu contraseña? Pide al administrador que te asigne una nueva.
+    </p>
+  </section>
+</main>
