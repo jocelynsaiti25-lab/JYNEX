@@ -1,27 +1,14 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
-/** Componente raíz: estructura general (encabezado + contenido de cada ruta). */
+/**
+ * Componente raíz. Solo muestra la ruta actual:
+ *   - /iniciar-sesion se ve a pantalla completa.
+ *   - Las pantallas con sesión se ven dentro de LayoutComponent (barra lateral).
+ */
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet],
-  template: `
-    <header class="encabezado">
-      <strong>ETBOTFARMA WEB</strong>
-    </header>
-    <main class="contenido">
-      <router-outlet />
-    </main>
-  `,
-  styles: `
-    .encabezado {
-      padding: 1rem 1.5rem;
-      background: #0f6e56;
-      color: #fff;
-    }
-    .contenido {
-      padding: 1.5rem;
-    }
-  `,
+  template: `<router-outlet />`,
 })
 export class AppComponent {}

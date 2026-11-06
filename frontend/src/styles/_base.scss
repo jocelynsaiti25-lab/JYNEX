@@ -1,0 +1,138 @@
+// =====================================================================
+// BASE: reinicio de estilos, tipografía y accesibilidad global.
+// =====================================================================
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fuente);
+  font-size: var(--texto-base);
+  line-height: var(--interlineado);
+  color: var(--color-texto);
+  background: var(--color-fondo);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  color: var(--color-texto);
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+h1 {
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-negrita);
+}
+
+h2 {
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-semi);
+}
+
+h3 {
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-semi);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--color-primario);
+  font-weight: var(--peso-medio);
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: var(--color-primario-oscuro);
+  }
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+// Números alineados en tablas (lotes, cantidades, fechas)
+.numeros {
+  font-variant-numeric: tabular-nums;
+}
+
+// ---------- Accesibilidad ----------
+
+// Foco visible SOLO al navegar con teclado
+:focus-visible {
+  outline: 3px solid var(--color-primario);
+  outline-offset: 2px;
+}
+
+// Texto solo para lectores de pantalla
+.solo-lector {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Enlace "Saltar al contenido" (aparece al presionar Tab)
+.saltar-contenido {
+  position: absolute;
+  top: -100px;
+  left: var(--espacio-4);
+  z-index: 100;
+  padding: var(--espacio-2) var(--espacio-4);
+  color: var(--color-texto-invertido);
+  background: var(--color-primario);
+  border-radius: var(--radio-sm);
+
+  &:focus {
+    top: var(--espacio-4);
+    color: var(--color-texto-invertido);
+  }
+}
+
+// Íconos (Material Symbols Rounded). Siempre decorativos: aria-hidden="true"
+.icono {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1.25em;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  flex-shrink: 0;
+  user-select: none;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  -webkit-font-smoothing: antialiased;
+}
+
+// Respeta a quien pidió menos animaciones en su sistema
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

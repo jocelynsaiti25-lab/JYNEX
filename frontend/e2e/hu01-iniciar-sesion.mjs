@@ -19,13 +19,16 @@ function revisar(descripcion, condicion) {
 }
 
 const navegador = await chromium.launch();
-const pagina = await navegador.newPage({ viewport: { width: 1000, height: 700 } });
+const pagina = await navegador.newPage({ viewport: { width: 1280, height: 800 } });
 
 // 1. Sin sesión, una pantalla protegida manda al login (criterio 5)
 await pagina.goto(`${URL}/inicio`);
 await pagina.waitForURL('**/iniciar-sesion**');
 revisar('Sin sesión, /inicio redirige a /iniciar-sesion', pagina.url().includes('/iniciar-sesion'));
-await pagina.screenshot({ path: `${CARPETA}/1-login.png` });
+await pagina.screenshot({ path: `${CARPETA}/1-login.png`, fullPage: true });
+await pagina.setViewportSize({ width: 390, height: 844 });
+await pagina.screenshot({ path: `${CARPETA}/1b-login-celular.png`, fullPage: true });
+await pagina.setViewportSize({ width: 1280, height: 800 });
 
 // 2. Campos obligatorios (criterio 1)
 async function aparece(texto) {
@@ -56,7 +59,17 @@ await pagina.click('button[type=submit]');
 await pagina.waitForURL('**/inicio');
 await pagina.getByText('Hola, Administrador del Sistema').waitFor({ timeout: 10000 });
 revisar('Credenciales correctas: entra a /inicio y saluda al admin', true);
-await pagina.screenshot({ path: `${CARPETA}/4-inicio.png` });
+await pagina.screenshot({ path: `${CARPETA}/4-inicio.png`, fullPage: true });
+
+// 4b. Responsive: en celular el menú lateral se abre con el botón "Abrir menú"
+await pagina.setViewportSize({ width: 390, height: 844 });
+await pagina.screenshot({ path: `${CARPETA}/4b-inicio-celular.png`, fullPage: true });
+await pagina.getByRole('button', { name: 'Abrir menú' }).click();
+await pagina.getByRole('navigation', { name: 'Menú principal' }).getByRole('link', { name: 'Inicio' }).waitFor({ timeout: 5000 });
+revisar('Celular: el botón "Abrir menú" muestra el menú principal', true);
+await pagina.screenshot({ path: `${CARPETA}/4c-menu-celular.png` });
+await pagina.keyboard.press('Escape');
+await pagina.setViewportSize({ width: 1280, height: 800 });
 
 // 5. La cookie de sesión es HttpOnly (JavaScript no la puede leer)
 const cookieVisibleParaJs = await pagina.evaluate(() => document.cookie.includes('etbotfarma_sesion'));

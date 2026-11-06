@@ -1,0 +1,116 @@
+// =====================================================================
+// TOKENS DEL SISTEMA DE DISEÑO ETBOT FARMA
+// ---------------------------------------------------------------------
+// Única fuente de colores, letras, tamaños, espacios, bordes y sombras.
+// REGLA DEL EQUIPO: en los componentes NO se escriben colores (#xxxxxx)
+// ni tamaños sueltos; siempre se usa var(--nombre-del-token).
+// Colores tomados del logo (azul #01AEFF) y estilo de los diseños Stitch.
+// Todas las combinaciones de texto cumplen contraste WCAG AA (>= 4.5:1).
+// =====================================================================
+
+:root {
+  // ---------- Marca (logo) ----------
+  --color-marca: #01aeff;            // SOLO logo y decoración (contraste 2.5, no usar en texto)
+  --color-primario: #006aa0;         // botones, enlaces, foco (5.9:1 sobre blanco)
+  --color-primario-oscuro: #005a87;  // hover de botones, títulos destacados (7.5:1)
+  --color-primario-suave: #e7f7fe;   // fondos de tarjetas, botón secundario, fila en hover
+  --color-primario-borde: #b8e6fb;
+
+  // ---------- Estructura ----------
+  --color-navegacion: #0f2d4a;       // barra lateral (azul marino)
+  --color-navegacion-texto: #ffffff;
+  --color-navegacion-tenue: #b9d3ea; // textos secundarios en la barra lateral (9:1)
+  --color-navegacion-acento: #7fd3ff;
+
+  // ---------- Superficies ----------
+  --color-fondo: #f5faff;            // lienzo de la aplicación
+  --color-superficie: #ffffff;       // tarjetas, formularios, tablas
+  --color-superficie-alterna: #f8fafc; // filas alternas de tablas
+  --color-borde: #d9e6f2;
+  --color-borde-fuerte: #b6c8da;
+
+  // ---------- Texto ----------
+  --color-texto: #172b4d;            // texto principal (13:1)
+  --color-texto-secundario: #475569; // descripciones (7:1)
+  --color-texto-tenue: #64748b;      // ayudas, metadatos (4.5:1) — mínimo permitido
+  --color-texto-invertido: #ffffff;
+
+  // ---------- Estados de mensajes ----------
+  --color-exito: #166534;
+  --color-exito-fondo: #dcfce7;
+  --color-exito-borde: #86efac;
+  --color-aviso: #92400e;
+  --color-aviso-fondo: #fef3c7;
+  --color-aviso-borde: #fcd34d;
+  --color-error: #b42318;
+  --color-error-fondo: #fee4e2;
+  --color-error-borde: #fda29b;
+  --color-info: #005a87;
+  --color-info-fondo: #e7f7fe;
+  --color-info-borde: #b8e6fb;
+
+  // ---------- Semáforo de caducidad (HU-10) ----------
+  // Verde: > 12 meses · Amarillo: > 3 y <= 12 meses · Rojo: <= 3 meses o vencido
+  --semaforo-verde: #166534;
+  --semaforo-verde-fondo: #dcfce7;
+  --semaforo-verde-borde: #86efac;
+  --semaforo-amarillo: #92400e;
+  --semaforo-amarillo-fondo: #fef3c7;
+  --semaforo-amarillo-borde: #fcd34d;
+  --semaforo-rojo: #991b1b;
+  --semaforo-rojo-fondo: #fee2e2;
+  --semaforo-rojo-borde: #fca5a5;
+  --semaforo-agotado: #334155;       // HU-12 "SIN EXISTENCIAS"
+  --semaforo-agotado-fondo: #e2e8f0;
+  --semaforo-agotado-borde: #94a3b8;
+
+  // ---------- Tipografía (Inter en toda la app) ----------
+  --fuente: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --texto-xs: 0.75rem;   // 12px  etiquetas de semáforo, metadatos
+  --texto-sm: 0.875rem;  // 14px  tablas, ayudas, botones pequeños
+  --texto-base: 1rem;    // 16px  cuerpo, campos (nunca menos en inputs: evita zoom en celular)
+  --texto-lg: 1.125rem;  // 18px  subtítulos de tarjeta
+  --texto-xl: 1.25rem;   // 20px  título de sección
+  --texto-2xl: 1.5rem;   // 24px  título de pantalla
+  --texto-3xl: 2rem;     // 32px  bienvenida / login
+  --peso-normal: 400;
+  --peso-medio: 500;
+  --peso-semi: 600;
+  --peso-negrita: 700;
+  --interlineado: 1.5;
+
+  // ---------- Espacios (múltiplos de 4px) ----------
+  --espacio-1: 0.25rem;  // 4
+  --espacio-2: 0.5rem;   // 8
+  --espacio-3: 0.75rem;  // 12
+  --espacio-4: 1rem;     // 16
+  --espacio-5: 1.25rem;  // 20
+  --espacio-6: 1.5rem;   // 24
+  --espacio-8: 2rem;     // 32
+  --espacio-10: 2.5rem;  // 40
+
+  // ---------- Bordes redondeados ----------
+  --radio-sm: 0.5rem;    // 8   chips pequeños
+  --radio-md: 0.875rem;  // 14  botones y campos
+  --radio-lg: 1rem;      // 16  tarjetas, tablas
+  --radio-xl: 1.25rem;   // 20  modales, tarjeta de login
+  --radio-pildora: 9999px; // etiquetas de semáforo
+
+  // ---------- Sombras "clay" (estilo Stitch) ----------
+  --sombra-tarjeta: 0 8px 24px -4px rgb(15 45 74 / 0.08), 0 2px 6px -1px rgb(15 45 74 / 0.04),
+    inset 2px 2px 4px 0 rgb(255 255 255 / 0.9);
+  --sombra-boton: 0 4px 14px rgb(0 106 160 / 0.28), inset 1px 1px 2px rgb(255 255 255 / 0.35),
+    inset -1px -1px 2px rgb(0 0 0 / 0.1);
+  --sombra-boton-secundario: 0 2px 6px rgb(15 45 74 / 0.06), inset 1px 1px 2px #ffffff;
+  --sombra-campo: inset 1px 2px 3px rgb(15 45 74 / 0.04);
+  --sombra-modal: 0 20px 35px -8px rgb(15 45 74 / 0.25);
+  --anillo-foco: 0 0 0 3px rgb(0 106 160 / 0.35);
+  --velo-modal: rgb(15 45 74 / 0.45);
+
+  // ---------- Medidas de estructura ----------
+  --ancho-barra-lateral: 16.25rem; // 260px
+  --alto-barra-superior: 4rem;
+  --ancho-contenido: 80rem;        // 1280px máximo del área de trabajo
+  --toque-minimo: 2.75rem;         // 44px: área mínima para tocar (accesibilidad)
+  --transicion: 150ms ease;
+}

@@ -1,0 +1,481 @@
+// =====================================================================
+// COMPONENTES VISUALES COMPARTIDOS (clases globales)
+// Úsalas tal cual en cualquier pantalla.
+//   Botones ........ .boton .boton--primario | --secundario | --peligro | --texto | --bloque
+//   Formularios .... .campo .campo__etiqueta .campo__control .campo__ayuda .campo__error
+//   Tarjetas ....... .tarjeta .tarjeta__encabezado
+//   Alertas ........ .alerta .alerta--exito | --aviso | --error | --info
+//   Etiquetas ...... .etiqueta (+ componente <app-semaforo>)
+//   Tablas ......... .tabla-contenedor .tabla
+//   Pantalla ....... .pantalla .pantalla__encabezado .pantalla__titulo .pantalla__descripcion
+//   Vacío .......... .estado-vacio
+// =====================================================================
+@use 'quiebres' as *;
+
+// ---------------------------------------------------------------------
+// Botones
+// ---------------------------------------------------------------------
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-2);
+  min-height: var(--toque-minimo);
+  padding: var(--espacio-2) var(--espacio-5);
+  font-family: inherit;
+  font-size: var(--texto-base);
+  font-weight: var(--peso-semi);
+  line-height: 1.2;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: var(--radio-md);
+  cursor: pointer;
+  transition:
+    background-color var(--transicion),
+    box-shadow var(--transicion),
+    transform var(--transicion);
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--anillo-foco);
+  }
+
+  &--primario {
+    color: var(--color-texto-invertido);
+    background: var(--color-primario);
+    box-shadow: var(--sombra-boton);
+
+    &:hover:not(:disabled) {
+      color: var(--color-texto-invertido);
+      background: var(--color-primario-oscuro);
+    }
+  }
+
+  &--secundario {
+    color: var(--color-primario-oscuro);
+    background: var(--color-primario-suave);
+    border-color: var(--color-primario-borde);
+    box-shadow: var(--sombra-boton-secundario);
+
+    &:hover:not(:disabled) {
+      background: var(--color-primario-borde);
+    }
+  }
+
+  // Solo para acciones irreversibles (dar de baja un lote, etc.)
+  &--peligro {
+    color: var(--color-texto-invertido);
+    background: var(--color-error);
+
+    &:hover:not(:disabled) {
+      color: var(--color-texto-invertido);
+      background: #8f1c13;
+    }
+  }
+
+  &--texto {
+    min-height: auto;
+    padding: var(--espacio-1) var(--espacio-2);
+    color: var(--color-primario);
+    background: transparent;
+
+    &:hover:not(:disabled) {
+      color: var(--color-primario-oscuro);
+      background: var(--color-primario-suave);
+    }
+  }
+
+  &--bloque {
+    width: 100%;
+  }
+}
+
+// Círculo que gira dentro de un botón mientras se envía
+.cargando {
+  width: 1.1em;
+  height: 1.1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: girar 0.7s linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ---------------------------------------------------------------------
+// Formularios
+// ---------------------------------------------------------------------
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-5);
+}
+
+// Rejilla de 2 columnas en escritorio para formularios largos
+.formulario-rejilla {
+  display: grid;
+  gap: var(--espacio-5);
+
+  @include tableta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ancho-completo {
+    grid-column: 1 / -1;
+  }
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+}
+
+.campo__etiqueta {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semi);
+  color: var(--color-texto);
+
+  .obligatorio {
+    color: var(--color-error);
+  }
+}
+
+// Contenedor para campo con ícono a la izquierda y/o botón a la derecha
+.campo__caja {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  > .icono {
+    position: absolute;
+    left: var(--espacio-4);
+    color: var(--color-texto-tenue);
+    pointer-events: none;
+  }
+
+  > .campo__control {
+    padding-left: calc(var(--espacio-4) * 2 + 1.25rem);
+  }
+
+  > .campo__boton {
+    position: absolute;
+    right: var(--espacio-2);
+  }
+}
+
+.campo__control {
+  width: 100%;
+  min-height: 3rem;
+  padding: var(--espacio-3) var(--espacio-4);
+  font-family: inherit;
+  font-size: var(--texto-base);
+  color: var(--color-texto);
+  background: var(--color-superficie);
+  border: 1.5px solid var(--color-borde-fuerte);
+  border-radius: var(--radio-md);
+  box-shadow: var(--sombra-campo);
+  transition:
+    border-color var(--transicion),
+    box-shadow var(--transicion);
+
+  &::placeholder {
+    color: var(--color-texto-tenue);
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primario);
+  }
+
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    border-color: var(--color-primario);
+    box-shadow: var(--anillo-foco);
+  }
+
+  &:disabled {
+    color: var(--color-texto-secundario);
+    background: var(--color-superficie-alterna);
+    cursor: not-allowed;
+  }
+
+  // Se marca con [attr.aria-invalid]="true" desde la pantalla
+  &[aria-invalid='true'] {
+    border-color: var(--color-error);
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgb(180 35 24 / 0.2);
+    }
+  }
+}
+
+select.campo__control {
+  appearance: none;
+  padding-right: var(--espacio-10);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--espacio-3) center;
+}
+
+.campo__boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--toque-minimo);
+  height: var(--toque-minimo);
+  color: var(--color-texto-secundario);
+  background: transparent;
+  border: none;
+  border-radius: var(--radio-sm);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-primario);
+    background: var(--color-primario-suave);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--anillo-foco);
+  }
+}
+
+.campo__ayuda {
+  font-size: var(--texto-sm);
+  color: var(--color-texto-tenue);
+}
+
+.campo__error {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--color-error);
+}
+
+// ---------------------------------------------------------------------
+// Tarjetas
+// ---------------------------------------------------------------------
+.tarjeta {
+  padding: var(--espacio-5);
+  background: linear-gradient(180deg, var(--color-superficie) 0%, var(--color-fondo) 100%);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-tarjeta);
+
+  @include tableta {
+    padding: var(--espacio-6);
+  }
+}
+
+.tarjeta__encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  margin-bottom: var(--espacio-4);
+}
+
+// ---------------------------------------------------------------------
+// Alertas (mensajes de éxito, aviso, error e información)
+// role="alert" para errores; role="status" para lo demás.
+// ---------------------------------------------------------------------
+.alerta {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3) var(--espacio-4);
+  font-size: var(--texto-sm);
+  border: 1px solid;
+  border-radius: var(--radio-md);
+
+  > .icono {
+    font-size: 1.375rem;
+  }
+
+  &__titulo {
+    display: block;
+    font-weight: var(--peso-semi);
+  }
+
+  &--exito {
+    color: var(--color-exito);
+    background: var(--color-exito-fondo);
+    border-color: var(--color-exito-borde);
+  }
+
+  &--aviso {
+    color: var(--color-aviso);
+    background: var(--color-aviso-fondo);
+    border-color: var(--color-aviso-borde);
+  }
+
+  &--error {
+    color: var(--color-error);
+    background: var(--color-error-fondo);
+    border-color: var(--color-error-borde);
+  }
+
+  &--info {
+    color: var(--color-info);
+    background: var(--color-info-fondo);
+    border-color: var(--color-info-borde);
+  }
+}
+
+// ---------------------------------------------------------------------
+// Etiqueta en forma de píldora (roles, "Próximamente", etc.)
+// ---------------------------------------------------------------------
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  padding: 0.125rem var(--espacio-3);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semi);
+  letter-spacing: 0.02em;
+  color: var(--color-primario-oscuro);
+  background: var(--color-primario-suave);
+  border: 1px solid var(--color-primario-borde);
+  border-radius: var(--radio-pildora);
+  white-space: nowrap;
+
+  &--neutra {
+    color: var(--color-texto-secundario);
+    background: var(--color-superficie-alterna);
+    border-color: var(--color-borde);
+  }
+}
+
+// ---------------------------------------------------------------------
+// Tablas (inventario, usuarios, bitácora)
+// En celular la tabla se desplaza horizontalmente dentro de su contenedor.
+// ---------------------------------------------------------------------
+.tabla-contenedor {
+  overflow-x: auto;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-tarjeta);
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texto-sm);
+  font-variant-numeric: tabular-nums;
+
+  caption {
+    padding: var(--espacio-4);
+    text-align: left;
+    font-weight: var(--peso-semi);
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    padding: var(--espacio-3) var(--espacio-4);
+    font-size: var(--texto-xs);
+    font-weight: var(--peso-semi);
+    letter-spacing: 0.04em;
+    text-align: left;
+    text-transform: uppercase;
+    color: var(--color-texto-invertido);
+    background: var(--color-navegacion);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: var(--espacio-3) var(--espacio-4);
+    vertical-align: middle;
+    border-top: 1px solid var(--color-borde);
+  }
+
+  tbody tr:nth-child(even) {
+    background: var(--color-superficie-alterna);
+  }
+
+  tbody tr:hover {
+    background: var(--color-primario-suave);
+    box-shadow: inset 4px 0 0 var(--color-primario);
+  }
+
+  .numero {
+    text-align: right;
+  }
+}
+
+// ---------------------------------------------------------------------
+// Estructura de una pantalla dentro del layout
+// ---------------------------------------------------------------------
+.pantalla {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-6);
+}
+
+.pantalla__encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--espacio-4);
+}
+
+.pantalla__titulo {
+  font-size: var(--texto-2xl);
+
+  @include tableta {
+    font-size: var(--texto-3xl);
+  }
+}
+
+.pantalla__descripcion {
+  margin-top: var(--espacio-1);
+  color: var(--color-texto-secundario);
+}
+
+// Mensaje cuando una búsqueda no tiene resultados (HU-04, HU-08, HU-15)
+.estado-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-2);
+  padding: var(--espacio-10) var(--espacio-4);
+  text-align: center;
+  color: var(--color-texto-secundario);
+
+  > .icono {
+    font-size: 3rem;
+    color: var(--color-primario);
+  }
+}
+
+// Fila de botones al final de un formulario o modal
+.acciones {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--espacio-3);
+
+  @include tableta {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}

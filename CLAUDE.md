@@ -111,6 +111,15 @@ Detalle de las historias: `docs/historias-usuario.md` y el Excel `Historias_Usua
 - **Errores** (ya los maneja `Middleware/GlobalExceptionHandler.cs`): `ValidacionException` 400 · `CredencialesInvalidasException` 401 · `DomainException` 422 · otros 500.
 - **Angular**: pantalla en `features/<historia>/`; servicio en `core/services/` con `${environment.apiUrl}`; modelos en `core/models/` iguales a los contratos (camelCase); ruta lazy con `canActivate: [sesionGuard]`; confirmaciones/alertas exactamente como dice la historia (diálogo reutilizable en `shared/components/`).
 
+## 6.1 Frontend: diseño compartido (obligatorio)
+
+- Colores, letra (Inter), tamaños, espacios y sombras: SOLO con los tokens de `frontend/src/styles/_tokens.scss` (`var(--…)`). Nada de `#colores` ni `px` sueltos.
+- Usar las clases de `frontend/src/styles/_componentes.scss` (`boton`, `campo`, `tarjeta`, `tabla`, `pantalla`, `estado-vacio`, `acciones`) y los componentes de `shared/components/`: `<app-alerta>`, `<app-confirmacion>` (toda confirmación previa), `<app-semaforo>` (estados de caducidad).
+- Pantallas con sesión: ruta dentro de `children` del `LayoutComponent` en `app.routes.ts` y su `ruta` en `core/layout/menu.ts`.
+- Responsive móvil primero con `@use 'quiebres' as *;` + `@include tableta {}` / `@include escritorio {}`.
+- Accesible: `<label for>` en cada campo, `aria-invalid` en errores, íconos con `aria-hidden="true"`, nunca solo color.
+- Los diseños de Stitch son referencia visual; los textos y campos los mandan los criterios de la historia.
+
 ## 7. Base de datos (MySQL, script `database/etbotfarma_mysql.sql`)
 
 Tablas: `rol`, `usuario`, `sesion`, `medicamento`, `lote`, `movimiento`, `detalle_movimiento`, `auditoria`.
