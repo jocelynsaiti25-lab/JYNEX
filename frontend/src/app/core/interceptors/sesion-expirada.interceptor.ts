@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 
-import { AuthService } from '../services/auth.service';
+import { SesionService } from '../services/sesion.service';
 
 /**
  * HU-01: si cualquier petición responde 401 (sesión expirada o inválida),
@@ -11,15 +11,15 @@ import { AuthService } from '../services/auth.service';
  * Las peticiones de autenticación se excluyen porque ellas mismas manejan el 401.
  */
 export const sesionExpiradaInterceptor: HttpInterceptorFn = (req, next) => {
-  const auth = inject(AuthService);
+  const sesion = inject(SesionService);
   const router = inject(Router);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      const esPeticionDeAuth = req.url.includes('/auth/');
-      if (error.status === 401 && !esPeticionDeAuth) {
-        auth.limpiarSesion();
-        router.navigate(['/login'], { queryParams: { expirada: 1 } });
+      const esPeticionDeSesion = req.url.includes('/sesiones/');
+      if (error.status === 401 && !esPeticionDeSesion) {
+        sesion.limpiarSesion();
+        router.navigate(['/iniciar-sesion'], { queryParams: { expirada: 1 } });
       }
       return throwError(() => error);
     }),

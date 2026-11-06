@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { authGuard, invitadoGuard } from './core/guards/auth.guard';
+import { sesionGuard, invitadoGuard } from './core/guards/sesion.guard';
 
 /**
  * Rutas de la aplicación. Cada pantalla se carga solo cuando se necesita (lazy loading).
@@ -10,14 +10,14 @@ import { authGuard, invitadoGuard } from './core/guards/auth.guard';
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'inicio' },
   {
-    path: 'login',
+    path: 'iniciar-sesion',
     canActivate: [invitadoGuard],
     loadComponent: () =>
-      import('./features/auth/login/login.component').then((m) => m.LoginComponent),
+      import('./features/inicio-sesion/iniciar-sesion.component').then((m) => m.IniciarSesionComponent),
   },
   {
     path: 'inicio',
-    canActivate: [authGuard],
+    canActivate: [sesionGuard],
     loadComponent: () =>
       import('./features/inicio/inicio.component').then((m) => m.InicioComponent),
   },
