@@ -5,7 +5,6 @@ using EtbotFarma.Infrastructure.Persistence;
 using EtbotFarma.Infrastructure.Persistence.Repositorios;
 using EtbotFarma.Infrastructure.Seguridad;
 using EtbotFarma.Infrastructure.Services;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,17 +16,15 @@ namespace EtbotFarma.Infrastructure;
 /// </summary>
 public static class DependencyInjection
 {
-    // Versión del servidor MySQL (se fija para no abrir una conexión al arrancar)
-    private static readonly MySqlServerVersion VersionMySql = new(new Version(8, 0, 36));
-
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // ---------- Base de datos ----------
+        // ---------- Base de datos (MySQL con SQL a mano, sin ORM) ----------
+        // Una conexión + transacción por petición. También es el IUnitOfWork (COMMIT).
         var cadenaConexion = configuration.GetConnectionString("EtbotFarma") ?? string.Empty;
-        services.AddDbContext<EtbotFarmaDbContext>(opciones => opciones.UseMySql(cadenaConexion, VersionMySql));
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<EtbotFarmaDbContext>());
+        services.AddScoped(_ => new ConexionMySql(cadenaConexion));
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ConexionMySql>());
 
         // ---------- Repositorios ----------
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();

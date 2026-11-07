@@ -24,7 +24,7 @@ public class ValidarSesionHandlerTests
         _usuario = Usuario.Crear("Ana", "López", "ana", "hash", "5512345678",
             new Rol(Rol.Empleado, "Empleado"), Inicio.UtcDateTime);
 
-        _sesiones.Sesiones.Add(Sesion.Iniciar(_usuario, "h:token-123", Inicio.UtcDateTime));
+        _sesiones.Sesiones.Add(Sesion.Iniciar(_usuario, "h:token-123", Inicio.UtcDateTime, TimeSpan.FromMinutes(20)));
 
         _handler = new ValidarSesionHandler(
             _sesiones, new TokenSesionServiceFalso(), _unitOfWork, _reloj,
@@ -42,6 +42,8 @@ public class ValidarSesionHandlerTests
         Assert.Equal("ana", usuario.NombreUsuario);
         Assert.Equal("Empleado", usuario.Rol);
         Assert.Equal(Inicio.AddMinutes(10).UtcDateTime, _sesiones.Sesiones[0].UltimaActividad);
+        Assert.Equal(Inicio.AddMinutes(30).UtcDateTime, _sesiones.Sesiones[0].FechaExpiracion);
+        Assert.Equal(1, _sesiones.VecesActualizada);   // se mandó el UPDATE
     }
 
     [Fact]

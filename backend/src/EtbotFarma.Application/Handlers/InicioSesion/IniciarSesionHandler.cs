@@ -1,4 +1,5 @@
 using EtbotFarma.Application.Commands.InicioSesion;
+using EtbotFarma.Application.Common.Configuracion;
 using EtbotFarma.Application.Common.Exceptions;
 using EtbotFarma.Application.Common.Interfaces.Repositorios;
 using EtbotFarma.Application.Common.Interfaces;
@@ -22,7 +23,8 @@ public sealed class IniciarSesionHandler(
     ITokenSesionService tokenService,
     IUnitOfWork unitOfWork,
     IDateTimeProvider reloj,
-    ICookieSesionService cookieSesion) : ICommandHandler<IniciarSesionCommand, UsuarioSesionDto>
+    ICookieSesionService cookieSesion,
+    ConfiguracionSesion configuracion) : ICommandHandler<IniciarSesionCommand, UsuarioSesionDto>
 {
     public async Task<UsuarioSesionDto> Handle(IniciarSesionCommand command, CancellationToken cancellationToken)
     {
@@ -40,7 +42,7 @@ public sealed class IniciarSesionHandler(
 
         // 3. Crear la sesión (se guarda el HASH del token, no el token)
         var token = tokenService.GenerarToken();
-        var sesion = Sesion.Iniciar(usuario, tokenService.ObtenerHash(token), reloj.UtcNow.UtcDateTime);
+        var sesion = Sesion.Iniciar(usuario, tokenService.ObtenerHash(token), reloj.UtcNow.UtcDateTime, configuracion.InactividadMaxima);
 
         await sesiones.AgregarAsync(sesion, cancellationToken);
         await unitOfWork.GuardarCambiosAsync(cancellationToken);

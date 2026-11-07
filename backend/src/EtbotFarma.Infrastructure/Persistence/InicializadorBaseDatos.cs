@@ -1,6 +1,4 @@
 using EtbotFarma.Application.Common.Interfaces;
-using EtbotFarma.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -16,9 +14,11 @@ namespace EtbotFarma.Infrastructure.Persistence;
 /// </summary>
 public static class InicializadorBaseDatos
 {
+    private const int IdRolAdministrador = 1;
+
     public static async Task InicializarBaseDatosAsync(this IServiceProvider servicios)
     {
-        using var scope = servicios.CreateScope();
+        await using var scope = servicios.CreateAsyncScope();
         var proveedor = scope.ServiceProvider;
         var logger = proveedor.GetRequiredService<ILoggerFactory>().CreateLogger("InicializadorBaseDatos");
         var configuracion = proveedor.GetRequiredService<IConfiguration>();
@@ -29,11 +29,15 @@ public static class InicializadorBaseDatos
             return;
         }
 
-        var contexto = proveedor.GetRequiredService<EtbotFarmaDbContext>();
+        var conexion = proveedor.GetRequiredService<ConexionMySql>();
 
-        if (await contexto.Usuarios.AnyAsync())
+        // 1. ¿Ya hay usuarios? Entonces no se hace nada
+        await using (var contar = await conexion.CrearComandoAsync("SELECT COUNT(*) FROM usuario;", CancellationToken.None))
         {
-            return; // Ya hay usuarios: no se hace nada
+            if (Convert.ToInt64(await contar.ExecuteScalarAsync()) > 0)
+            {
+                return;
+            }
         }
 
         var admin = configuracion.GetSection("AdministradorInicial");
@@ -45,21 +49,30 @@ public static class InicializadorBaseDatos
             return;
         }
 
-        var rolAdministrador = await contexto.Roles.FirstAsync(r => r.Id == Rol.Administrador);
+        // 2. Crear el administrador con la contraseña encriptada
+        var nombreUsuario = admin["NombreUsuario"] ?? "admin";
         var passwordHasher = proveedor.GetRequiredService<IPasswordHasher>();
 
-        var usuario = Usuario.Crear(
-            nombre: admin["Nombre"] ?? "Administrador",
-            apellidos: admin["Apellidos"] ?? "del Sistema",
-            nombreUsuario: admin["NombreUsuario"] ?? "admin",
-            contraseniaHash: passwordHasher.GenerarHash(contrasenia),
-            telefono: admin["Telefono"] ?? "0000000000",
-            rol: rolAdministrador,
-            fechaRegistro: DateTime.UtcNow);
+        const string sql = """
+            INSERT INTO usuario (nombre, apellidos, nombre_usuario, contrasenia_hash, telefono, id_rol, activo, fecha_registro)
+            VALUES (@nombre, @apellidos, @nombreUsuario, @contraseniaHash, @telefono, @idRol, TRUE, @fechaRegistro);
+            """;
 
-        contexto.Usuarios.Add(usuario);
-        await contexto.SaveChangesAsync();
+        await using (var insertar = await conexion.CrearComandoAsync(sql, CancellationToken.None))
+        {
+            insertar.Parameters.AddWithValue("@nombre", admin["Nombre"] ?? "Administrador");
+            insertar.Parameters.AddWithValue("@apellidos", admin["Apellidos"] ?? "del Sistema");
+            insertar.Parameters.AddWithValue("@nombreUsuario", nombreUsuario);
+            insertar.Parameters.AddWithValue("@contraseniaHash", passwordHasher.GenerarHash(contrasenia));
+            insertar.Parameters.AddWithValue("@telefono", admin["Telefono"] ?? "0000000000");
+            insertar.Parameters.AddWithValue("@idRol", IdRolAdministrador);
+            insertar.Parameters.AddWithValue("@fechaRegistro", DateTime.UtcNow);
+            await insertar.ExecuteNonQueryAsync();
+        }
 
-        logger.LogInformation("Usuario administrador inicial '{NombreUsuario}' creado.", usuario.NombreUsuario);
+        // 3. COMMIT
+        await conexion.GuardarCambiosAsync(CancellationToken.None);
+
+        logger.LogInformation("Usuario administrador inicial '{NombreUsuario}' creado.", nombreUsuario);
     }
 }
