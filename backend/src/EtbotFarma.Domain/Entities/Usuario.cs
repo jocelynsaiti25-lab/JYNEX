@@ -20,7 +20,6 @@ public class Usuario : Entity<int>
 
     public string NombreCompleto => $"{Nombre} {Apellidos}";
 
-    // Constructor vacío que usa Entity Framework para leer de la base de datos
     private Usuario() { }
 
     /// <summary>Crea un usuario nuevo y activo.</summary>
@@ -53,6 +52,36 @@ public class Usuario : Entity<int>
             IdRol = rol.Id,
             Rol = rol,
             Activo = true,
+            FechaRegistro = fechaRegistro
+        };
+    }
+
+    /// <summary>
+    /// Arma un usuario con los datos leídos de MySQL (lo usan los repositorios).
+    /// No aplica reglas: los datos ya estaban guardados.
+    /// </summary>
+    public static Usuario Reconstruir(
+        int id,
+        string nombre,
+        string apellidos,
+        string nombreUsuario,
+        string contraseniaHash,
+        string telefono,
+        Rol rol,
+        bool activo,
+        DateTime fechaRegistro)
+    {
+        return new Usuario
+        {
+            Id = id,
+            Nombre = nombre,
+            Apellidos = apellidos,
+            NombreUsuario = nombreUsuario,
+            ContraseniaHash = contraseniaHash,
+            Telefono = telefono,
+            IdRol = rol.Id,
+            Rol = rol,
+            Activo = activo,
             FechaRegistro = fechaRegistro
         };
     }

@@ -1,4 +1,5 @@
 using EtbotFarma.Application.Commands.InicioSesion;
+using EtbotFarma.Application.Common.Configuracion;
 using EtbotFarma.Application.Common.Exceptions;
 using EtbotFarma.Application.Handlers.InicioSesion;
 using EtbotFarma.Application.Tests.Falsos;
@@ -20,7 +21,8 @@ public class IniciarSesionHandlerTests
     public IniciarSesionHandlerTests()
     {
         _handler = new IniciarSesionHandler(
-            _usuarios, _sesiones, new PasswordHasherFalso(), new TokenSesionServiceFalso(), _unitOfWork, new RelojFalso(Ahora), _cookie);
+            _usuarios, _sesiones, new PasswordHasherFalso(), new TokenSesionServiceFalso(), _unitOfWork, new RelojFalso(Ahora), _cookie,
+            new ConfiguracionSesion { MinutosInactividad = 20 });
 
         _usuarios.Usuarios.Add(Usuario.Crear(
             "Ana", "López", "ana", "hash:Secreta123", "5512345678",
@@ -37,7 +39,8 @@ public class IniciarSesionHandlerTests
         Assert.Equal("Administrador", resultado.Rol);
 
         var sesion = Assert.Single(_sesiones.Sesiones);
-        Assert.Equal("h:token-123", sesion.Token);   // se guarda el HASH, no el token
+        Assert.Equal("h:token-123", sesion.TokenHash);   // se guarda el HASH, no el token
+        Assert.Equal(Ahora.AddMinutes(20).UtcDateTime, sesion.FechaExpiracion);
         Assert.Equal(1, _unitOfWork.VecesGuardado);
     }
 

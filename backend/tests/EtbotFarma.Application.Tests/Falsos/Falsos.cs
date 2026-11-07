@@ -30,7 +30,15 @@ public sealed class SesionRepositoryFalso : ISesionRepository
     }
 
     public Task<Sesion?> ObtenerPorTokenHashAsync(string tokenHash, CancellationToken cancellationToken)
-        => Task.FromResult(Sesiones.FirstOrDefault(s => s.Token == tokenHash));
+        => Task.FromResult(Sesiones.FirstOrDefault(s => s.TokenHash == tokenHash));
+
+    public int VecesActualizada { get; private set; }
+
+    public Task ActualizarAsync(Sesion sesion, CancellationToken cancellationToken)
+    {
+        VecesActualizada++;
+        return Task.CompletedTask;
+    }
 }
 
 /// <summary>"Hash" falso: antepone "hash:" a la contraseña.</summary>

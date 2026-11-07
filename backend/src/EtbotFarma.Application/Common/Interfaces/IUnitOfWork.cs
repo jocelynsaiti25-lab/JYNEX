@@ -1,8 +1,10 @@
 namespace EtbotFarma.Application.Common.Interfaces;
 
 /// <summary>
-/// Guarda en la base de datos, en una sola transacción, todos los cambios pendientes.
-/// La implementación está en Infrastructure.
+/// Transacción de la petición: todo lo que los repositorios escriben (INSERT, UPDATE)
+/// queda pendiente hasta GuardarCambiosAsync, que lo confirma JUNTO (COMMIT).
+/// Si ocurre un error antes, no se guarda nada (ROLLBACK).
+/// La implementación (MySQL) está en Infrastructure.
 /// </summary>
 public interface IUnitOfWork
 {

@@ -36,15 +36,17 @@ public sealed class ValidarSesionHandler(
         var ahora = reloj.UtcNow.UtcDateTime;
 
         // 3. Si expiró por inactividad o la cuenta ya no está activa, se cierra
-        if (!sesion.EstaVigente(ahora, configuracion.InactividadMaxima) || !sesion.Usuario.PuedeIniciarSesion())
+        if (!sesion.EstaVigente(ahora) || !sesion.Usuario.PuedeIniciarSesion())
         {
             sesion.Cerrar(ahora);
+            await sesiones.ActualizarAsync(sesion, cancellationToken);
             await unitOfWork.GuardarCambiosAsync(cancellationToken);
             return null;
         }
 
         // 4. Sesión válida: se reinicia el contador de inactividad
-        sesion.RegistrarActividad(ahora);
+        sesion.RegistrarActividad(ahora, configuracion.InactividadMaxima);
+        await sesiones.ActualizarAsync(sesion, cancellationToken);
         await unitOfWork.GuardarCambiosAsync(cancellationToken);
 
         return new UsuarioSesionDto(
