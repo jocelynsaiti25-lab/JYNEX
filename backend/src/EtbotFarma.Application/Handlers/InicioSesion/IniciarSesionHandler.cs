@@ -21,9 +21,10 @@ public sealed class IniciarSesionHandler(
     IPasswordHasher passwordHasher,
     ITokenSesionService tokenService,
     IUnitOfWork unitOfWork,
-    IDateTimeProvider reloj) : ICommandHandler<IniciarSesionCommand, IniciarSesionDto>
+    IDateTimeProvider reloj,
+    ICookieSesionService cookieSesion) : ICommandHandler<IniciarSesionCommand, UsuarioSesionDto>
 {
-    public async Task<IniciarSesionDto> Handle(IniciarSesionCommand command, CancellationToken cancellationToken)
+    public async Task<UsuarioSesionDto> Handle(IniciarSesionCommand command, CancellationToken cancellationToken)
     {
         // 1. Buscar al usuario
         var usuario = await usuarios.ObtenerPorNombreUsuarioAsync(command.NombreUsuario.Trim(), cancellationToken);
@@ -44,9 +45,11 @@ public sealed class IniciarSesionHandler(
         await sesiones.AgregarAsync(sesion, cancellationToken);
         await unitOfWork.GuardarCambiosAsync(cancellationToken);
 
-        // 4. Devolver el resultado
-        return new IniciarSesionDto(
-            token,
+        // 4. Guardar el token en la cookie segura (el token NO viaja en el JSON)
+        cookieSesion.Guardar(token);
+
+        // 5. Devolver los datos del usuario
+        return new UsuarioSesionDto(
             usuario.Id,
             usuario.NombreUsuario,
             usuario.NombreCompleto,

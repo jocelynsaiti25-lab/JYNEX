@@ -1,9 +1,11 @@
 using EtbotFarma.Application.Commands.InicioSesion;
+using EtbotFarma.Application.Common.Configuracion;
 using EtbotFarma.Application.Common.Exceptions;
 using EtbotFarma.Application.Common.Interfaces;
 using EtbotFarma.Application.Common.Interfaces.Repositorios;
 using EtbotFarma.Application.Tests.Falsos;
 using EtbotFarma.Domain.Entities;
+using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,6 +18,7 @@ namespace EtbotFarma.Application.Tests.Common;
 public class ValidationBehaviorTests
 {
     private readonly SesionRepositoryFalso _sesiones = new();
+    private readonly ServiceProvider _proveedor;
     private readonly ISender _sender;
 
     public ValidationBehaviorTests()
@@ -32,8 +35,12 @@ public class ValidationBehaviorTests
         services.AddSingleton<ITokenSesionService, TokenSesionServiceFalso>();
         services.AddSingleton<IUnitOfWork, UnitOfWorkFalso>();
         services.AddSingleton<IDateTimeProvider>(new RelojFalso(DateTimeOffset.UtcNow));
+        services.AddSingleton<ICookieSesionService>(new CookieSesionServiceFalso());
 
-        _sender = services.BuildServiceProvider().GetRequiredService<ISender>();
+        services.AddSingleton(new ConfiguracionSesion());
+
+        _proveedor = services.BuildServiceProvider();
+        _sender = _proveedor.GetRequiredService<ISender>();
     }
 
     [Fact]
@@ -45,6 +52,22 @@ public class ValidationBehaviorTests
         Assert.Contains("El nombre de usuario es obligatorio.", ex.Errores);
         Assert.Contains("La contraseña es obligatoria.", ex.Errores);
         Assert.Empty(_sesiones.Sesiones);   // el handler nunca se ejecutó
+    }
+
+    [Fact]
+    public void Los_validators_se_registran_solos_en_la_inyeccion_de_dependencias()
+    {
+        var validators = _proveedor.GetServices<IValidator<IniciarSesionCommand>>();
+
+        Assert.Single(validators);
+    }
+
+    [Fact]
+    public async Task Un_command_sin_validator_llega_directo_al_handler()
+    {
+        var resultado = await _sender.Send(new ValidarSesionCommand("token-que-no-existe"));
+
+        Assert.Null(resultado);   // lo respondió ValidarSesionHandler, sin error de validación
     }
 
     [Fact]

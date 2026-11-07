@@ -8,6 +8,10 @@
   <ItemGroup>
     <!-- MediatR 12.5.0: última versión con licencia libre (Apache 2.0) -->
     <PackageReference Include="MediatR" Version="12.5.0" />
+    <!-- FluentValidation (Apache 2.0): reglas de validación de entrada de cada Command -->
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <!-- Registro automático de todos los validators en la inyección de dependencias -->
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
   </ItemGroup>
 
   <ItemGroup>

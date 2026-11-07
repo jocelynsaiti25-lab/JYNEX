@@ -16,9 +16,9 @@ public sealed class ValidarSesionHandler(
     ITokenSesionService tokenService,
     IUnitOfWork unitOfWork,
     IDateTimeProvider reloj,
-    ConfiguracionSesion configuracion) : ICommandHandler<ValidarSesionCommand, ValidarSesionDto?>
+    ConfiguracionSesion configuracion) : ICommandHandler<ValidarSesionCommand, UsuarioSesionDto?>
 {
-    public async Task<ValidarSesionDto?> Handle(ValidarSesionCommand command, CancellationToken cancellationToken)
+    public async Task<UsuarioSesionDto?> Handle(ValidarSesionCommand command, CancellationToken cancellationToken)
     {
         // 1. Sin token no hay sesión
         if (string.IsNullOrWhiteSpace(command.Token))
@@ -47,7 +47,7 @@ public sealed class ValidarSesionHandler(
         sesion.RegistrarActividad(ahora);
         await unitOfWork.GuardarCambiosAsync(cancellationToken);
 
-        return new ValidarSesionDto(
+        return new UsuarioSesionDto(
             sesion.Usuario.Id,
             sesion.Usuario.NombreUsuario,
             sesion.Usuario.NombreCompleto,
