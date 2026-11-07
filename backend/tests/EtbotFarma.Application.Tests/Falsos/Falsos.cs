@@ -63,3 +63,23 @@ public sealed class RelojFalso(DateTimeOffset ahora) : IDateTimeProvider
 {
     public DateTimeOffset UtcNow { get; set; } = ahora;
 }
+
+/// <summary>Guarda en memoria el token que el handler "escribió" en la cookie.</summary>
+public sealed class CookieSesionServiceFalso : ICookieSesionService
+{
+    public string? TokenGuardado { get; private set; }
+
+    public void Guardar(string token) => TokenGuardado = token;
+}
+
+/// <summary>Usuario actual configurable para las pruebas.</summary>
+public sealed class UsuarioActualFalso : IUsuarioActual
+{
+    public int? IdUsuario { get; set; }
+
+    public string NombreUsuario { get; set; } = string.Empty;
+
+    public string NombreCompleto { get; set; } = string.Empty;
+
+    public string Rol { get; set; } = string.Empty;
+}

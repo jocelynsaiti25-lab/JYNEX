@@ -24,7 +24,7 @@ public sealed class SesionAuthenticationHandler(
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var token = CookieSesion.Leer(Request);
+        var token = Request.Cookies[CookieSesionService.NombreCookie];
         if (string.IsNullOrWhiteSpace(token))
         {
             return AuthenticateResult.NoResult();
