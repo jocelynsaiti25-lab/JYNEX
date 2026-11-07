@@ -1,28 +1,20 @@
 using EtbotFarma.Application.Commands.InicioSesion;
-using EtbotFarma.Application.Common.Validacion;
+using FluentValidation;
 
 namespace EtbotFarma.Application.Validators.InicioSesion;
 
 /// <summary>
 /// HU-01 criterio 1: nombre de usuario y contraseña son obligatorios.
-/// MediatR lo ejecuta automáticamente antes de IniciarSesionHandler (no se llama a mano).
+/// MediatR lo ejecuta automáticamente antes de IniciarSesionHandler (nadie lo crea con "new").
 /// </summary>
-public class IniciarSesionValidator : IValidator<IniciarSesionCommand>
+public sealed class IniciarSesionValidator : AbstractValidator<IniciarSesionCommand>
 {
-    public List<string> Validar(IniciarSesionCommand command)
+    public IniciarSesionValidator()
     {
-        var errores = new List<string>();
+        RuleFor(command => command.NombreUsuario)
+            .NotEmpty().WithMessage("El nombre de usuario es obligatorio.");
 
-        if (string.IsNullOrWhiteSpace(command.NombreUsuario))
-        {
-            errores.Add("El nombre de usuario es obligatorio.");
-        }
-
-        if (string.IsNullOrWhiteSpace(command.Contrasenia))
-        {
-            errores.Add("La contraseña es obligatoria.");
-        }
-
-        return errores;
+        RuleFor(command => command.Contrasenia)
+            .NotEmpty().WithMessage("La contraseña es obligatoria.");
     }
 }

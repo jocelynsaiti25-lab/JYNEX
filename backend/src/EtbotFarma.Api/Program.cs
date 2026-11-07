@@ -1,6 +1,7 @@
 using EtbotFarma.Api.Middleware;
 using EtbotFarma.Api.Seguridad;
 using EtbotFarma.Application;
+using EtbotFarma.Application.Common.Interfaces;
 using EtbotFarma.Infrastructure;
 using EtbotFarma.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication;
@@ -25,6 +26,11 @@ public class Program
         builder.Services
             .AddApplication()                              // CQRS (commands y queries)
             .AddInfrastructure(builder.Configuration);     // BD, seguridad, servicios técnicos
+
+        // Servicios de la capa Api que implementan interfaces de Application
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<ICookieSesionService, CookieSesionService>();   // HU-01: cookie segura
+        builder.Services.AddScoped<IUsuarioActual, UsuarioActual>();               // quién hizo la petición
 
         builder.Services.AddControllers();
         builder.Services.AddProblemDetails();              // Errores con formato estándar (RFC 7807)

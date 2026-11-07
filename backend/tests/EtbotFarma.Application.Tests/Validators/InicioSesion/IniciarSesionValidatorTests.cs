@@ -1,9 +1,10 @@
 using EtbotFarma.Application.Commands.InicioSesion;
 using EtbotFarma.Application.Validators.InicioSesion;
+using FluentValidation.TestHelper;
 
 namespace EtbotFarma.Application.Tests.Validators.InicioSesion;
 
-/// <summary>Pruebas del validador de HU-01 (criterio 1: datos obligatorios).</summary>
+/// <summary>Pruebas del validator de HU-01 (criterio 1: datos obligatorios).</summary>
 public class IniciarSesionValidatorTests
 {
     private readonly IniciarSesionValidator _validator = new();
@@ -11,17 +12,27 @@ public class IniciarSesionValidatorTests
     [Fact]
     public void Con_usuario_y_contrasenia_no_hay_errores()
     {
-        var errores = _validator.Validar(new IniciarSesionCommand("admin", "Secreta123"));
+        var resultado = _validator.TestValidate(new IniciarSesionCommand("admin", "Secreta123"));
 
-        Assert.Empty(errores);
+        resultado.ShouldNotHaveAnyValidationErrors();
     }
 
     [Fact]
-    public void Sin_datos_devuelve_los_dos_errores()
+    public void Sin_nombre_de_usuario_marca_el_error()
     {
-        var errores = _validator.Validar(new IniciarSesionCommand("", " "));
+        var resultado = _validator.TestValidate(new IniciarSesionCommand("", "Secreta123"));
 
-        Assert.Contains("El nombre de usuario es obligatorio.", errores);
-        Assert.Contains("La contraseña es obligatoria.", errores);
+        resultado.ShouldHaveValidationErrorFor(command => command.NombreUsuario)
+            .WithErrorMessage("El nombre de usuario es obligatorio.");
+        resultado.ShouldNotHaveValidationErrorFor(command => command.Contrasenia);
+    }
+
+    [Fact]
+    public void Contrasenia_con_solo_espacios_marca_el_error()
+    {
+        var resultado = _validator.TestValidate(new IniciarSesionCommand("admin", "   "));
+
+        resultado.ShouldHaveValidationErrorFor(command => command.Contrasenia)
+            .WithErrorMessage("La contraseña es obligatoria.");
     }
 }

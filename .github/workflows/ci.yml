@@ -20,7 +20,8 @@ jobs:
           dotnet-version: 10.0.x
       - run: dotnet restore EtbotFarma.slnx
       - run: dotnet build EtbotFarma.slnx --no-restore -c Release
-      - run: dotnet test EtbotFarma.slnx --no-build -c Release
+      # Pruebas unitarias y de arquitectura (las de integración necesitan MySQL: van en el job e2e)
+      - run: dotnet test EtbotFarma.slnx --no-build -c Release --filter "Category!=Integracion"
 
   frontend:
     name: Frontend (Angular)
@@ -91,6 +92,8 @@ jobs:
           dotnet-version: 10.0.x
       - name: Crear la base de datos
         run: mysql -h127.0.0.1 -uroot -proot < database/etbotfarma_mysql.sql
+      - name: Pruebas de integración (API en memoria + MySQL)
+        run: dotnet test backend/tests/EtbotFarma.Api.IntegrationTests -c Release
       - name: Compilar la API
         run: dotnet build backend/src/EtbotFarma.Api -c Release
       - name: Arrancar la API

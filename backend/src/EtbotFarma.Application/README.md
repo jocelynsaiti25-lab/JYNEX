@@ -6,13 +6,12 @@ Cada **tipo** de archivo tiene su carpeta, y dentro hay una **subcarpeta por his
 ```
 EtbotFarma.Application/
 ├─ Common/
-│  ├─ Behaviors/ValidationBehavior.cs   ← MediatR ejecuta los validadores antes de cada handler
-│  ├─ Validacion/IValidator.cs          ← interfaz que implementa cada validador
-│  ├─ Interfaces/                       ← repositorios, hash, token, unidad de trabajo, reloj
+│  ├─ Behaviors/ValidationBehavior.cs   ← MediatR ejecuta los validators (FluentValidation) antes de cada handler
+│  ├─ Interfaces/                       ← repositorios, hash, token, cookie, usuario actual, unidad de trabajo, reloj
 │  ├─ Exceptions/  Messaging/  Configuracion/
 ├─ Commands/<Historia>/                 ← operaciones que MODIFICAN datos
 ├─ Queries/<Historia>/                  ← operaciones que solo LEEN
-├─ Validators/<Historia>/               ← un if por regla (se ejecutan solos con MediatR)
+├─ Validators/<Historia>/               ← AbstractValidator<T> (se ejecutan solos con MediatR)
 ├─ Handlers/<Historia>/                 ← solo coordinan los pasos
 └─ Dtos/<Historia>/                     ← datos que devuelve cada caso de uso
 ```
@@ -20,10 +19,11 @@ EtbotFarma.Application/
 Ejemplo real (HU-01, carpeta `InicioSesion`):
 
 ```
-Commands/InicioSesion/IniciarSesionCommand.cs
+Commands/InicioSesion/IniciarSesionCommand.cs       ValidarSesionCommand.cs
+Queries/InicioSesion/ObtenerSesionActualQuery.cs
 Validators/InicioSesion/IniciarSesionValidator.cs
-Handlers/InicioSesion/IniciarSesionHandler.cs
-Dtos/InicioSesion/IniciarSesionDto.cs
+Handlers/InicioSesion/IniciarSesionHandler.cs       ValidarSesionHandler.cs   ObtenerSesionActualHandler.cs
+Dtos/InicioSesion/UsuarioSesionDto.cs
 ```
 
 ## Nombre de carpeta de cada historia
@@ -49,32 +49,33 @@ Dtos/InicioSesion/IniciarSesionDto.cs
 
 `EstadoSistema` no es una historia: solo comprueba que la API responde.
 
-## Cómo funciona la validación
+## Cómo funciona la validación (FluentValidation + MediatR)
 
 ```
-Controller → Sender.Send(command)
+Controller → sender.Send(command)
                ↓
-         ValidationBehavior   (busca los IValidator<TCommand> y los ejecuta)
+         ValidationBehavior   (recibe los IValidator<TCommand> y ejecuta ValidateAsync)
                ↓  ¿errores? Sí → ValidacionException → HTTP 400 (el handler NO se ejecuta)
                ↓            No
-            Handler           (sin ningún if de validación)
+            Handler           (sin validaciones)
 ```
 
-Para validar un command nuevo solo hay que crear la clase en `Validators/<Historia>/`:
+Para validar un command nuevo solo hay que crear la clase en `Validators/<Historia>/`
+(ejemplo real: `Validators/InicioSesion/IniciarSesionValidator.cs`):
 
 ```csharp
-public class CrearUsuarioValidator : IValidator<CrearUsuarioCommand>
+public sealed class IniciarSesionValidator : AbstractValidator<IniciarSesionCommand>
 {
-    public List<string> Validar(CrearUsuarioCommand command)
+    public IniciarSesionValidator()
     {
-        var errores = new List<string>();
-        if (string.IsNullOrWhiteSpace(command.NombreUsuario))
-        {
-            errores.Add("El nombre de usuario es obligatorio.");
-        }
-        return errores;
+        RuleFor(command => command.NombreUsuario)
+            .NotEmpty().WithMessage("El nombre de usuario es obligatorio.");
+
+        RuleFor(command => command.Contrasenia)
+            .NotEmpty().WithMessage("La contraseña es obligatoria.");
     }
 }
 ```
 
-Se registra solo (ver `DependencyInjection.cs`); no hay que llamarlo desde el handler.
+Se registra solo (`services.AddValidatorsFromAssembly` en `DependencyInjection.cs`); no se llama desde el handler.
+Explicación completa: `docs/arquitectura.md`.

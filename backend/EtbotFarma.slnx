@@ -8,5 +8,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/EtbotFarma.Domain.Tests/EtbotFarma.Domain.Tests.csproj" />
     <Project Path="tests/EtbotFarma.Application.Tests/EtbotFarma.Application.Tests.csproj" />
+    <Project Path="tests/EtbotFarma.Api.IntegrationTests/EtbotFarma.Api.IntegrationTests.csproj" />
   </Folder>
 </Solution>
