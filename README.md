@@ -11,7 +11,7 @@ salidas FEFO, bitácora de movimientos y exportación a Excel.
 | Backend | .NET 10 / ASP.NET Core (C#) |
 | Arquitectura | Clean Architecture + CQRS (MediatR) + vertical slices |
 | Validaciones | FluentValidation 12.1.1, ejecutada automáticamente por MediatR |
-| Base de datos | Por definir (EF Core, migraciones) |
+| Base de datos | MySQL 8 con SQL a mano (MySqlConnector), sin ORM |
 | Pruebas | xUnit |
 
 Detalles en [`docs/arquitectura.md`](docs/arquitectura.md).
@@ -53,7 +53,7 @@ etbotfarma-web/
 
 **0. Base de datos y configuración local** (solo la primera vez)
 
-1. Crea la base en MySQL 8 con `database/etbotfarma_mysql.sql` (ver `database/README.md`).
+1. Crea la base en MySQL 8 con `database/etbotfarma_mysql_v2.sql` (si ya tenías la versión 1: `database/migracion_v1_a_v2.sql`). Ver `database/README.md`.
 2. En `backend/src/EtbotFarma.Api/`, copia `appsettings.Local.example.json` como
    **`appsettings.Local.json`** y escribe tu contraseña de MySQL y la contraseña que tendrá el usuario `admin`.
    Ese archivo **no se sube a GitHub** (está en `.gitignore`).

@@ -15,7 +15,7 @@ Angular  →  Api  →  Application  →  Domain
 |----------|-----------------|------------|
 | **EtbotFarma.Domain** | Entidades y reglas de negocio (`Usuario.PuedeIniciarSesion()`, `Sesion.EstaVigente(...)`). Lanza `DomainException` | Nada |
 | **EtbotFarma.Application** | Casos de uso: Commands, Queries, Handlers, Validators, DTOs, interfaces de repositorios y servicios, `ValidationBehavior` | Domain |
-| **EtbotFarma.Infrastructure** | Implementa las interfaces de Application: EF Core + MySQL (Pomelo), repositorios, hash de contraseñas, tokens, reloj | Application, Domain |
+| **EtbotFarma.Infrastructure** | Implementa las interfaces de Application: SQL a mano con MySqlConnector (`ConexionMySql`, repositorios), hash de contraseñas, tokens, reloj | Application, Domain |
 | **EtbotFarma.Api** | Controllers delgados, Contracts (Request/Response), Middleware de errores, seguridad HTTP (cookie, usuario actual), configuración | Application, Infrastructure |
 
 Las capas internas **nunca** conocen a las externas. Una prueba automática lo vigila
@@ -30,10 +30,10 @@ Las capas internas **nunca** conocen a las externas. Una prueba automática lo v
 4. ValidationBehavior ejecuta IniciarSesionValidator (FluentValidation)
                       ¿errores? → ValidacionException → HTTP 400 (el handler NO se ejecuta)
 5. Handler            IniciarSesionHandler coordina:
-                        IUsuarioRepository → UsuarioRepository → EF Core → MySQL (tabla usuario)
+                        IUsuarioRepository → UsuarioRepository → SELECT con parámetros → MySQL (tabla usuario)
                         reglas del Domain: usuario.PuedeIniciarSesion()
                         IPasswordHasher, ITokenSesionService, Sesion.Iniciar(...)
-                        ISesionRepository + IUnitOfWork → MySQL (tabla sesion)
+                        ISesionRepository (INSERT) + IUnitOfWork (COMMIT) → MySQL (tabla sesion)
                         ICookieSesionService → cookie segura (implementada en Api)
 6. Handler            devuelve UsuarioSesionDto
 7. Controller         UsuarioSesionDto → IniciarSesionResponse → HTTP 200
@@ -122,15 +122,16 @@ La tabla con la carpeta de cada una de las 16 historias está en `backend/src/Et
 3. **Application**: por cada operación, en su carpeta de historia:
    `XCommand` (o `XQuery`) + `XValidator` (si recibe datos) + `XHandler` + `XDto` (si devuelve datos).
    Si necesita la base de datos, crear `IXRepository` en `Common/Interfaces/Repositorios/`.
-4. **Infrastructure**: `XRepository`, `XConfiguracion` (mapeo a la tabla real del script SQL), `DbSet` y registro en `DependencyInjection.cs`.
+4. **Infrastructure**: `XRepository(ConexionMySql conexion)` con SQL parametrizado (columnas reales de `database/etbotfarma_mysql_v2.sql`) y registro en `DependencyInjection.cs`.
 5. **Api**: `<Historia>Controller` con `ISender` por constructor + `Contracts/<Historia>/` (Request/Response).
 6. **Pruebas**: del validator (`TestValidate`), del handler (con los falsos de `Falsos.cs`) y de integración del endpoint cuando aplique.
 7. Crear solo los archivos que la historia necesita: nada de archivos vacíos.
 
 ## 9. Base de datos
 
-- MySQL 8 con EF Core 9 + Pomelo 9.0.0 (`Infrastructure/DependencyInjection.cs`). No hay referencias a SQL Server.
-- La base se crea con el script `database/etbotfarma_mysql.sql` (decisión del equipo: **sin migraciones de EF**, el script es la única fuente del esquema).
+- MySQL 8 con **SQL a mano** (MySqlConnector, sin ORM). No hay referencias a SQL Server ni a Entity Framework (una prueba lo vigila).
+- `ConexionMySql`: una conexión y una transacción por petición. Los repositorios escriben dentro de ella; el handler confirma con `IUnitOfWork.GuardarCambiosAsync` (COMMIT). Si hay un error antes, ROLLBACK automático.
+- La base se crea con `database/etbotfarma_mysql_v2.sql`; una base existente se actualiza con `database/migracion_v1_a_v2.sql`. Detalle de tablas, reglas y diagrama: `docs/base-de-datos.md`.
 - La cadena de conexión NO está en el código: va en `appsettings.Local.json` (no se sube) o en variables de entorno (`ConnectionStrings__EtbotFarma`).
 
 ## 10. Pruebas
@@ -153,5 +154,6 @@ En GitHub Actions: el job **Backend** corre las pruebas sin MySQL; el job **Punt
 | Un controller por historia | Cada integrante trabaja en su propio archivo (menos conflictos en Git) |
 | Cookie de sesión vía `ICookieSesionService` | El controller no tiene lógica; el token nunca viaja en el JSON |
 | `IUsuarioActual` | Los handlers saben quién hizo la petición sin leer HTTP (servirá para la bitácora) |
-| Sin migraciones de EF | El esquema vive en un solo script SQL que todo el equipo entiende |
+| SQL a mano, sin ORM | Requisito del proyecto: el SQL queda visible y se puede explicar; el esquema vive en scripts SQL |
+| FEFO en salidas | La HU-13 lo pide: sale primero lo que caduca primero |
 | `IDateTimeProvider` | Permite probar el semáforo de caducidad con fechas fijas |
