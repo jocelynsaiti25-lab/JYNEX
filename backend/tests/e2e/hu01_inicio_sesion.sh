@@ -62,14 +62,16 @@ revisar "Con sesión: GET /api/sesiones/actual responde 200" "200" \
 revisar "La contraseña del admin está encriptada (no es el texto original)" "0" \
   "$($MYSQL -e "SELECT COUNT(*) FROM usuario WHERE contrasenia_hash = '$CONTRASENIA'")"
 revisar "En la BD se guarda el hash del token, no el token" "0" \
-  "$($MYSQL -e "SELECT COUNT(*) FROM sesion WHERE token = '$token'")"
+  "$($MYSQL -e "SELECT COUNT(*) FROM sesion WHERE token_hash = '$token'")"
+revisar "La sesión tiene fecha de expiración 20 minutos después" "20" \
+  "$($MYSQL -e "SELECT TIMESTAMPDIFF(MINUTE, ultima_actividad, fecha_expiracion) FROM sesion ORDER BY id_sesion DESC LIMIT 1")"
 
 # Criterio 6: expira por inactividad (se simula que pasaron 30 minutos)
-$MYSQL -e "UPDATE sesion SET ultima_actividad = UTC_TIMESTAMP() - INTERVAL 30 MINUTE"
+$MYSQL -e "UPDATE sesion SET fecha_inicio = UTC_TIMESTAMP() - INTERVAL 60 MINUTE, ultima_actividad = UTC_TIMESTAMP() - INTERVAL 30 MINUTE, fecha_expiracion = UTC_TIMESTAMP() - INTERVAL 10 MINUTE"
 revisar "Sesión inactiva 30 min: responde 401" "401" \
   "$(codigo "$API/api/sesiones/actual" -H "Cookie: etbotfarma_sesion=$token")"
 revisar "La sesión expirada quedó cerrada en la BD" "1" \
-  "$($MYSQL -e "SELECT cerrada FROM sesion ORDER BY id_sesion DESC LIMIT 1")"
+  "$($MYSQL -e "SELECT fecha_cierre IS NOT NULL FROM sesion ORDER BY id_sesion DESC LIMIT 1")"
 
 echo "-----"
 if [ "$fallas" -gt 0 ]; then

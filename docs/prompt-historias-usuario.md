@@ -24,11 +24,11 @@ y comenta el código en español.
 |-------|------------|
 | Backend | .NET 10, ASP.NET Core, C# |
 | CQRS | MediatR **12.5.0** (no actualizar: las versiones nuevas son de pago) |
-| Validaciones | Clases propias `IValidator<T>` (un `if` por regla) ejecutadas por MediatR. **NO FluentValidation** |
-| Base de datos | MySQL 8 + EF Core 9 con **Pomelo 9.0.0** (+ MySqlConnector 2.6.2 por seguridad). **Sin migraciones** |
+| Validaciones | **FluentValidation 12.1.1** (`AbstractValidator<T>`), ejecutada automáticamente por MediatR (`ValidationBehavior`) |
+| Base de datos | MySQL 8 con **SQL a mano** usando **MySqlConnector 2.6.2** (ADO.NET). **Sin Entity Framework y sin ningún ORM** |
 | Frontend | Angular 20: standalone, `signal`, `inject()`, Reactive Forms, `@if` / `@for` |
-| Pruebas | xUnit (unitarias), scripts bash (punta a punta), Playwright (navegador) |
-| Prohibido | AutoMapper, FluentValidation, Swashbuckle, NgRx, librerías de UI, migraciones de EF |
+| Pruebas | xUnit (unitarias, de arquitectura y de integración con `WebApplicationFactory`), scripts bash (punta a punta), Playwright (navegador) |
+| Prohibido | Entity Framework Core, Dapper u otro ORM, AutoMapper, Swashbuckle, NgRx, librerías de UI |
 
 ## 3. Arquitectura (Clean Architecture + CQRS)
 
@@ -40,10 +40,10 @@ Angular → Api → Application → Domain
 
 | Capa | Regla |
 |------|-------|
-| **Api** | El controller SOLO recibe el contrato JSON (`[FromBody]`), lo convierte en command/query, `await Sender.Send(...)` y devuelve el Response. Sin `if`, sin lógica, sin try/catch, sin BD |
-| **Application** | El handler SOLO COORDINA (pasos numerados y comentados). Usa interfaces, NUNCA DbContext ni SQL. No valida: los validadores los ejecuta MediatR |
+| **Api** | El controller SOLO recibe el contrato JSON (`[FromBody]`), lo convierte en command/query, `await sender.Send(...)` y devuelve el Response. Sin `if`, sin lógica, sin validaciones, sin cookies, sin leer claims, sin try/catch, sin BD |
+| **Application** | El handler SOLO COORDINA (pasos numerados y comentados). Usa interfaces, NUNCA SQL ni conexiones. No valida: los validadores los ejecuta MediatR |
 | **Domain** | Reglas de negocio como métodos de las entidades (`usuario.PuedeIniciarSesion()`, `sesion.EstaVigente(...)`). Lanza `DomainException` (→ 422). No depende de nada |
-| **Infrastructure** | SOLO obtiene, guarda y devuelve datos (repositorios, EF Core). Sin reglas de negocio |
+| **Infrastructure** | SOLO obtiene, guarda y devuelve datos (repositorios con SQL parametrizado). Sin reglas de negocio |
 
 ## 4. Estructura de carpetas: POR TIPO y luego POR HISTORIA
 
@@ -61,12 +61,13 @@ backend/src/
 │  ├─ Validators/<Historia>/<CasoDeUso>Validator.cs
 │  ├─ Handlers/<Historia>/<CasoDeUso>Handler.cs
 │  ├─ Dtos/<Historia>/<CasoDeUso>Dto.cs
-│  └─ Common/ (Behaviors, Validacion, Interfaces, Interfaces/Repositorios, Exceptions, Messaging, Configuracion)
+│  └─ Common/ (Behaviors, Interfaces, Interfaces/Repositorios, Exceptions, Messaging, Configuracion)
 ├─ EtbotFarma.Domain/Entities/                    ← compartidas (no van por historia)
-└─ EtbotFarma.Infrastructure/Persistence/ (EtbotFarmaDbContext, Configuraciones/, Repositorios/), Seguridad/, Services/
+└─ EtbotFarma.Infrastructure/Persistence/ (ConexionMySql, Repositorios/), Seguridad/, Services/
 backend/tests/
 ├─ EtbotFarma.Domain.Tests/Entities/
-└─ EtbotFarma.Application.Tests/ Handlers/<Historia>/, Validators/<Historia>/, Common/, Falsos/
+├─ EtbotFarma.Application.Tests/ Handlers/<Historia>/, Validators/<Historia>/, Common/, Arquitectura/, Falsos/
+└─ EtbotFarma.Api.IntegrationTests/             ← endpoints contra MySQL (categoría "Integracion")
 frontend/src/app/
 ├─ core/ (services/, guards/, interceptors/, models/)
 ├─ shared/components/
@@ -109,17 +110,17 @@ Detalle de las historias: `docs/historias-usuario.md` y el Excel `Historias_Usua
 ## 6. Cómo se escribe cada pieza (copiar HU-01 como molde)
 
 - **Command / Query**: `public sealed record XCommand(...) : ICommand<XDto>;` (`IQuery<XDto>` si solo lee).
-- **Validator**: `public class XValidator : IValidator<XCommand>` con `List<string> Validar(XCommand command)`; un `if` por regla; mensajes en español. Se registra y se ejecuta solo (`Common/Behaviors/ValidationBehavior.cs`) → `ValidacionException` → 400.
+- **Validator**: `public sealed class XValidator : AbstractValidator<XCommand>`; en el constructor una regla por campo: `RuleFor(c => c.Nombre).NotEmpty().WithMessage("El nombre es obligatorio.");` (mensajes en español). Solo valida DATOS DE ENTRADA; las reglas de negocio van en Domain. Se registra solo y MediatR lo ejecuta antes del handler (`Common/Behaviors/ValidationBehavior.cs`) → `ValidacionException` → 400. Nunca crearlo con `new` en un handler.
 - **Handler**: `public sealed class XHandler(dependencias...) : ICommandHandler<XCommand, XDto>`; pasos: obtener datos con repositorios → aplicar reglas del Domain → `await unitOfWork.GuardarCambiosAsync(ct)` UNA vez → devolver Dto. Fecha actual con `IDateTimeProvider` (UTC), nunca `DateTime.Now`.
 - **Interfaces nuevas**: `Application/Common/Interfaces/` (repositorios en `.../Repositorios/`).
-- **Entidades**: `Domain/Entities/`, heredan `Entity<int>`, `private set`, constructor `private` vacío (EF), método estático `Crear(...)`, reglas como métodos.
-- **Infrastructure**: repositorio `XRepository(EtbotFarmaDbContext contexto) : IXRepository`; mapeo en `Persistence/Configuraciones/XConfiguracion.cs` con `ToTable(...)` y `HasColumnName(...)` para CADA propiedad (nombres snake_case reales de `database/etbotfarma_mysql.sql`); agregar `DbSet` y registrar en `DependencyInjection.cs`.
+- **Entidades**: `Domain/Entities/`, heredan `Entity<int>`, `private set`, constructor `private` vacío, método estático `Crear(...)` (aplica reglas) y `Reconstruir(...)` (arma la entidad con lo leído de MySQL), reglas como métodos.
+- **Infrastructure**: repositorio `XRepository(ConexionMySql conexion) : IXRepository` en `Persistence/Repositorios/`. SQL escrito a mano con los nombres reales de `database/etbotfarma_mysql_v2.sql`; valores SIEMPRE como parámetros (`comando.Parameters.AddWithValue("@nombre", valor)`, nunca concatenar texto); leer filas con `lector.GetString(lector.GetOrdinal("columna"))` y `Entidad.Reconstruir(...)`. Sin "change tracking": para guardar cambios hay un método explícito (`AgregarAsync`, `ActualizarAsync`). Todo queda en la transacción de la petición y se confirma con `unitOfWork.GuardarCambiosAsync`. Para descontar stock: `UPDATE ... SET stock = stock - @c WHERE id_lote = @id AND stock >= @c` y revisar filas afectadas. Registrar en `DependencyInjection.cs`.
 - **Contratos**: `Request` con propiedades nullables (`string?`); `Response` sin datos sensibles.
-- **Controller**: hereda `ApiControllerBase`, `[Route("api/...")]`. Todo está protegido por defecto (FallbackPolicy); `[AllowAnonymous]` solo si la historia lo dice; solo admin: `[Authorize(Roles = "Administrador")]`. Usuario actual: `User.FindFirstValue(ClaimTypes.NameIdentifier)`.
-- **Errores** (ya los maneja `Middleware/GlobalExceptionHandler.cs`): `ValidacionException` 400 · `CredencialesInvalidasException` 401 · `DomainException` 422 · otros 500.
+- **Controller**: `[ApiController] [Route("api/...")] public sealed class XController(ISender sender) : ControllerBase` (sin clases base propias; MediatR llega por el constructor). Todo está protegido por defecto (FallbackPolicy); `[AllowAnonymous]` solo si la historia lo dice; solo admin: `[Authorize(Roles = "Administrador")]`. El usuario actual lo obtiene el HANDLER con `IUsuarioActual` (nunca el controller). Cosas de HTTP (cookies) van detrás de una interfaz de Application implementada en `Api/Seguridad/`.
+- **Errores** (ya los maneja `Middleware/GlobalExceptionHandler.cs`): `ValidacionException` 400 · `CredencialesInvalidasException` / `NoAutenticadoException` 401 · `AccesoDenegadoException` 403 · `NoEncontradoException` 404 · `DomainException` 422 · otros 500.
 - **Angular**: pantalla en `features/<historia>/`; servicio en `core/services/` con `${environment.apiUrl}`; modelos en `core/models/` iguales a los contratos (camelCase); ruta lazy con `canActivate: [sesionGuard]`; confirmaciones/alertas exactamente como dice la historia (diálogo reutilizable en `shared/components/`).
 
-## 7. Base de datos (MySQL, script `database/etbotfarma_mysql.sql`)
+## 7. Base de datos (MySQL, script `database/etbotfarma_mysql_v2.sql`, detalle en `docs/base-de-datos.md`)
 
 Tablas: `rol`, `usuario`, `sesion`, `medicamento`, `lote`, `movimiento`, `detalle_movimiento`, `auditoria`.
 - El stock está en `lote.stock`, no en `medicamento`.
@@ -127,14 +128,19 @@ Tablas: `rol`, `usuario`, `sesion`, `medicamento`, `lote`, `movimiento`, `detall
 - Cambios administrativos → `auditoria` (nunca contraseñas).
 - Nada se borra físicamente (`ON DELETE RESTRICT`): `activo = false` o `stock = 0`.
 - Semáforo (meses calendario): Verde > 12 · Amarillo > 3 y ≤ 12 · Rojo ≤ 3 (incluye caducados). Se calcula en el Domain.
-- Si una historia necesita cambiar tablas: modificar el script y `database/pruebas/` y explicarlo.
+- Salidas en orden **FEFO** (HU-13): `ORDER BY fecha_caducidad, fecha_entrada`, solo lotes con stock y NO caducados (índice `idx_lote_fefo`).
+- `detalle_movimiento.id_medicamento` debe ser el del movimiento: las llaves compuestas impiden usar lotes de otro medicamento.
+- `movimiento.fecha` y `auditoria.fecha` son DATETIME (UTC). Una `BAJA` siempre lleva `motivo`.
+- Sesión cerrada = `fecha_cierre` con valor; vigente = sin cierre y `fecha_expiracion` > ahora.
+- Si una historia necesita cambiar tablas: modificar `etbotfarma_mysql_v2.sql`, agregar el `ALTER` correspondiente a un script de migración, actualizar `database/pruebas/` y explicarlo en `docs/base-de-datos.md`.
 
 ## 8. Pruebas (obligatorias en cada historia)
 
 - Domain: una prueba por regla nueva (`backend/tests/EtbotFarma.Domain.Tests/Entities/`).
-- Application: handler con clases falsas (`Falsos/Falsos.cs`) y validator (`Handlers/<Historia>/`, `Validators/<Historia>/`).
+- Application: handler con clases falsas (`Falsos/Falsos.cs`) y validator con `TestValidate` de FluentValidation (`Handlers/<Historia>/`, `Validators/<Historia>/`). Las pruebas de `Arquitectura/` revisan nombres, carpetas y dependencias: no las desactives.
+- Integración (cuando la historia tiene endpoint): `backend/tests/EtbotFarma.Api.IntegrationTests/` con `[Trait("Category", "Integracion")]` (corren en GitHub con MySQL).
 - Nombres en español: `Con_stock_insuficiente_no_registra_la_salida()`.
-- Comandos: `dotnet test backend/EtbotFarma.slnx` y `npm run build` (en `frontend`). GitHub Actions corre además MySQL real y navegador.
+- Comandos: `dotnet test backend/EtbotFarma.slnx --filter "Category!=Integracion"` (sin MySQL) y `npm run build` (en `frontend`). GitHub Actions corre además las de integración, MySQL real y navegador.
 
 ## 9. Git
 
@@ -145,7 +151,7 @@ Tablas: `rol`, `usuario`, `sesion`, `medicamento`, `lote`, `movimiento`, `detall
 
 ## 10. Ejecutar localmente
 
-1. MySQL 8: ejecutar `database/etbotfarma_mysql.sql`.
+1. MySQL 8: base nueva → `database/etbotfarma_mysql_v2.sql`; base que ya tenías (v1) → `database/migracion_v1_a_v2.sql` (una sola vez).
 2. Copiar `backend/src/EtbotFarma.Api/appsettings.Local.example.json` como `appsettings.Local.json` (contraseña de MySQL y del usuario `admin`).
 3. `cd backend && dotnet run --project src/EtbotFarma.Api` (http://localhost:5080).
 4. `cd frontend && npm install && npm start` (http://localhost:4200).

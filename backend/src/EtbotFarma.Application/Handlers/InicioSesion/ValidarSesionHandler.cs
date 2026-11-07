@@ -16,9 +16,9 @@ public sealed class ValidarSesionHandler(
     ITokenSesionService tokenService,
     IUnitOfWork unitOfWork,
     IDateTimeProvider reloj,
-    ConfiguracionSesion configuracion) : ICommandHandler<ValidarSesionCommand, ValidarSesionDto?>
+    ConfiguracionSesion configuracion) : ICommandHandler<ValidarSesionCommand, UsuarioSesionDto?>
 {
-    public async Task<ValidarSesionDto?> Handle(ValidarSesionCommand command, CancellationToken cancellationToken)
+    public async Task<UsuarioSesionDto?> Handle(ValidarSesionCommand command, CancellationToken cancellationToken)
     {
         // 1. Sin token no hay sesión
         if (string.IsNullOrWhiteSpace(command.Token))
@@ -36,18 +36,20 @@ public sealed class ValidarSesionHandler(
         var ahora = reloj.UtcNow.UtcDateTime;
 
         // 3. Si expiró por inactividad o la cuenta ya no está activa, se cierra
-        if (!sesion.EstaVigente(ahora, configuracion.InactividadMaxima) || !sesion.Usuario.PuedeIniciarSesion())
+        if (!sesion.EstaVigente(ahora) || !sesion.Usuario.PuedeIniciarSesion())
         {
             sesion.Cerrar(ahora);
+            await sesiones.ActualizarAsync(sesion, cancellationToken);
             await unitOfWork.GuardarCambiosAsync(cancellationToken);
             return null;
         }
 
         // 4. Sesión válida: se reinicia el contador de inactividad
-        sesion.RegistrarActividad(ahora);
+        sesion.RegistrarActividad(ahora, configuracion.InactividadMaxima);
+        await sesiones.ActualizarAsync(sesion, cancellationToken);
         await unitOfWork.GuardarCambiosAsync(cancellationToken);
 
-        return new ValidarSesionDto(
+        return new UsuarioSesionDto(
             sesion.Usuario.Id,
             sesion.Usuario.NombreUsuario,
             sesion.Usuario.NombreCompleto,

@@ -1,9 +1,8 @@
 using EtbotFarma.Application.Commands.InicioSesion;
+using EtbotFarma.Application.Common.Configuracion;
 using EtbotFarma.Application.Common.Exceptions;
-using EtbotFarma.Application.Dtos.InicioSesion;
 using EtbotFarma.Application.Handlers.InicioSesion;
 using EtbotFarma.Application.Tests.Falsos;
-using EtbotFarma.Application.Validators.InicioSesion;
 using EtbotFarma.Domain.Entities;
 
 namespace EtbotFarma.Application.Tests.Handlers.InicioSesion;
@@ -16,12 +15,14 @@ public class IniciarSesionHandlerTests
     private readonly UsuarioRepositoryFalso _usuarios = new();
     private readonly SesionRepositoryFalso _sesiones = new();
     private readonly UnitOfWorkFalso _unitOfWork = new();
+    private readonly CookieSesionServiceFalso _cookie = new();
     private readonly IniciarSesionHandler _handler;
 
     public IniciarSesionHandlerTests()
     {
         _handler = new IniciarSesionHandler(
-            _usuarios, _sesiones, new PasswordHasherFalso(), new TokenSesionServiceFalso(), _unitOfWork, new RelojFalso(Ahora));
+            _usuarios, _sesiones, new PasswordHasherFalso(), new TokenSesionServiceFalso(), _unitOfWork, new RelojFalso(Ahora), _cookie,
+            new ConfiguracionSesion { MinutosInactividad = 20 });
 
         _usuarios.Usuarios.Add(Usuario.Crear(
             "Ana", "López", "ana", "hash:Secreta123", "5512345678",
@@ -33,12 +34,13 @@ public class IniciarSesionHandlerTests
     {
         var resultado = await _handler.Handle(new IniciarSesionCommand("ana", "Secreta123"), CancellationToken.None);
 
-        Assert.Equal("token-123", resultado.Token);
+        Assert.Equal("token-123", _cookie.TokenGuardado);   // el token va a la cookie, no al JSON
         Assert.Equal("Ana López", resultado.NombreCompleto);
         Assert.Equal("Administrador", resultado.Rol);
 
         var sesion = Assert.Single(_sesiones.Sesiones);
-        Assert.Equal("h:token-123", sesion.Token);   // se guarda el HASH, no el token
+        Assert.Equal("h:token-123", sesion.TokenHash);   // se guarda el HASH, no el token
+        Assert.Equal(Ahora.AddMinutes(20).UtcDateTime, sesion.FechaExpiracion);
         Assert.Equal(1, _unitOfWork.VecesGuardado);
     }
 
@@ -50,6 +52,7 @@ public class IniciarSesionHandlerTests
 
         Assert.Equal("Usuario o contraseña incorrectos.", ex.Message);
         Assert.Empty(_sesiones.Sesiones);
+        Assert.Null(_cookie.TokenGuardado);
     }
 
     [Fact]

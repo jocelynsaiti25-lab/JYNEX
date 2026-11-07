@@ -86,7 +86,7 @@ await pagina.waitForURL('**/inicio');
 revisar('Con sesión, /iniciar-sesion redirige a /inicio', pagina.url().includes('/inicio'));
 
 // 8. Sesión expirada por inactividad (criterio 6): se simulan 30 minutos sin actividad
-execSync(`mysql -h127.0.0.1 -uroot -proot etbotfarma -e "UPDATE sesion SET ultima_actividad = UTC_TIMESTAMP() - INTERVAL 30 MINUTE"`);
+execSync(`mysql -h127.0.0.1 -uroot -proot etbotfarma -e "UPDATE sesion SET fecha_inicio = UTC_TIMESTAMP() - INTERVAL 60 MINUTE, ultima_actividad = UTC_TIMESTAMP() - INTERVAL 30 MINUTE, fecha_expiracion = UTC_TIMESTAMP() - INTERVAL 10 MINUTE"`);
 await pagina.goto(`${URL}/inicio`);
 await pagina.waitForURL('**/iniciar-sesion**');
 revisar('Sesión expirada: regresa a iniciar sesión', pagina.url().includes('/iniciar-sesion'));

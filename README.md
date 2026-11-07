@@ -10,8 +10,8 @@ salidas FEFO, bitácora de movimientos y exportación a Excel.
 | Frontend | Angular 20 (componentes standalone, signals) |
 | Backend | .NET 10 / ASP.NET Core (C#) |
 | Arquitectura | Clean Architecture + CQRS (MediatR) + vertical slices |
-| Validaciones | Clases `IValidator<T>` propias (un `if` por regla), ejecutadas por MediatR |
-| Base de datos | Por definir (EF Core, migraciones) |
+| Validaciones | FluentValidation 12.1.1, ejecutada automáticamente por MediatR |
+| Base de datos | MySQL 8 con SQL a mano (MySqlConnector), sin ORM |
 | Pruebas | xUnit |
 
 Detalles en [`docs/arquitectura.md`](docs/arquitectura.md).
@@ -25,7 +25,7 @@ etbotfarma-web/
 │  ├─ src/
 │  │  ├─ EtbotFarma.Domain/           Entidades y reglas de negocio
 │  │  ├─ EtbotFarma.Application/      Casos de uso (CQRS) y validadores
-│  │  │  ├─ Common/                   ValidationBehavior, IValidator, interfaces
+│  │  │  ├─ Common/                   ValidationBehavior, interfaces, excepciones
 │  │  │  ├─ Commands/ Queries/        Por tipo, con una subcarpeta por historia
 │  │  │  ├─ Validators/ Handlers/     (ej.: Handlers/InicioSesion/)
 │  │  │  └─ Dtos/
@@ -53,7 +53,7 @@ etbotfarma-web/
 
 **0. Base de datos y configuración local** (solo la primera vez)
 
-1. Crea la base en MySQL 8 con `database/etbotfarma_mysql.sql` (ver `database/README.md`).
+1. Crea la base en MySQL 8 con `database/etbotfarma_mysql_v2.sql` (si ya tenías la versión 1: `database/migracion_v1_a_v2.sql`). Ver `database/README.md`.
 2. En `backend/src/EtbotFarma.Api/`, copia `appsettings.Local.example.json` como
    **`appsettings.Local.json`** y escribe tu contraseña de MySQL y la contraseña que tendrá el usuario `admin`.
    Ese archivo **no se sube a GitHub** (está en `.gitignore`).
@@ -96,7 +96,7 @@ Las reglas completas están en [`CLAUDE.md`](CLAUDE.md). En resumen (copiar HU-0
 1. Buscar el nombre de carpeta de la historia en `backend/src/EtbotFarma.Application/README.md` (ej.: HU-02 → `CierreSesion`).
 2. Crear en Application: `Commands/<Historia>/`, `Validators/<Historia>/`, `Handlers/<Historia>/`, `Dtos/<Historia>/`.
 3. Las reglas de negocio van en las entidades de `Domain/Entities/`.
-4. Crear `Api/Controllers/<Historia>Controller.cs` y `Api/Contracts/<Historia>/` (el controller solo llama `Sender.Send(...)`).
+4. Crear `Api/Controllers/<Historia>Controller.cs` y `Api/Contracts/<Historia>/` (el controller recibe `ISender` por constructor y solo llama `sender.Send(...)`).
 5. Crear la pantalla en `frontend/src/app/features/<historia-en-kebab>/`.
 6. Escribir pruebas en `backend/tests/` (`Handlers/<Historia>/`, `Validators/<Historia>/`).
 

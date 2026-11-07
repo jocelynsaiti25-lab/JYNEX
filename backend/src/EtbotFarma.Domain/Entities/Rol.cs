@@ -12,9 +12,6 @@ public class Rol : Entity<int>
 
     public string Nombre { get; private set; } = string.Empty;
 
-    // Constructor vacío que usa Entity Framework para leer de la base de datos
-    private Rol() { }
-
     public Rol(int id, string nombre)
     {
         Id = id;

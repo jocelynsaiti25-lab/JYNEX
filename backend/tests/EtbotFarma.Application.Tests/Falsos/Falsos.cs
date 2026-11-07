@@ -30,7 +30,15 @@ public sealed class SesionRepositoryFalso : ISesionRepository
     }
 
     public Task<Sesion?> ObtenerPorTokenHashAsync(string tokenHash, CancellationToken cancellationToken)
-        => Task.FromResult(Sesiones.FirstOrDefault(s => s.Token == tokenHash));
+        => Task.FromResult(Sesiones.FirstOrDefault(s => s.TokenHash == tokenHash));
+
+    public int VecesActualizada { get; private set; }
+
+    public Task ActualizarAsync(Sesion sesion, CancellationToken cancellationToken)
+    {
+        VecesActualizada++;
+        return Task.CompletedTask;
+    }
 }
 
 /// <summary>"Hash" falso: antepone "hash:" a la contraseña.</summary>
@@ -62,4 +70,24 @@ public sealed class UnitOfWorkFalso : IUnitOfWork
 public sealed class RelojFalso(DateTimeOffset ahora) : IDateTimeProvider
 {
     public DateTimeOffset UtcNow { get; set; } = ahora;
+}
+
+/// <summary>Guarda en memoria el token que el handler "escribió" en la cookie.</summary>
+public sealed class CookieSesionServiceFalso : ICookieSesionService
+{
+    public string? TokenGuardado { get; private set; }
+
+    public void Guardar(string token) => TokenGuardado = token;
+}
+
+/// <summary>Usuario actual configurable para las pruebas.</summary>
+public sealed class UsuarioActualFalso : IUsuarioActual
+{
+    public int? IdUsuario { get; set; }
+
+    public string NombreUsuario { get; set; } = string.Empty;
+
+    public string NombreCompleto { get; set; } = string.Empty;
+
+    public string Rol { get; set; } = string.Empty;
 }
