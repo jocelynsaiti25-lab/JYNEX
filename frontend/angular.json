@@ -22,7 +22,8 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [{ "glob": "**/*", "input": "public" }],
-            "styles": ["src/styles.scss"]
+            "styles": ["src/styles.scss"],
+            "stylePreprocessorOptions": { "includePaths": ["src/styles"] }
           },
           "configurations": {
             "production": {
@@ -48,6 +49,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "allowedHosts": [".app.github.dev"]
+          },
           "configurations": {
             "production": {
               "buildTarget": "etbotfarma-frontend:build:production"

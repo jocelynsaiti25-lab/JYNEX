@@ -1,0 +1,63 @@
+<div class="pantalla">
+  @if (sesion.usuario(); as usuario) {
+    <section class="tarjeta bienvenida" aria-labelledby="titulo-bienvenida">
+      <p class="bienvenida__fecha">{{ hoy | date: 'fullDate' }}</p>
+      <h1 id="titulo-bienvenida" class="pantalla__titulo">
+        Hola, <span class="bienvenida__nombre">{{ usuario.nombreCompleto }}</span>
+      </h1>
+      <p class="pantalla__descripcion">Bienvenida(o) al sistema de inventario de Etbot Farma.</p>
+      <span class="etiqueta">
+        <span class="icono" aria-hidden="true">badge</span>
+        Rol: {{ usuario.rol }}
+      </span>
+    </section>
+  }
+
+  <section aria-labelledby="titulo-modulos">
+    <h2 id="titulo-modulos" class="seccion__titulo">Módulos</h2>
+    <ul class="modulos">
+      @for (modulo of modulos(); track modulo.etiqueta) {
+        <li class="tarjeta modulo">
+          <span class="modulo__icono" aria-hidden="true">
+            <span class="icono">{{ modulo.icono }}</span>
+          </span>
+          <h3>{{ modulo.etiqueta }}</h3>
+          <p class="modulo__descripcion">{{ modulo.descripcion }}</p>
+          @if (modulo.ruta) {
+            <a class="boton boton--secundario" [routerLink]="modulo.ruta">
+              Abrir <span class="icono" aria-hidden="true">arrow_forward</span>
+            </a>
+          } @else {
+            <span class="etiqueta etiqueta--neutra">
+              <span class="icono" aria-hidden="true">schedule</span>
+              Próximamente
+            </span>
+          }
+        </li>
+      }
+    </ul>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="titulo-semaforo">
+    <div class="tarjeta__encabezado">
+      <h2 id="titulo-semaforo">Semáforo de caducidad</h2>
+    </div>
+    <ul class="semaforos">
+      <li><app-semaforo estado="verde" /> Caduca en más de 12 meses.</li>
+      <li><app-semaforo estado="amarillo" /> Entre 6 y 12 meses para vencer. Priorizar rotación.</li>
+      <li><app-semaforo estado="rojo" /> Caduca en 3 meses o menos. Se puede dar de baja.</li>
+      <li><app-semaforo estado="caducado" /> Ya venció: no se puede usar en salidas.</li>
+      <li><app-semaforo estado="agotado" /> No hay unidades vigentes del medicamento.</li>
+    </ul>
+  </section>
+
+  <p class="estado-api" role="status">
+    @if (estado(); as e) {
+      <span class="punto punto--ok" aria-hidden="true"></span>
+      Servidor conectado · {{ e.aplicacion }} v{{ e.version }}
+    } @else if (errorApi()) {
+      <span class="punto punto--error" aria-hidden="true"></span>
+      No se pudo conectar con el servidor.
+    }
+  </p>
+</div>

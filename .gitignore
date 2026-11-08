@@ -7,6 +7,7 @@ obj/
 TestResults/
 *.trx
 appsettings.*.local.json
+appsettings.Local.json
 
 # ---------- Angular / Node ----------
 node_modules/
@@ -25,3 +26,9 @@ Thumbs.db
 # ---------- Secretos ----------
 .env
 *.pfx
+
+# Registro de la API al correr en Codespaces
+api.log
+
+# Capturas de pruebas en navegador
+frontend/e2e/capturas/

@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, 'feature/**']
   pull_request:
     branches: [main, develop]
 
@@ -20,7 +20,8 @@ jobs:
           dotnet-version: 10.0.x
       - run: dotnet restore EtbotFarma.slnx
       - run: dotnet build EtbotFarma.slnx --no-restore -c Release
-      - run: dotnet test EtbotFarma.slnx --no-build -c Release
+      # Pruebas unitarias y de arquitectura (las de integración necesitan MySQL: van en el job e2e)
+      - run: dotnet test EtbotFarma.slnx --no-build -c Release --filter "Category!=Integracion"
 
   frontend:
     name: Frontend (Angular)
@@ -33,5 +34,151 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
+      # npm ci instala EXACTAMENTE las versiones de package-lock.json (igual para todo el equipo)
+      - run: npm ci
       - run: npm run build
+
+  database:
+    name: Base de datos (MySQL 8)
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Crear la base de datos (versión 2)
+        run: mysql -h127.0.0.1 -uroot -proot < database/etbotfarma_mysql_v2.sql
+      - name: Ejecutar el script otra vez (debe poder repetirse sin errores)
+        run: mysql -h127.0.0.1 -uroot -proot < database/etbotfarma_mysql_v2.sql
+      - name: Pruebas SQL (entrada, salida FEFO, baja, existencias, caducidad, auditoría)
+        run: |
+          mysql -h127.0.0.1 -uroot -proot -N < database/pruebas/pruebas_v2.sql | tee resultado.txt
+          ! grep -q "FALLA" resultado.txt
+      - name: Reglas que deben ser rechazadas
+        run: bash database/pruebas/reglas_que_deben_fallar_v2.sh
+      - name: Migración v1 → v2 sin perder datos
+        run: |
+          mysql -h127.0.0.1 -uroot -proot -e "DROP DATABASE etbotfarma"
+          mysql -h127.0.0.1 -uroot -proot < database/etbotfarma_mysql.sql
+          mysql -h127.0.0.1 -uroot -proot -N < database/pruebas/datos_prueba.sql > /dev/null
+          mysql -h127.0.0.1 -uroot -proot etbotfarma -e "INSERT INTO sesion (id_usuario, token, fecha_inicio, ultima_actividad, fecha_cierre, cerrada) VALUES (1, SHA2('a', 256), UTC_TIMESTAMP(), UTC_TIMESTAMP(), NULL, FALSE), (1, SHA2('b', 256), UTC_TIMESTAMP(), UTC_TIMESTAMP(), NULL, TRUE)"
+          mysql -h127.0.0.1 -uroot -proot < database/migracion_v1_a_v2.sql
+          mysql -h127.0.0.1 -uroot -proot -N < database/pruebas/verificar_migracion.sql | tee migracion.txt
+          ! grep -q "FALLA" migracion.txt
+
+  e2e:
+    name: Punta a punta (API + MySQL)
+    runs-on: ubuntu-latest
+    needs: backend
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__EtbotFarma: "Server=127.0.0.1;Port=3306;Database=etbotfarma;User=root;Password=root;"
+      AdministradorInicial__Contrasenia: "Prueba123!"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Crear la base de datos
+        run: mysql -h127.0.0.1 -uroot -proot < database/etbotfarma_mysql_v2.sql
+      - name: Pruebas de integración (API en memoria + MySQL)
+        run: dotnet test backend/tests/EtbotFarma.Api.IntegrationTests -c Release
+      - name: Compilar la API
+        run: dotnet build backend/src/EtbotFarma.Api -c Release
+      - name: Arrancar la API
+        run: |
+          nohup dotnet run --no-build -c Release --project backend/src/EtbotFarma.Api --urls http://127.0.0.1:5080 > api.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -s http://127.0.0.1:5080/api/sistema/estado > /dev/null && break
+            sleep 2
+          done
+          cat api.log
+      - name: Pruebas de HU-01
+        run: bash backend/tests/e2e/hu01_inicio_sesion.sh
+      - name: Registro de la API (si algo falla)
+        if: failure()
+        run: cat api.log
+
+  navegador:
+    name: Navegador (Angular + API + MySQL)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__EtbotFarma: "Server=127.0.0.1;Port=3306;Database=etbotfarma;User=root;Password=root;"
+      AdministradorInicial__Contrasenia: "Prueba123!"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Crear la base de datos
+        run: mysql -h127.0.0.1 -uroot -proot < database/etbotfarma_mysql_v2.sql
+      - name: Arrancar la API
+        run: |
+          dotnet build backend/src/EtbotFarma.Api -c Release
+          nohup dotnet run --no-build -c Release --project backend/src/EtbotFarma.Api --urls http://localhost:5080 > api.log 2>&1 &
+      - name: Arrancar Angular
+        working-directory: frontend
+        run: |
+          npm ci
+          nohup npx ng serve --port 4200 > ../angular.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -s http://localhost:4200 > /dev/null && curl -s http://localhost:5080/api/sistema/estado > /dev/null && break
+            sleep 3
+          done
+      - name: Instalar Playwright
+        working-directory: frontend
+        run: |
+          npm install --no-save playwright@1
+          npx playwright install --with-deps chromium
+      - name: Pruebas de HU-01 en el navegador
+        working-directory: frontend
+        run: node e2e/hu01-iniciar-sesion.mjs
+      - name: Guardar capturas de pantalla
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capturas-hu01
+          path: frontend/e2e/capturas/
+      - name: Registros (si algo falla)
+        if: failure()
+        run: |
+          cat api.log
+          cat angular.log

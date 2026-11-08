@@ -4,25 +4,17 @@
 GET {{Api}}/api/sistema/estado
 Accept: application/json
 
-### EJEMPLO ProductoValidator: datos CORRECTOS → 200
-POST {{Api}}/api/ejemplo/producto
+### HU-01: iniciar sesión (cambia la contraseña por la de tu appsettings.Local.json)
+POST {{Api}}/api/sesiones/iniciar
 Content-Type: application/json
 
 {
-  "nombre": "Paracetamol 500 mg",
-  "precio": 35.50,
-  "cantidad": 10
+  "nombreUsuario": "admin",
+  "contrasenia": "TU_CONTRASEÑA"
 }
 
-### EJEMPLO ProductoValidator: datos INCORRECTOS → 400 con la lista de errores
-POST {{Api}}/api/ejemplo/producto
-Content-Type: application/json
-
-{
-  "nombre": "",
-  "precio": 0,
-  "cantidad": -5
-}
+### HU-01: datos de la sesión actual (401 si no hay sesión)
+GET {{Api}}/api/sesiones/actual
 
 ### Documento OpenAPI
 GET {{Api}}/openapi/v1.json

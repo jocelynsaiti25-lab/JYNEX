@@ -1,0 +1,125 @@
+@use 'quiebres' as *;
+
+.bienvenida {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+  background: linear-gradient(135deg, var(--color-superficie) 0%, var(--color-primario-suave) 100%);
+  border-color: var(--color-primario-borde);
+
+  @include tableta {
+    padding: var(--espacio-8);
+  }
+
+  &__fecha {
+    font-size: var(--texto-sm);
+    font-weight: var(--peso-medio);
+    color: var(--color-texto-secundario);
+
+    &::first-letter {
+      text-transform: uppercase;
+    }
+  }
+
+  &__nombre {
+    color: var(--color-primario);
+  }
+}
+
+.seccion__titulo {
+  margin-bottom: var(--espacio-4);
+}
+
+.modulos {
+  display: grid;
+  gap: var(--espacio-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include tableta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include escritorio {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.modulo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+
+  &__icono {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: var(--espacio-2);
+    color: var(--color-primario-oscuro);
+    background: var(--color-primario-suave);
+    border: 1px solid var(--color-primario-borde);
+    border-radius: var(--radio-md);
+
+    .icono {
+      font-size: 1.625rem;
+    }
+  }
+
+  &__descripcion {
+    flex: 1;
+    font-size: var(--texto-sm);
+    color: var(--color-texto-secundario);
+  }
+
+  > :last-child {
+    margin-top: var(--espacio-2);
+  }
+}
+
+.semaforos {
+  display: grid;
+  gap: var(--espacio-3);
+  margin: 0;
+  padding: 0;
+  font-size: var(--texto-sm);
+  color: var(--color-texto-secundario);
+  list-style: none;
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--espacio-3);
+  }
+
+  app-semaforo {
+    display: inline-block;
+    min-width: 10.5rem;
+  }
+}
+
+.estado-api {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  font-size: var(--texto-xs);
+  color: var(--color-texto-tenue);
+}
+
+.punto {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+
+  &--ok {
+    background: var(--color-exito);
+  }
+
+  &--error {
+    background: var(--color-error);
+  }
+}

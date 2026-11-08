@@ -1,0 +1,105 @@
+<main class="login">
+  <header class="login__marca">
+    <span class="login__logo">
+      <img src="logo-etbotfarma.png" alt="" width="88" height="88" />
+    </span>
+    <p class="login__nombre">Etbot Farma</p>
+    <p class="login__lema">Control de inventario de medicamentos</p>
+  </header>
+
+  <!-- Avisos que llegan desde otras pantallas -->
+  @if (sesionExpirada) {
+    <app-alerta tipo="aviso" titulo="Sesión expirada">
+      Tu sesión expiró por inactividad. Vuelve a iniciar sesión.
+    </app-alerta>
+  }
+  @if (sesionCerrada) {
+    <app-alerta tipo="info">Cerraste sesión correctamente.</app-alerta>
+  }
+
+  <section class="tarjeta login__tarjeta" aria-labelledby="titulo-login">
+    <h1 id="titulo-login">Iniciar sesión</h1>
+    <p class="login__descripcion">Escribe el usuario y la contraseña que te asignó el administrador.</p>
+
+    <!-- HU-01 criterio 4: mensaje genérico, sin decir qué dato falló -->
+    @if (mensajeError(); as mensaje) {
+      <app-alerta tipo="error">{{ mensaje }}</app-alerta>
+    }
+
+    <form class="formulario" [formGroup]="formulario" (ngSubmit)="iniciarSesion()" novalidate>
+      <div class="campo">
+        <label class="campo__etiqueta" for="nombreUsuario">
+          Nombre de usuario <span class="obligatorio" aria-hidden="true">*</span>
+        </label>
+        <div class="campo__caja">
+          <span class="icono" aria-hidden="true">person</span>
+          <input
+            id="nombreUsuario"
+            class="campo__control"
+            type="text"
+            formControlName="nombreUsuario"
+            autocomplete="username"
+            autocapitalize="none"
+            spellcheck="false"
+            required
+            [attr.aria-invalid]="campoInvalido('nombreUsuario')"
+            [attr.aria-describedby]="campoInvalido('nombreUsuario') ? 'error-usuario' : null"
+          />
+        </div>
+        @if (campoInvalido('nombreUsuario')) {
+          <p id="error-usuario" class="campo__error">
+            <span class="icono" aria-hidden="true">error</span>El nombre de usuario es obligatorio.
+          </p>
+        }
+      </div>
+
+      <div class="campo">
+        <label class="campo__etiqueta" for="contrasenia">
+          Contraseña <span class="obligatorio" aria-hidden="true">*</span>
+        </label>
+        <div class="campo__caja">
+          <span class="icono" aria-hidden="true">lock</span>
+          <input
+            id="contrasenia"
+            class="campo__control"
+            [type]="mostrarContrasenia() ? 'text' : 'password'"
+            formControlName="contrasenia"
+            autocomplete="current-password"
+            required
+            [attr.aria-invalid]="campoInvalido('contrasenia')"
+            [attr.aria-describedby]="campoInvalido('contrasenia') ? 'error-contrasenia' : null"
+          />
+          <button
+            type="button"
+            class="campo__boton"
+            [attr.aria-pressed]="mostrarContrasenia()"
+            (click)="mostrarContrasenia.set(!mostrarContrasenia())"
+          >
+            <span class="icono" aria-hidden="true">{{ mostrarContrasenia() ? 'visibility_off' : 'visibility' }}</span>
+            <span class="solo-lector">Mostrar contraseña</span>
+          </button>
+        </div>
+        @if (campoInvalido('contrasenia')) {
+          <p id="error-contrasenia" class="campo__error">
+            <span class="icono" aria-hidden="true">error</span>La contraseña es obligatoria.
+          </p>
+        }
+      </div>
+
+      <button type="submit" class="boton boton--primario boton--bloque" [disabled]="enviando()">
+        @if (enviando()) {
+          <span class="cargando" aria-hidden="true"></span>
+          Entrando...
+        } @else {
+          Iniciar sesión
+          <span class="icono" aria-hidden="true">login</span>
+        }
+      </button>
+    </form>
+
+    <p class="login__ayuda">
+      <span class="icono" aria-hidden="true">help</span>
+      ¿Olvidaste tu contraseña? Pide al administrador que te asigne una nueva.
+    </p>
+  </section>
+</main>

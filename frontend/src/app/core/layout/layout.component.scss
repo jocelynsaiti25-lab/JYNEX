@@ -1,0 +1,217 @@
+@use 'quiebres' as *;
+
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+// ---------- Barra superior (celular/tableta) ----------
+.barra-superior {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  height: var(--alto-barra-superior);
+  padding: 0 var(--espacio-4);
+  color: var(--color-navegacion-texto);
+  background: var(--color-navegacion);
+
+  @include escritorio {
+    display: none;
+  }
+
+  &__menu {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--toque-minimo);
+    height: var(--toque-minimo);
+    color: inherit;
+    background: transparent;
+    border: none;
+    border-radius: var(--radio-sm);
+    cursor: pointer;
+
+    .icono {
+      font-size: 1.75rem;
+    }
+  }
+
+  &__logo {
+    padding: 2px;
+    background: var(--color-superficie);
+    border-radius: var(--radio-sm);
+  }
+
+  &__marca {
+    font-weight: var(--peso-negrita);
+  }
+}
+
+.velo {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--velo-modal);
+
+  @include escritorio {
+    display: none;
+  }
+}
+
+// ---------- Barra lateral ----------
+.barra-lateral {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-5);
+  width: min(var(--ancho-barra-lateral), 85vw);
+  padding: var(--espacio-5) var(--espacio-4);
+  overflow-y: auto;
+  color: var(--color-navegacion-texto);
+  background: var(--color-navegacion);
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition:
+    transform var(--transicion),
+    visibility var(--transicion);
+
+  &--abierta {
+    transform: none;
+    visibility: visible;
+  }
+
+  @include escritorio {
+    transform: none;
+    visibility: visible;
+  }
+
+  &__pie {
+    margin-top: auto;
+    padding-top: var(--espacio-4);
+    border-top: 1px solid rgb(255 255 255 / 0.12);
+  }
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+
+  &__logo {
+    padding: var(--espacio-1);
+    background: var(--color-superficie);
+    border-radius: var(--radio-md);
+    box-shadow: var(--sombra-boton-secundario);
+  }
+
+  &__nombre {
+    display: block;
+    font-size: var(--texto-lg);
+  }
+
+  &__lema {
+    display: block;
+    font-size: var(--texto-xs);
+    color: var(--color-navegacion-tenue);
+  }
+}
+
+.usuario {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3);
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: var(--radio-lg);
+
+  &__avatar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    font-weight: var(--peso-semi);
+    color: var(--color-navegacion);
+    background: var(--color-navegacion-acento);
+    border-radius: 50%;
+  }
+
+  &__datos {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__nombre {
+    overflow: hidden;
+    font-size: var(--texto-sm);
+    font-weight: var(--peso-semi);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__rol {
+    font-size: var(--texto-xs);
+    color: var(--color-navegacion-tenue);
+  }
+}
+
+.navegacion ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navegacion__enlace {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  min-height: var(--toque-minimo);
+  padding: var(--espacio-2) var(--espacio-3);
+  font-weight: var(--peso-medio);
+  color: var(--color-navegacion-tenue);
+  text-decoration: none;
+  border-radius: var(--radio-md);
+
+  &:hover {
+    color: var(--color-navegacion-texto);
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  &--activo,
+  &--activo:hover {
+    color: var(--color-texto-invertido);
+    background: var(--color-primario);
+    box-shadow: var(--sombra-boton);
+  }
+}
+
+.version {
+  font-size: var(--texto-xs);
+  color: var(--color-navegacion-tenue);
+}
+
+// ---------- Contenido ----------
+.contenido {
+  max-width: var(--ancho-contenido);
+  padding: var(--espacio-5) var(--espacio-4) var(--espacio-10);
+  outline: none;
+
+  @include tableta {
+    padding: var(--espacio-8) var(--espacio-6);
+  }
+
+  @include escritorio {
+    margin-left: var(--ancho-barra-lateral);
+    padding: var(--espacio-8);
+  }
+}
