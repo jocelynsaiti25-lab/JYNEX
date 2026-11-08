@@ -1,4 +1,5 @@
 using EtbotFarma.Application.Common.Interfaces;
+using EtbotFarma.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -14,8 +15,6 @@ namespace EtbotFarma.Infrastructure.Persistence;
 /// </summary>
 public static class InicializadorBaseDatos
 {
-    private const int IdRolAdministrador = 1;
-
     public static async Task InicializarBaseDatosAsync(this IServiceProvider servicios)
     {
         await using var scope = servicios.CreateAsyncScope();
@@ -52,6 +51,7 @@ public static class InicializadorBaseDatos
         // 2. Crear el administrador con la contraseña encriptada
         var nombreUsuario = admin["NombreUsuario"] ?? "admin";
         var passwordHasher = proveedor.GetRequiredService<IPasswordHasher>();
+        var reloj = proveedor.GetRequiredService<IDateTimeProvider>();   // fecha actual en UTC (regla del equipo)
 
         const string sql = """
             INSERT INTO usuario (nombre, apellidos, nombre_usuario, contrasenia_hash, telefono, id_rol, activo, fecha_registro)
@@ -65,8 +65,8 @@ public static class InicializadorBaseDatos
             insertar.Parameters.AddWithValue("@nombreUsuario", nombreUsuario);
             insertar.Parameters.AddWithValue("@contraseniaHash", passwordHasher.GenerarHash(contrasenia));
             insertar.Parameters.AddWithValue("@telefono", admin["Telefono"] ?? "0000000000");
-            insertar.Parameters.AddWithValue("@idRol", IdRolAdministrador);
-            insertar.Parameters.AddWithValue("@fechaRegistro", DateTime.UtcNow);
+            insertar.Parameters.AddWithValue("@idRol", Rol.Administrador);   // = 1, igual que en etbotfarma_mysql_v2.sql
+            insertar.Parameters.AddWithValue("@fechaRegistro", reloj.UtcNow.UtcDateTime);
             await insertar.ExecuteNonQueryAsync();
         }
 
