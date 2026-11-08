@@ -31,11 +31,16 @@ public sealed class IniciarSesionHandler(
         // 1. Buscar al usuario
         var usuario = await usuarios.ObtenerPorNombreUsuarioAsync(command.NombreUsuario.Trim(), cancellationToken);
 
-        // 2. Verificar que exista, que esté activo y que la contraseña sea correcta.
+        // 2. Verificar la contraseña SIEMPRE, aunque el usuario no exista o esté inactivo
+        //    (si no existe se manda un hash vacío y el resultado es false).
+        //    Así la respuesta tarda lo mismo en todos los casos y nadie puede adivinar,
+        //    midiendo el tiempo, qué nombres de usuario existen (HU-01 criterio 4).
+        var contraseniaCorrecta = passwordHasher.Verificar(usuario?.ContraseniaHash ?? string.Empty, command.Contrasenia);
+
         //    Si algo falla, el mensaje es el mismo (no se revela qué dato falló).
         if (usuario is null
             || !usuario.PuedeIniciarSesion()
-            || !passwordHasher.Verificar(usuario.ContraseniaHash, command.Contrasenia))
+            || !contraseniaCorrecta)
         {
             throw new CredencialesInvalidasException();
         }
