@@ -40,7 +40,7 @@ public sealed class UsuarioRepository(ConexionMySql conexion) : IUsuarioReposito
     /// <summary>Convierte la fila actual (columnas de ColumnasUsuarioYRol) en un Usuario con su Rol.</summary>
     internal static Usuario LeerUsuario(DbDataReader lector)
     {
-        var rol = new Rol(
+        var rol = Rol.Reconstruir(
             lector.GetInt32(lector.GetOrdinal("id_rol")),
             lector.GetString(lector.GetOrdinal("nombre_rol")));
 

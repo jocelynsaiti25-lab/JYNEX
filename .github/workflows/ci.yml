@@ -34,7 +34,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
+      # npm ci instala EXACTAMENTE las versiones de package-lock.json (igual para todo el equipo)
+      - run: npm ci
       - run: npm run build
 
   database:
@@ -156,7 +157,7 @@ jobs:
       - name: Arrancar Angular
         working-directory: frontend
         run: |
-          npm install
+          npm ci
           nohup npx ng serve --port 4200 > ../angular.log 2>&1 &
           for i in $(seq 1 60); do
             curl -s http://localhost:4200 > /dev/null && curl -s http://localhost:5080/api/sistema/estado > /dev/null && break

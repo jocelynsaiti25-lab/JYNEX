@@ -25,7 +25,7 @@ public class ValidationBehaviorTests
     {
         var usuarios = new UsuarioRepositoryFalso();
         usuarios.Usuarios.Add(Usuario.Crear("Ana", "López", "ana", "hash:Secreta123", "5512345678",
-            new Rol(Rol.Empleado, "Empleado"), DateTime.UtcNow));
+            Rol.Reconstruir(Rol.Empleado, "Empleado"), DateTime.UtcNow));
 
         var services = new ServiceCollection();
         services.AddApplication();   // mismo registro que Program.cs

@@ -70,27 +70,28 @@ frontend/src/app/
 
 ### Nombre de carpeta por historia
 
-| HU | Carpeta | Controller | Angular | Estado |
-|----|---------|-----------|---------|--------|
-| 01 | `InicioSesion` | `InicioSesionController` | `inicio-sesion` | Terminada |
-| 02 | `CierreSesion` | `CierreSesionController` | `cierre-sesion` | Pendiente |
-| 03 | `CreacionUsuarios` | `CreacionUsuariosController` | `creacion-usuarios` | Pendiente |
-| 04 | `ConsultaUsuarios` | `ConsultaUsuariosController` | `consulta-usuarios` | Pendiente |
-| 05 | `ReasignacionContrasena` | `ReasignacionContrasenaController` | `reasignacion-contrasena` | Pendiente |
-| 06 | `RegistroMedicamentos` | `RegistroMedicamentosController` | `registro-medicamentos` | Pendiente |
-| 07 | `EntradaLote` | `EntradaLoteController` | `entrada-lote` | Pendiente |
-| 08 | `BusquedaMedicamentos` | `BusquedaMedicamentosController` | `busqueda-medicamentos` | Pendiente |
-| 09 | `EdicionMedicamentos` | `EdicionMedicamentosController` | `edicion-medicamentos` | Pendiente |
-| 10 | `SemaforoCaducidad` | `SemaforoCaducidadController` | `semaforo-caducidad` | Pendiente |
-| 11 | `StockMinimo` | `StockMinimoController` | `stock-minimo` | Pendiente |
-| 12 | `MedicamentosAgotados` | `MedicamentosAgotadosController` | `medicamentos-agotados` | Pendiente |
-| 13 | `SalidaMedicamentos` | `SalidaMedicamentosController` | `salida-medicamentos` | Pendiente |
-| 14 | `BajaLotes` | `BajaLotesController` | `baja-lotes` | Pendiente |
-| 15 | `BitacoraMovimientos` | `BitacoraMovimientosController` | `bitacora-movimientos` | Pendiente |
-| 16 | `ExportacionBitacora` | `ExportacionBitacoraController` | `exportacion-bitacora` | Pendiente |
+| HU | Carpeta | Controller | Angular |
+|----|---------|-----------|---------|
+| 01 | `InicioSesion` | `InicioSesionController` | `inicio-sesion` |
+| 02 | `CierreSesion` | `CierreSesionController` | `cierre-sesion` |
+| 03 | `CreacionUsuarios` | `CreacionUsuariosController` | `creacion-usuarios` |
+| 04 | `ConsultaUsuarios` | `ConsultaUsuariosController` | `consulta-usuarios` |
+| 05 | `ReasignacionContrasena` | `ReasignacionContrasenaController` | `reasignacion-contrasena` |
+| 06 | `RegistroMedicamentos` | `RegistroMedicamentosController` | `registro-medicamentos` |
+| 07 | `EntradaLote` | `EntradaLoteController` | `entrada-lote` |
+| 08 | `BusquedaMedicamentos` | `BusquedaMedicamentosController` | `busqueda-medicamentos` |
+| 09 | `EdicionMedicamentos` | `EdicionMedicamentosController` | `edicion-medicamentos` |
+| 10 | `SemaforoCaducidad` | `SemaforoCaducidadController` | `semaforo-caducidad` |
+| 11 | `StockMinimo` | `StockMinimoController` | `stock-minimo` |
+| 12 | `MedicamentosAgotados` | `MedicamentosAgotadosController` | `medicamentos-agotados` |
+| 13 | `SalidaMedicamentos` | `SalidaMedicamentosController` | `salida-medicamentos` |
+| 14 | `BajaLotes` | `BajaLotesController` | `baja-lotes` |
+| 15 | `BitacoraMovimientos` | `BitacoraMovimientosController` | `bitacora-movimientos` |
+| 16 | `ExportacionBitacora` | `ExportacionBitacoraController` | `exportacion-bitacora` |
 
 Orden de desarrollo por fases: 1 (HU-01, 02) → 2 (03–05) → 3 (06–09) → 4 (10–12) → 5 (13–14) → 6 (15–16).
-Detalle de las historias: `docs/historias-usuario.md` y el Excel `Historias_Usuario.xlsx` del Drive del equipo.
+Detalle y **estado** de cada historia (Pendiente / En progreso / Terminada, y quién la tiene): `docs/historias-usuario.md`
+(es la ÚNICA tabla de estado; actualízala en el Pull Request de tu historia). Texto completo: el Excel `Historias_Usuario.xlsx` del Drive del equipo.
 
 ## 5. Convenciones de nombres (cortos y en español)
 
@@ -140,7 +141,7 @@ Tablas: `rol`, `usuario`, `sesion`, `medicamento`, `lote`, `movimiento`, `detall
 ## 8. Pruebas (obligatorias en cada historia)
 
 - Domain: una prueba por regla nueva (`backend/tests/EtbotFarma.Domain.Tests/Entities/`).
-- Application: handler con clases falsas (`Falsos/Falsos.cs`) y validator con `TestValidate` de FluentValidation (`Handlers/<Historia>/`, `Validators/<Historia>/`). Las pruebas de `Arquitectura/` revisan nombres, carpetas y dependencias: no las desactives.
+- Application: handler con clases falsas (`Falsos/`, **un archivo por clase**: `<Nombre>Falso.cs`; ver `Falsos/README.md`) y validator con `TestValidate` de FluentValidation (`Handlers/<Historia>/`, `Validators/<Historia>/`). Las pruebas de `Arquitectura/` revisan nombres, carpetas y dependencias: no las desactives.
 - Integración (cuando la historia tiene endpoint): `backend/tests/EtbotFarma.Api.IntegrationTests/` con `[Trait("Category", "Integracion")]` (corren en GitHub con MySQL).
 - Nombres en español: `Con_stock_insuficiente_no_registra_la_salida()`.
 - Comandos: `dotnet test backend/EtbotFarma.slnx --filter "Category!=Integracion"` (sin MySQL) y `npm run build` (en `frontend`). GitHub Actions corre además las de integración, MySQL real y navegador.
@@ -151,13 +152,14 @@ Tablas: `rol`, `usuario`, `sesion`, `medicamento`, `lote`, `movimiento`, `detall
 - Commits: `feat(HU-02): ...`, `fix(HU-02): ...`, `test: ...`, `docs: ...`.
 - Pull Request hacia `develop`; se une solo con todas las pruebas en verde.
 - Nunca subir `appsettings.Local.json` (contraseñas locales).
+- Archivos compartidos (`Infrastructure/DependencyInjection.cs`, `app.routes.ts`, `menu.ts`, etc.) y cómo resolver conflictos: `docs/trabajo-en-equipo.md`.
 
 ## 10. Ejecutar localmente
 
 1. MySQL 8: base nueva → `database/etbotfarma_mysql_v2.sql`; base que ya tenías (v1) → `database/migracion_v1_a_v2.sql` (una sola vez).
 2. Copiar `backend/src/EtbotFarma.Api/appsettings.Local.example.json` como `appsettings.Local.json` (contraseña de MySQL y del usuario `admin`).
 3. `cd backend && dotnet run --project src/EtbotFarma.Api` (http://localhost:5080).
-4. `cd frontend && npm install && npm start` (http://localhost:4200).
+4. `cd frontend && npm ci && npm start` (http://localhost:4200). `npm ci` respeta `package-lock.json`; no agregues librerías sin aprobación (sección 2).
 
 ## 11. Pendientes por definir con el equipo
 

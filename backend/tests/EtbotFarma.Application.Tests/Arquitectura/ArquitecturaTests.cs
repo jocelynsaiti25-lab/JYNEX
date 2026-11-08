@@ -111,6 +111,23 @@ public class ArquitecturaTests
         }
     }
 
+    /// <summary>
+    /// Regla de entidades (CLAUDE.md §6): constructor privado + Crear(...) / Reconstruir(...).
+    /// Con un constructor público cualquiera podría armar una entidad saltándose sus reglas
+    /// (por ejemplo: new Rol(99, "Jefe"), un rol que no existe en la base de datos).
+    /// </summary>
+    [Fact]
+    public void Las_entidades_no_tienen_constructores_publicos()
+    {
+        var entidades = ClasesDe(Domain).Where(t => t.Namespace == "EtbotFarma.Domain.Entities");
+
+        foreach (var entidad in entidades)
+        {
+            Assert.True(entidad.GetConstructors().Length == 0,
+                $"{entidad.Name} no debe tener constructores públicos: usa un constructor private y los métodos Crear(...) / Reconstruir(...).");
+        }
+    }
+
     private static bool EsPedidoCqrs(Type interfaz) =>
         interfaz.IsGenericType
         && (interfaz.GetGenericTypeDefinition() == typeof(ICommand<>)

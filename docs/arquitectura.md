@@ -90,7 +90,7 @@ Los controllers no tienen `try/catch`.
 |-----------|-------------------------------|
 | **S** — Responsabilidad única | Cada archivo hace una cosa: `InicioSesionController` (HTTP), `IniciarSesionValidator` (entrada), `IniciarSesionHandler` (coordinar), `UsuarioRepository` (datos), `Usuario` (reglas), `CookieSesionService` (cookie) |
 | **O** — Abierto/cerrado | Una historia nueva agrega archivos nuevos (command, validator, handler, controller) sin modificar los existentes; MediatR y FluentValidation los encuentran solos |
-| **L** — Sustitución de Liskov | Cualquier implementación de `IUsuarioRepository` sirve: la real (MySQL) o la falsa de las pruebas (`Falsos.cs`) |
+| **L** — Sustitución de Liskov | Cualquier implementación de `IUsuarioRepository` sirve: la real (MySQL) o la falsa de las pruebas (`Falsos/UsuarioRepositoryFalso.cs`) |
 | **I** — Segregación de interfaces | Interfaces pequeñas: `IPasswordHasher`, `ITokenSesionService`, `ICookieSesionService`, `IUsuarioActual`, `IDateTimeProvider`, un repositorio por entidad |
 | **D** — Inversión de dependencias | Los handlers dependen de interfaces de Application; Infrastructure y Api las implementan y se inyectan por constructor (`DependencyInjection.cs`, `Program.cs`) |
 
@@ -124,7 +124,7 @@ La tabla con la carpeta de cada una de las 16 historias está en `backend/src/Et
    Si necesita la base de datos, crear `IXRepository` en `Common/Interfaces/Repositorios/`.
 4. **Infrastructure**: `XRepository(ConexionMySql conexion)` con SQL parametrizado (columnas reales de `database/etbotfarma_mysql_v2.sql`) y registro en `DependencyInjection.cs`.
 5. **Api**: `<Historia>Controller` con `ISender` por constructor + `Contracts/<Historia>/` (Request/Response).
-6. **Pruebas**: del validator (`TestValidate`), del handler (con los falsos de `Falsos.cs`) y de integración del endpoint cuando aplique.
+6. **Pruebas**: del validator (`TestValidate`), del handler (con los falsos de `Falsos/`, un archivo por clase) y de integración del endpoint cuando aplique.
 7. Crear solo los archivos que la historia necesita: nada de archivos vacíos.
 
 ## 9. Base de datos

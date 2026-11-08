@@ -16,17 +16,18 @@ public class IniciarSesionHandlerTests
     private readonly SesionRepositoryFalso _sesiones = new();
     private readonly UnitOfWorkFalso _unitOfWork = new();
     private readonly CookieSesionServiceFalso _cookie = new();
+    private readonly PasswordHasherFalso _passwordHasher = new();
     private readonly IniciarSesionHandler _handler;
 
     public IniciarSesionHandlerTests()
     {
         _handler = new IniciarSesionHandler(
-            _usuarios, _sesiones, new PasswordHasherFalso(), new TokenSesionServiceFalso(), _unitOfWork, new RelojFalso(Ahora), _cookie,
+            _usuarios, _sesiones, _passwordHasher, new TokenSesionServiceFalso(), _unitOfWork, new RelojFalso(Ahora), _cookie,
             new ConfiguracionSesion { MinutosInactividad = 20 });
 
         _usuarios.Usuarios.Add(Usuario.Crear(
             "Ana", "López", "ana", "hash:Secreta123", "5512345678",
-            new Rol(Rol.Administrador, "Administrador"), Ahora.UtcDateTime));
+            Rol.Reconstruir(Rol.Administrador, "Administrador"), Ahora.UtcDateTime));
     }
 
     [Fact]
@@ -62,6 +63,31 @@ public class IniciarSesionHandlerTests
             () => _handler.Handle(new IniciarSesionCommand("noexiste", "Secreta123"), CancellationToken.None));
 
         Assert.Equal("Usuario o contraseña incorrectos.", ex.Message);
+    }
+
+    /// <summary>
+    /// HU-01 criterio 4 (mensaje genérico): también el TIEMPO de respuesta debe ser igual.
+    /// Si con un usuario inexistente no se verificara ninguna contraseña, la respuesta llegaría
+    /// más rápido y un atacante podría adivinar qué nombres de usuario existen.
+    /// </summary>
+    [Fact]
+    public async Task Con_usuario_que_no_existe_tambien_se_verifica_una_contrasenia()
+    {
+        await Assert.ThrowsAsync<CredencialesInvalidasException>(
+            () => _handler.Handle(new IniciarSesionCommand("noexiste", "Secreta123"), CancellationToken.None));
+
+        Assert.Equal(1, _passwordHasher.VecesVerificado);
+    }
+
+    [Fact]
+    public async Task Con_cuenta_inactiva_tambien_se_verifica_la_contrasenia()
+    {
+        _usuarios.Usuarios[0].Desactivar();
+
+        await Assert.ThrowsAsync<CredencialesInvalidasException>(
+            () => _handler.Handle(new IniciarSesionCommand("ana", "Secreta123"), CancellationToken.None));
+
+        Assert.Equal(1, _passwordHasher.VecesVerificado);
     }
 
     [Fact]

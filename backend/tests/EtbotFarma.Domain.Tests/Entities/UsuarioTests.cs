@@ -5,7 +5,7 @@ namespace EtbotFarma.Domain.Tests.Entities;
 
 public class UsuarioTests
 {
-    private static readonly Rol Empleado = new(Rol.Empleado, "Empleado");
+    private static readonly Rol Empleado = Rol.Reconstruir(Rol.Empleado, "Empleado");
 
     [Fact]
     public void Usuario_nuevo_esta_activo_y_puede_iniciar_sesion()
