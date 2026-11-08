@@ -26,7 +26,7 @@ public class IniciarSesionHandlerTests
 
         _usuarios.Usuarios.Add(Usuario.Crear(
             "Ana", "López", "ana", "hash:Secreta123", "5512345678",
-            new Rol(Rol.Administrador, "Administrador"), Ahora.UtcDateTime));
+            Rol.Reconstruir(Rol.Administrador, "Administrador"), Ahora.UtcDateTime));
     }
 
     [Fact]
