@@ -140,7 +140,8 @@ La tabla con la carpeta de cada una de las 16 historias está en `backend/src/Et
 |----------|-----------|----------------|
 | `EtbotFarma.Domain.Tests` | Reglas de las entidades | No |
 | `EtbotFarma.Application.Tests` | Validators, handlers, pipeline real de MediatR y reglas de arquitectura | No |
-| `EtbotFarma.Api.IntegrationTests` | Endpoints completos en memoria contra MySQL (categoría `Integracion`) | Sí |
+| `EtbotFarma.Api.IntegrationTests` | Endpoints completos en memoria, repositorios SQL y transacciones (COMMIT/ROLLBACK) contra MySQL (categoría `Integracion`) | Sí |
+| `EtbotFarma.Api.IntegrationTests/ArquitecturaInfraestructuraTests` | Infrastructure no usa EF Core ni otro ORM | No |
 | `backend/tests/e2e/*.sh` y `frontend/e2e/*.mjs` | API y navegador de punta a punta | Sí |
 
 En GitHub Actions: el job **Backend** corre las pruebas sin MySQL; el job **Punta a punta** corre las de integración y los scripts.
@@ -157,3 +158,50 @@ En GitHub Actions: el job **Backend** corre las pruebas sin MySQL; el job **Punt
 | SQL a mano, sin ORM | Requisito del proyecto: el SQL queda visible y se puede explicar; el esquema vive en scripts SQL |
 | FEFO en salidas | La HU-13 lo pide: sale primero lo que caduca primero |
 | `IDateTimeProvider` | Permite probar el semáforo de caducidad con fechas fijas |
+
+## 12. Manejo de sesiones (cookie, no token en JavaScript)
+
+Angular y .NET usan **un solo mecanismo: una cookie de sesión**. No se usan tokens JWT ni encabezados `Authorization`.
+
+| Paso | Dónde | Qué pasa |
+|------|-------|----------|
+| 1. Iniciar sesión | `IniciarSesionHandler` | Genera un token aleatorio, guarda SOLO su hash SHA-256 en `sesion.token_hash` y la fecha de expiración (+20 min) |
+| 2. Entregar el token | `ICookieSesionService` → `Api/Seguridad/CookieSesionService` | Lo escribe en la cookie `etbotfarma_sesion`: **HttpOnly** (JavaScript no la lee), **Secure**, **SameSite=Strict**. El JSON de respuesta NO lleva el token |
+| 3. Enviar la cookie | Angular `core/interceptors/credenciales.interceptor.ts` | `withCredentials: true` hace que el navegador mande la cookie en cada petición |
+| 4. Validar en cada petición | `Api/Seguridad/SesionAuthenticationHandler` → `ValidarSesionCommand` → `ValidarSesionHandler` | Busca la sesión por el hash; si está cerrada, vencida o el usuario inactivo → la cierra y responde 401; si no, recorre la expiración |
+| 5. ¿Quién soy? | `GET api/sesiones/actual` → `ObtenerSesionActualHandler` (con `IUsuarioActual`) | Devuelve id, usuario, nombre completo y rol para Angular |
+| 6. Sesión vencida en Angular | `core/interceptors/sesion-expirada.interceptor.ts` | Ante un 401 manda a `/iniciar-sesion?expirada=1` |
+
+Por qué cookie HttpOnly y no un token guardado en Angular: el token nunca queda al alcance de JavaScript
+(protege contra robo por XSS) y el servidor puede cerrar o vencer la sesión cuando quiera (se guarda en MySQL).
+
+## 13. Conexión con MySQL (SQL a mano)
+
+```
+Handler ──usa──> ISesionRepository / IUnitOfWork          (interfaces, Application)
+                        │ implementadas por
+                        ▼
+                 SesionRepository(ConexionMySql)          (Infrastructure/Persistence/Repositorios)
+                        │ SQL parametrizado (@token_hash ...)
+                        ▼
+                 ConexionMySql                            (Infrastructure/Persistence)
+                   - 1 conexión + 1 transacción por petición (BEGIN al primer uso)
+                   - GuardarCambiosAsync → COMMIT
+                   - fin de la petición sin COMMIT → ROLLBACK
+                        ▼
+                     MySQL 8 (MySqlConnector 2.6.2)
+```
+
+- `ConexionMySql` se registra como **Scoped** (una por petición) en `Infrastructure/DependencyInjection.cs`; `IUnitOfWork` apunta a la misma instancia.
+- Los comandos y lectores se liberan con `await using`.
+- La conexión se abre solo cuando un repositorio la necesita (las peticiones sin base de datos no la abren).
+- Cada repositorio convierte filas en entidades con `Entidad.Reconstruir(...)`.
+
+## 14. Decisiones de organización
+
+| Tema | Decisión | Motivo |
+|------|----------|--------|
+| Carpetas de Application | **Por tipo** (`Commands/`, `Queries/`, `Validators/`, `Handlers/`, `Dtos/`) y dentro **por historia** (`InicioSesion/`) | Decisión del equipo: se ve de inmediato qué tipo de archivo es cada uno. Se descartó `Features/<Historia>/` para no cambiar la estructura que ya usa todo el equipo |
+| Validator para queries sin datos | No se crea (ej.: `ObtenerSesionActualQuery`) | No hay nada que validar; no se crean archivos vacíos |
+| Clase base `Entity<TId>` en Domain | Se conserva | Da a todas las entidades su `Id` en un solo lugar; es la única herencia del Domain y es abstracta (no se puede crear sola) |
+| Nombres de Infrastructure | `ConexionMySql`, `Persistence/Repositorios/` | En español, como el resto del proyecto |
