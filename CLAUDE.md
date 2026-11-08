@@ -73,37 +73,21 @@ frontend/src/app/
 | HU | Carpeta | Controller | Angular |
 |----|---------|-----------|---------|
 | 01 | `InicioSesion` | `InicioSesionController` | `inicio-sesion` |
-
 | 02 | `CierreSesion` | `CierreSesionController` | `cierre-sesion` |
-
 | 03 | `CreacionUsuarios` | `CreacionUsuariosController` | `creacion-usuarios` |
-
 | 04 | `ConsultaUsuarios` | `ConsultaUsuariosController` | `consulta-usuarios` |
-
 | 05 | `ReasignacionContrasena` | `ReasignacionContrasenaController` | `reasignacion-contrasena` |
-
 | 06 | `RegistroMedicamentos` | `RegistroMedicamentosController` | `registro-medicamentos` |
-
 | 07 | `EntradaLote` | `EntradaLoteController` | `entrada-lote` |
-
 | 08 | `BusquedaMedicamentos` | `BusquedaMedicamentosController` | `busqueda-medicamentos` |
-
 | 09 | `EdicionMedicamentos` | `EdicionMedicamentosController` | `edicion-medicamentos` |
-
 | 10 | `SemaforoCaducidad` | `SemaforoCaducidadController` | `semaforo-caducidad` |
-
 | 11 | `StockMinimo` | `StockMinimoController` | `stock-minimo` |
-
 | 12 | `MedicamentosAgotados` | `MedicamentosAgotadosController` | `medicamentos-agotados` |
-
 | 13 | `SalidaMedicamentos` | `SalidaMedicamentosController` | `salida-medicamentos` |
-
 | 14 | `BajaLotes` | `BajaLotesController` | `baja-lotes` |
-
 | 15 | `BitacoraMovimientos` | `BitacoraMovimientosController` | `bitacora-movimientos` |
-
 | 16 | `ExportacionBitacora` | `ExportacionBitacoraController` | `exportacion-bitacora` |
-
 
 Orden de desarrollo por fases: 1 (HU-01, 02) → 2 (03–05) → 3 (06–09) → 4 (10–12) → 5 (13–14) → 6 (15–16).
 Detalle y **estado** de cada historia (Pendiente / En progreso / Terminada, y quién la tiene): `docs/historias-usuario.md`
