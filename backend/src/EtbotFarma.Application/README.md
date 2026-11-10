@@ -1,34 +1,48 @@
-# Application — organización por tipo y por historia
+# Application — organización por historia y luego por tipo
 
-Cada **tipo** de archivo tiene su carpeta, y dentro hay una **subcarpeta por historia de usuario**
-(con el nombre de la historia, sin el número):
+Cada **historia de usuario** tiene su carpeta (con el nombre de la historia, sin el número),
+y dentro hay una **subcarpeta por tipo** de archivo:
 
 ```
 EtbotFarma.Application/
-├─ Common/
-│  ├─ Behaviors/ValidationBehavior.cs   ← MediatR ejecuta los validators (FluentValidation) antes de cada handler
-│  ├─ Interfaces/                       ← repositorios, hash, token, cookie, usuario actual, unidad de trabajo, reloj
-│  ├─ Exceptions/  Messaging/  Configuracion/
-├─ Commands/<Historia>/                 ← operaciones que MODIFICAN datos
-├─ Queries/<Historia>/                  ← operaciones que solo LEEN
-├─ Validators/<Historia>/               ← AbstractValidator<T> (se ejecutan solos con MediatR)
-├─ Handlers/<Historia>/                 ← solo coordinan los pasos
-└─ Dtos/<Historia>/                     ← datos que devuelve cada caso de uso
+├── Common/
+│   ├── Behaviors/ValidationBehavior.cs   ← MediatR ejecuta los validators (FluentValidation) antes de cada handler
+│   ├── Interfaces/                       ← repositorios, hash, token, cookie, usuario actual, unidad de trabajo, reloj
+│   ├── Exceptions/
+│   ├── Messaging/
+│   └── Configuracion/
+└── <Historia>/
+    ├── Commands/      ← operaciones que MODIFICAN datos
+    ├── Queries/       ← operaciones que solo LEEN
+    ├── Validators/    ← AbstractValidator<T> (se ejecutan solos con MediatR)
+    ├── Handlers/      ← solo coordinan los pasos
+    └── Dtos/          ← datos que devuelve cada caso de uso
 ```
 
 Ejemplo real (HU-01, carpeta `InicioSesion`):
 
 ```
-Commands/InicioSesion/IniciarSesionCommand.cs       ValidarSesionCommand.cs
-Queries/InicioSesion/ObtenerSesionActualQuery.cs
-Validators/InicioSesion/IniciarSesionValidator.cs
-Handlers/InicioSesion/IniciarSesionHandler.cs       ValidarSesionHandler.cs   ObtenerSesionActualHandler.cs
-Dtos/InicioSesion/UsuarioSesionDto.cs
+InicioSesion/
+├── Commands/
+│   ├── IniciarSesionCommand.cs
+│   └── ValidarSesionCommand.cs
+├── Queries/
+│   └── ObtenerSesionActualQuery.cs
+├── Validators/
+│   └── IniciarSesionValidator.cs
+├── Handlers/
+│   ├── IniciarSesionHandler.cs
+│   ├── ValidarSesionHandler.cs
+│   └── ObtenerSesionActualHandler.cs
+└── Dtos/
+    └── UsuarioSesionDto.cs
 ```
+
+Solo se crean las subcarpetas que la historia necesita.
 
 ## Nombre de carpeta de cada historia
 
-| HU | Carpeta | Controller (Api) | Angular (`features/`) |
+| HU | Carpeta (Application y `Api/Historias/`) | Controller (Api) | Angular (`features/`) |
 |----|---------|------------------|------------------------|
 | 01 | `InicioSesion` | `InicioSesionController` | `inicio-sesion` |
 | 02 | `CierreSesion` | `CierreSesionController` | `cierre-sesion` |
@@ -60,8 +74,8 @@ Controller → sender.Send(command)
             Handler           (sin validaciones)
 ```
 
-Para validar un command nuevo solo hay que crear la clase en `Validators/<Historia>/`
-(ejemplo real: `Validators/InicioSesion/IniciarSesionValidator.cs`):
+Para validar un command nuevo solo hay que crear la clase en `<Historia>/Validators/`
+(ejemplo real: `InicioSesion/Validators/IniciarSesionValidator.cs`):
 
 ```csharp
 public sealed class IniciarSesionValidator : AbstractValidator<IniciarSesionCommand>
