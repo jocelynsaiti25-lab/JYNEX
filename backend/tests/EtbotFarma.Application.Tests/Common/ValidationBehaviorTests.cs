@@ -1,4 +1,4 @@
-using EtbotFarma.Application.Commands.InicioSesion;
+using EtbotFarma.Application.InicioSesion.Commands;
 using EtbotFarma.Application.Common.Configuracion;
 using EtbotFarma.Application.Common.Exceptions;
 using EtbotFarma.Application.Common.Interfaces;

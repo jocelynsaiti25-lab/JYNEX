@@ -39,34 +39,45 @@ Angular → Api → Application → Domain
 
 > Explicación completa de la arquitectura, SOLID, CQRS, MediatR y FluentValidation: `docs/arquitectura.md`.
 
-## 4. Estructura de carpetas: POR TIPO y luego POR HISTORIA
+## 4. Estructura de carpetas: POR HISTORIA y luego POR TIPO
 
-Las carpetas de tipo tienen nombres claros; dentro, una subcarpeta con el **nombre de la historia, sin "HU01"**.
+Cada historia tiene **su propia carpeta** (nombre de la historia, sin "HU01") y dentro una subcarpeta por tipo de archivo.
+Así cada integrante trabaja en su carpeta y encuentra rápido el handler, el validator o el command.
 
 ```
 backend/src/
-├─ EtbotFarma.Api/
-│  ├─ Controllers/<Historia>Controller.cs        ← UN controller por historia
-│  ├─ Contracts/<Historia>/<CasoDeUso>Request.cs / <CasoDeUso>Response.cs
-│  ├─ Seguridad/   Middleware/
-├─ EtbotFarma.Application/
-│  ├─ Commands/<Historia>/<CasoDeUso>Command.cs
-│  ├─ Queries/<Historia>/<CasoDeUso>Query.cs
-│  ├─ Validators/<Historia>/<CasoDeUso>Validator.cs
-│  ├─ Handlers/<Historia>/<CasoDeUso>Handler.cs
-│  ├─ Dtos/<Historia>/<CasoDeUso>Dto.cs
-│  └─ Common/ (Behaviors, Interfaces, Interfaces/Repositorios, Exceptions, Messaging, Configuracion)
-├─ EtbotFarma.Domain/Entities/                    ← compartidas (no van por historia)
-└─ EtbotFarma.Infrastructure/Persistence/ (ConexionMySql, Repositorios/), Seguridad/, Services/
+├── EtbotFarma.Api/
+│   ├── Historias/<Historia>/                   ← UNA carpeta por historia
+│   │   ├── <Historia>Controller.cs             ← UN controller por historia (sin lógica, solo sender.Send)
+│   │   ├── <CasoDeUso>Request.cs
+│   │   └── <CasoDeUso>Response.cs
+│   ├── Seguridad/
+│   └── Middleware/
+├── EtbotFarma.Application/
+│   ├── <Historia>/
+│   │   ├── Commands/<CasoDeUso>Command.cs
+│   │   ├── Queries/<CasoDeUso>Query.cs
+│   │   ├── Validators/<CasoDeUso>Validator.cs
+│   │   ├── Handlers/<CasoDeUso>Handler.cs
+│   │   └── Dtos/<CasoDeUso>Dto.cs
+│   └── Common/ (Behaviors, Interfaces, Interfaces/Repositorios, Exceptions, Messaging, Configuracion)
+├── EtbotFarma.Domain/Entities/                 ← compartidas (no van por historia)
+└── EtbotFarma.Infrastructure/Persistence/ (ConexionMySql, Repositorios/), Seguridad/, Services/
 backend/tests/
-├─ EtbotFarma.Domain.Tests/Entities/
-├─ EtbotFarma.Application.Tests/ Handlers/<Historia>/, Validators/<Historia>/, Common/, Arquitectura/, Falsos/
-└─ EtbotFarma.Api.IntegrationTests/             ← endpoints contra MySQL (categoría "Integracion")
+├── EtbotFarma.Domain.Tests/Entities/
+├── EtbotFarma.Application.Tests/
+│   ├── <Historia>/Handlers/   <Historia>/Validators/
+│   └── Common/   Arquitectura/   Falsos/
+└── EtbotFarma.Api.IntegrationTests/
+    └── Historias/<Historia>/                   ← endpoints contra MySQL (categoría "Integracion")
 frontend/src/app/
-├─ core/ (services/, guards/, interceptors/, models/)
-├─ shared/components/
-└─ features/<historia-en-kebab>/                  ← pantalla de la historia (.ts, .html, .scss)
+├── core/ (services/, guards/, interceptors/, models/)
+├── shared/components/
+└── features/<historia-en-kebab>/               ← pantalla de la historia (.ts, .html, .scss)
 ```
+
+Solo se crean las subcarpetas que la historia necesita (si no tiene Query, no hay carpeta `Queries/`).
+Las pruebas de `Arquitectura/` revisan que cada archivo esté en `Application/<Historia>/<Tipo>/` y cada controller en `Api/Historias/<Historia>/`.
 
 ### Nombre de carpeta por historia
 
@@ -141,7 +152,7 @@ Tablas: `rol`, `usuario`, `sesion`, `medicamento`, `lote`, `movimiento`, `detall
 ## 8. Pruebas (obligatorias en cada historia)
 
 - Domain: una prueba por regla nueva (`backend/tests/EtbotFarma.Domain.Tests/Entities/`).
-- Application: handler con clases falsas (`Falsos/`, **un archivo por clase**: `<Nombre>Falso.cs`; ver `Falsos/README.md`) y validator con `TestValidate` de FluentValidation (`Handlers/<Historia>/`, `Validators/<Historia>/`). Las pruebas de `Arquitectura/` revisan nombres, carpetas y dependencias: no las desactives.
+- Application: handler con clases falsas (`Falsos/`, **un archivo por clase**: `<Nombre>Falso.cs`; ver `Falsos/README.md`) y validator con `TestValidate` de FluentValidation (`<Historia>/Handlers/`, `<Historia>/Validators/`). Las pruebas de `Arquitectura/` revisan nombres, carpetas y dependencias: no las desactives.
 - Integración (cuando la historia tiene endpoint): `backend/tests/EtbotFarma.Api.IntegrationTests/` con `[Trait("Category", "Integracion")]` (corren en GitHub con MySQL).
 - Nombres en español: `Con_stock_insuficiente_no_registra_la_salida()`.
 - Comandos: `dotnet test backend/EtbotFarma.slnx --filter "Category!=Integracion"` (sin MySQL) y `npm run build` (en `frontend`). GitHub Actions corre además las de integración, MySQL real y navegador.

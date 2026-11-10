@@ -67,7 +67,7 @@ public class ArquitecturaTests
 
             Assert.True(usaAbstraccion, $"{handler.Name} debe implementar ICommandHandler o IQueryHandler.");
             Assert.EndsWith("Handler", handler.Name);
-            Assert.Contains(".Handlers.", handler.Namespace);
+            EstaEnCarpetaDeHistoria(handler, "Handlers");
         }
     }
 
@@ -82,7 +82,7 @@ public class ArquitecturaTests
                 && validator.BaseType.GetGenericTypeDefinition() == typeof(AbstractValidator<>),
                 $"{validator.Name} debe heredar directamente de AbstractValidator<T>.");
             Assert.EndsWith("Validator", validator.Name);
-            Assert.Contains(".Validators.", validator.Namespace);
+            EstaEnCarpetaDeHistoria(validator, "Validators");
         }
     }
 
@@ -96,7 +96,7 @@ public class ArquitecturaTests
             Assert.Equal(typeof(object), pedido.BaseType);
             var esCommand = pedido.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICommand<>));
             Assert.EndsWith(esCommand ? "Command" : "Query", pedido.Name);
-            Assert.Contains(esCommand ? ".Commands." : ".Queries.", pedido.Namespace);
+            EstaEnCarpetaDeHistoria(pedido, esCommand ? "Commands" : "Queries");
         }
     }
 
@@ -126,6 +126,35 @@ public class ArquitecturaTests
             Assert.True(entidad.GetConstructors().Length == 0,
                 $"{entidad.Name} no debe tener constructores públicos: usa un constructor private y los métodos Crear(...) / Reconstruir(...).");
         }
+    }
+
+    [Fact]
+    public void Los_dtos_estan_en_la_carpeta_Dtos_de_su_historia()
+    {
+        var dtos = ClasesDe(Application).Where(t => t.Name.EndsWith("Dto"));
+
+        foreach (var dto in dtos)
+        {
+            EstaEnCarpetaDeHistoria(dto, "Dtos");
+        }
+    }
+
+    /// <summary>
+    /// Regla de carpetas: lo de cada historia vive en Application/&lt;Historia&gt;/&lt;Tipo&gt;/
+    /// (namespace EtbotFarma.Application.&lt;Historia&gt;.&lt;Tipo&gt;). Common es solo para lo compartido.
+    /// </summary>
+    private static void EstaEnCarpetaDeHistoria(Type tipo, string carpetaTipo)
+    {
+        var partes = (tipo.Namespace ?? string.Empty).Split('.');
+
+        var correcto = partes.Length == 4
+            && partes[0] == "EtbotFarma"
+            && partes[1] == "Application"
+            && partes[2] != "Common"
+            && partes[3] == carpetaTipo;
+
+        Assert.True(correcto,
+            $"{tipo.Name} debe estar en Application/<Historia>/{carpetaTipo}/ (está en {tipo.Namespace}).");
     }
 
     private static bool EsPedidoCqrs(Type interfaz) =>
