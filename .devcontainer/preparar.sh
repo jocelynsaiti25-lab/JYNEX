@@ -24,6 +24,13 @@ else
   mysql -h127.0.0.1 -uroot -proot < database/etbotfarma_mysql_v2.sql
 fi
 
+# HU-03: si la base ya existía sin la columna correo, se agrega (se conservan los datos)
+tieneCorreo=$(mysql -h127.0.0.1 -uroot -proot -N -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='etbotfarma' AND table_name='usuario' AND column_name='correo'" 2>/dev/null || echo 1)
+if [ "$tieneCorreo" = "0" ]; then
+  echo "==> Agregando el correo electrónico a la tabla usuario"
+  mysql -h127.0.0.1 -uroot -proot < database/migracion_correo_usuario.sql
+fi
+
 echo "==> Restaurando paquetes del backend"
 dotnet restore backend/EtbotFarma.slnx
 

@@ -38,12 +38,16 @@ CREATE TABLE IF NOT EXISTS rol (
 -- 2. USUARIO
 -- La contraseña se guarda ENCRIPTADA (hash), nunca como texto normal.
 -- No se borra: se desactiva con activo = FALSE.
+-- nombre_usuario: con él se inicia sesión → no se repite.
+-- correo:         identifica a la persona (HU-03) → no se repite.
+-- telefono:       solo dato de contacto → SÍ se puede repetir.
 -- =====================================================================
 CREATE TABLE IF NOT EXISTS usuario (
     id_usuario INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
     nombre VARCHAR(50) NOT NULL,
     apellidos VARCHAR(80) NOT NULL,
     nombre_usuario VARCHAR(50) NOT NULL UNIQUE,
+    correo VARCHAR(100) NOT NULL UNIQUE,
     contrasenia_hash VARCHAR(255) NOT NULL,
     telefono VARCHAR(15) NOT NULL,
     id_rol INT NOT NULL,

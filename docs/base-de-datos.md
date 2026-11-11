@@ -7,6 +7,7 @@ El backend la usa con **SQL a mano** (MySqlConnector), **sin Entity Framework ni
 |---------|-----|
 | `database/etbotfarma_mysql_v2.sql` | Crear la base desde cero (versión actual) |
 | `database/migracion_v1_a_v2.sql` | Actualizar una base existente sin perder datos (una vez) |
+| `database/migracion_correo_usuario.sql` | Agregar `usuario.correo` a una base que ya estaba en la versión 2 (una vez) |
 | `database/etbotfarma_mysql.sql` | Versión 1 original (no se modificó) |
 | `database/pruebas/pruebas_v2.sql`, `reglas_que_deben_fallar_v2.sh`, `verificar_migracion.sql` | Pruebas |
 
@@ -34,7 +35,7 @@ Lo que **ya estaba bien** y se conserva: stock por lote con `CHECK (stock >= 0)`
 | Tabla | Columnas | Restricciones | Índices |
 |-------|----------|---------------|---------|
 | `rol` | — | — | — |
-| `usuario` | — | — | `idx_usuario_rol (id_rol)` (nombre explícito) |
+| `usuario` | **+ `correo VARCHAR(100) NOT NULL`** (HU-03) | **`UNIQUE (correo)`** | `idx_usuario_rol (id_rol)` (nombre explícito) |
 | `sesion` | `token` → **`token_hash CHAR(64)`** · **+ `fecha_expiracion DATETIME`** · **− `cerrada`** | `CHECK (fecha_expiracion > fecha_inicio)` · `CHECK (fecha_cierre IS NULL OR fecha_cierre >= fecha_inicio)` | `idx_sesion_usuario` |
 | `medicamento` | — (se conserva la unicidad nombre + sustancia + presentación + concentración) | — | — |
 | `lote` | — | **`UNIQUE (id_lote, id_medicamento)`** (para validar el detalle) | **`idx_lote_fefo (id_medicamento, fecha_caducidad, fecha_entrada)`** |
@@ -130,3 +131,22 @@ tipo inválido, baja sin motivo, lote de otro medicamento, duplicados, borrar re
 | Fecha y hora en un DATETIME | Pedido por el equipo |
 | `fecha_expiracion`, quitar `cerrada`, `token_hash` | Pedido por el equipo |
 | Índices nuevos | Mejora (rendimiento) |
+
+## Correo electrónico del usuario (HU-03)
+
+Decisión del equipo: el **correo** identifica a cada persona y evita registrarla dos veces.
+
+| Columna | ¿Se repite? | Para qué |
+|---------|-------------|----------|
+| `nombre`, `apellidos` | Sí | Saber quién es (dos personas pueden llamarse igual) |
+| `nombre_usuario` | No (`UNIQUE`) | Iniciar sesión |
+| `correo` | No (`UNIQUE`) | Identificar a la persona y detectar duplicados |
+| `telefono` | Sí | Solo contacto |
+
+- El backend guarda el correo en minúsculas y sin espacios (`Usuario.NormalizarCorreo`), y la intercalación
+  `utf8mb4_spanish2_ci` tampoco distingue mayúsculas: `Ana@Gmail.com` y `ana@gmail.com` son el mismo correo.
+- **Base nueva**: `etbotfarma_mysql_v2.sql` ya trae la columna.
+- **Base que ya tenías en la versión 2**: ejecuta una vez `mysql -u root -p < database/migracion_correo_usuario.sql`
+  (en Codespaces lo hace solo `preparar.sh`). Los usuarios que ya existían reciben un correo provisional
+  `nombre_usuario@pendiente.etbotfarma`; cámbialo por el real.
+- El administrador inicial toma su correo de `AdministradorInicial:Correo` (`appsettings.json`).

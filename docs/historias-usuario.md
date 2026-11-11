@@ -13,7 +13,7 @@ Fuente: `Historias_Usuario.xlsx` (Google Drive del equipo). 16 historias ordenad
 |------|----|----------|--------|-----------|--------|-------------|
 | 1. Acceso | HU-01 | Autenticación e inicio de sesión | `InicioSesion` | Command | Terminada | |
 | | HU-02 | Cierre seguro de sesión | `CierreSesion` | Command | Pendiente | |
-| 2. Usuarios | HU-03 | Creación de usuarios | `CreacionUsuarios` | Command | Pendiente | |
+| 2. Usuarios | HU-03 | Creación de usuarios | `CreacionUsuarios` | Command | En progreso | |
 | | HU-04 | Consulta de usuarios registrados | `ConsultaUsuarios` | Query | Pendiente | |
 | | HU-05 | Reasignación de contraseña | `ReasignacionContrasena` | Command | Pendiente | |
 | 3. Catálogo | HU-06 | Registro de medicamentos | `RegistroMedicamentos` | Command | Pendiente | |

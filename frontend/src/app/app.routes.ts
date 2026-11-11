@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 
+import { cambiosSinGuardarGuard } from './core/guards/cambios-sin-guardar.guard';
+import { rolGuard } from './core/guards/rol.guard';
 import { sesionGuard, invitadoGuard } from './core/guards/sesion.guard';
 
 /**
@@ -28,6 +30,15 @@ export const routes: Routes = [
         path: 'inicio',
         title: 'Inicio · Etbot Farma',
         loadComponent: () => import('./features/inicio/inicio.component').then((m) => m.InicioComponent),
+      },
+      {
+        // HU-03: solo el Administrador (criterio 1); avisa si sale con datos sin guardar (escenario 16)
+        path: 'usuarios/crear',
+        title: 'Crear usuario · Etbot Farma',
+        canActivate: [rolGuard(['Administrador'])],
+        canDeactivate: [cambiosSinGuardarGuard],
+        loadComponent: () =>
+          import('./features/creacion-usuarios/crear-usuario.component').then((m) => m.CrearUsuarioComponent),
       },
     ],
   },

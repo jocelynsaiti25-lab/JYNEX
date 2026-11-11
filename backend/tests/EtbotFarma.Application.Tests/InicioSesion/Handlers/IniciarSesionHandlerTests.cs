@@ -26,7 +26,7 @@ public class IniciarSesionHandlerTests
             new ConfiguracionSesion { MinutosInactividad = 20 });
 
         _usuarios.Usuarios.Add(Usuario.Crear(
-            "Ana", "López", "ana", "hash:Secreta123", "5512345678",
+            "Ana", "López", "ana", "ana@etbotfarma.com", "hash:Secreta123", "5512345678",
             Rol.Reconstruir(Rol.Administrador, "Administrador"), Ahora.UtcDateTime));
     }
 

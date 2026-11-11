@@ -1,0 +1,265 @@
+<div class="pantalla">
+  <header class="pantalla__encabezado">
+    <div>
+      <h1 class="pantalla__titulo">Crear usuario</h1>
+      <p class="pantalla__descripcion">Registra una cuenta para una persona del personal y asígnale su rol.</p>
+    </div>
+  </header>
+
+  <!-- Criterio 6: mensaje de éxito -->
+  @if (usuarioCreado(); as usuario) {
+    <app-alerta tipo="exito" titulo="Usuario creado correctamente" [cerrable]="true" (cerrar)="usuarioCreado.set(null)">
+      {{ usuario.nombreCompleto }} ya puede iniciar sesión como <strong>{{ usuario.nombreUsuario }}</strong>
+      ({{ usuario.rol }}).
+    </app-alerta>
+  }
+
+  <!-- Criterio 6: duplicados (correo o usuario), validaciones del servidor o error de conexión -->
+  @if (errores().length) {
+    <app-alerta tipo="error" titulo="No se creó el usuario">
+      <ul class="lista-errores">
+        @for (error of errores(); track error) {
+          <li>{{ error }}</li>
+        }
+      </ul>
+    </app-alerta>
+  }
+
+  <section class="tarjeta" aria-labelledby="titulo-datos">
+    <h2 id="titulo-datos" class="seccion__titulo">Datos de la persona</h2>
+    <p class="campo__ayuda">Los campos con <span class="obligatorio">*</span> son obligatorios.</p>
+
+    <form class="formulario-rejilla" [formGroup]="formulario" (ngSubmit)="revisar()" novalidate>
+      <div class="campo">
+        <label class="campo__etiqueta" for="nombre">
+          Nombre(s) <span class="obligatorio" aria-hidden="true">*</span>
+        </label>
+        <div class="campo__caja">
+          <span class="icono" aria-hidden="true">badge</span>
+          <input
+            id="nombre"
+            class="campo__control"
+            type="text"
+            formControlName="nombre"
+            autocomplete="given-name"
+            required
+            [attr.aria-invalid]="campoInvalido('nombre')"
+            [attr.aria-describedby]="campoInvalido('nombre') ? 'error-nombre' : null"
+          />
+        </div>
+        @if (campoInvalido('nombre')) {
+          <p id="error-nombre" class="campo__error">
+            <span class="icono" aria-hidden="true">error</span>{{ mensaje('nombre') }}
+          </p>
+        }
+      </div>
+
+      <div class="campo">
+        <label class="campo__etiqueta" for="apellidos">
+          Apellidos <span class="obligatorio" aria-hidden="true">*</span>
+        </label>
+        <div class="campo__caja">
+          <span class="icono" aria-hidden="true">badge</span>
+          <input
+            id="apellidos"
+            class="campo__control"
+            type="text"
+            formControlName="apellidos"
+            autocomplete="family-name"
+            required
+            [attr.aria-invalid]="campoInvalido('apellidos')"
+            [attr.aria-describedby]="campoInvalido('apellidos') ? 'error-apellidos' : null"
+          />
+        </div>
+        @if (campoInvalido('apellidos')) {
+          <p id="error-apellidos" class="campo__error">
+            <span class="icono" aria-hidden="true">error</span>{{ mensaje('apellidos') }}
+          </p>
+        }
+      </div>
+
+      <div class="campo">
+        <label class="campo__etiqueta" for="nombreUsuario">
+          Nombre de usuario <span class="obligatorio" aria-hidden="true">*</span>
+        </label>
+        <div class="campo__caja">
+          <span class="icono" aria-hidden="true">person</span>
+          <input
+            id="nombreUsuario"
+            class="campo__control"
+            type="text"
+            formControlName="nombreUsuario"
+            autocomplete="off" autocapitalize="none" spellcheck="false"
+            required
+            [attr.aria-invalid]="campoInvalido('nombreUsuario')"
+            [attr.aria-describedby]="campoInvalido('nombreUsuario') ? 'error-nombreUsuario' : 'ayuda-nombreUsuario'"
+          />
+        </div>
+        @if (!campoInvalido('nombreUsuario')) {
+          <p id="ayuda-nombreUsuario" class="campo__ayuda">Con este dato la persona inicia sesión. No se puede repetir.</p>
+        }
+        @if (campoInvalido('nombreUsuario')) {
+          <p id="error-nombreUsuario" class="campo__error">
+            <span class="icono" aria-hidden="true">error</span>{{ mensaje('nombreUsuario') }}
+          </p>
+        }
+      </div>
+
+      <div class="campo">
+        <label class="campo__etiqueta" for="correo">
+          Correo electrónico <span class="obligatorio" aria-hidden="true">*</span>
+        </label>
+        <div class="campo__caja">
+          <span class="icono" aria-hidden="true">mail</span>
+          <input
+            id="correo"
+            class="campo__control"
+            type="email"
+            formControlName="correo"
+            autocomplete="off" autocapitalize="none" spellcheck="false"
+            required
+            [attr.aria-invalid]="campoInvalido('correo')"
+            [attr.aria-describedby]="campoInvalido('correo') ? 'error-correo' : 'ayuda-correo'"
+          />
+        </div>
+        @if (!campoInvalido('correo')) {
+          <p id="ayuda-correo" class="campo__ayuda">Identifica a la persona: no se puede repetir.</p>
+        }
+        @if (campoInvalido('correo')) {
+          <p id="error-correo" class="campo__error">
+            <span class="icono" aria-hidden="true">error</span>{{ mensaje('correo') }}
+          </p>
+        }
+      </div>
+
+      <div class="campo">
+        <label class="campo__etiqueta" for="telefono">
+          Teléfono <span class="obligatorio" aria-hidden="true">*</span>
+        </label>
+        <div class="campo__caja">
+          <span class="icono" aria-hidden="true">call</span>
+          <input
+            id="telefono"
+            class="campo__control"
+            type="tel"
+            formControlName="telefono"
+            autocomplete="off" inputmode="numeric" maxlength="10"
+            required
+            [attr.aria-invalid]="campoInvalido('telefono')"
+            [attr.aria-describedby]="campoInvalido('telefono') ? 'error-telefono' : 'ayuda-telefono'"
+          />
+        </div>
+        @if (!campoInvalido('telefono')) {
+          <p id="ayuda-telefono" class="campo__ayuda">10 dígitos, solo para contacto.</p>
+        }
+        @if (campoInvalido('telefono')) {
+          <p id="error-telefono" class="campo__error">
+            <span class="icono" aria-hidden="true">error</span>{{ mensaje('telefono') }}
+          </p>
+        }
+      </div>
+
+      <div class="campo">
+        <label class="campo__etiqueta" for="contrasenia">
+          Contraseña <span class="obligatorio" aria-hidden="true">*</span>
+        </label>
+        <div class="campo__caja">
+          <span class="icono" aria-hidden="true">lock</span>
+          <input
+            id="contrasenia"
+            class="campo__control"
+            [type]="mostrarContrasenia() ? 'text' : 'password'"
+            formControlName="contrasenia"
+            autocomplete="new-password"
+            required
+            [attr.aria-invalid]="campoInvalido('contrasenia')"
+            [attr.aria-describedby]="campoInvalido('contrasenia') ? 'error-contrasenia' : 'ayuda-contrasenia'"
+          />
+          <button
+            type="button"
+            class="campo__boton"
+            [attr.aria-pressed]="mostrarContrasenia()"
+            (click)="mostrarContrasenia.set(!mostrarContrasenia())"
+          >
+            <span class="icono" aria-hidden="true">{{ mostrarContrasenia() ? 'visibility_off' : 'visibility' }}</span>
+            <span class="solo-lector">Mostrar contraseña</span>
+          </button>
+        </div>
+        @if (campoInvalido('contrasenia')) {
+          <p id="error-contrasenia" class="campo__error">
+            <span class="icono" aria-hidden="true">error</span>{{ mensaje('contrasenia') }}
+          </p>
+        } @else {
+          <p id="ayuda-contrasenia" class="campo__ayuda">Mínimo 8 caracteres, con mayúscula, minúscula y número.</p>
+        }
+      </div>
+
+      <div class="campo ancho-completo">
+        <label class="campo__etiqueta" for="idRol">
+          Rol <span class="obligatorio" aria-hidden="true">*</span>
+        </label>
+        <select
+          id="idRol"
+          class="campo__control"
+          formControlName="idRol"
+          required
+          [attr.aria-invalid]="campoInvalido('idRol')"
+          [attr.aria-describedby]="campoInvalido('idRol') ? 'error-idRol' : null"
+        >
+          <option [ngValue]="0" disabled>Selecciona un rol</option>
+          @for (rol of roles; track rol.id) {
+            <option [ngValue]="rol.id">{{ rol.nombre }}</option>
+          }
+        </select>
+        @if (campoInvalido('idRol')) {
+          <p id="error-idRol" class="campo__error">
+            <span class="icono" aria-hidden="true">error</span>{{ mensaje('idRol') }}
+          </p>
+        }
+      </div>
+
+      <div class="acciones ancho-completo">
+        <button type="submit" class="boton boton--primario" [disabled]="guardando()">
+          <span class="icono" aria-hidden="true">person_add</span>
+          Guardar
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<!-- Criterio 4: confirmación con nombre, usuario, correo y rol (nunca la contraseña) -->
+<app-confirmacion
+  [abierta]="confirmando()"
+  titulo="¿Crear este usuario?"
+  textoConfirmar="Crear usuario"
+  icono="person_add"
+  [procesando]="guardando()"
+  (confirmar)="crear()"
+  (cancelar)="confirmando.set(false)"
+>
+  <dl class="resumen">
+    <dt>Nombre completo</dt>
+    <dd>{{ formulario.controls.nombre.value }} {{ formulario.controls.apellidos.value }}</dd>
+    <dt>Nombre de usuario</dt>
+    <dd>{{ formulario.controls.nombreUsuario.value }}</dd>
+    <dt>Correo electrónico</dt>
+    <dd>{{ formulario.controls.correo.value }}</dd>
+    <dt>Rol</dt>
+    <dd>{{ nombreRol() }}</dd>
+  </dl>
+</app-confirmacion>
+
+<!-- Escenario 16: salir con datos sin guardar -->
+<app-confirmacion
+  [abierta]="preguntandoSalida()"
+  titulo="¿Salir sin guardar?"
+  textoConfirmar="Salir sin guardar"
+  textoCancelar="Seguir editando"
+  tipo="peligro"
+  icono="warning"
+  (confirmar)="responderSalida(true)"
+  (cancelar)="responderSalida(false)"
+>
+  <p>Los datos que capturaste se perderán y no se creará la cuenta.</p>
+</app-confirmacion>

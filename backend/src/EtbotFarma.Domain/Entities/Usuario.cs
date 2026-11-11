@@ -11,6 +11,10 @@ public class Usuario : Entity<int>
     public string Nombre { get; private set; } = string.Empty;
     public string Apellidos { get; private set; } = string.Empty;
     public string NombreUsuario { get; private set; } = string.Empty;
+
+    /// <summary>HU-03: identifica a la persona; no se repite. Se guarda en minúsculas.</summary>
+    public string Correo { get; private set; } = string.Empty;
+
     public string ContraseniaHash { get; private set; } = string.Empty;
     public string Telefono { get; private set; } = string.Empty;
     public int IdRol { get; private set; }
@@ -22,11 +26,12 @@ public class Usuario : Entity<int>
 
     private Usuario() { }
 
-    /// <summary>Crea un usuario nuevo y activo.</summary>
+    /// <summary>Crea un usuario nuevo y activo (HU-03 criterio 5).</summary>
     public static Usuario Crear(
         string nombre,
         string apellidos,
         string nombreUsuario,
+        string correo,
         string contraseniaHash,
         string telefono,
         Rol rol,
@@ -35,6 +40,11 @@ public class Usuario : Entity<int>
         if (string.IsNullOrWhiteSpace(nombreUsuario))
         {
             throw new DomainException("El nombre de usuario es obligatorio.");
+        }
+
+        if (string.IsNullOrWhiteSpace(correo))
+        {
+            throw new DomainException("El correo electrónico es obligatorio.");
         }
 
         if (string.IsNullOrWhiteSpace(contraseniaHash))
@@ -47,6 +57,7 @@ public class Usuario : Entity<int>
             Nombre = nombre.Trim(),
             Apellidos = apellidos.Trim(),
             NombreUsuario = nombreUsuario.Trim(),
+            Correo = NormalizarCorreo(correo),
             ContraseniaHash = contraseniaHash,
             Telefono = telefono.Trim(),
             IdRol = rol.Id,
@@ -65,6 +76,7 @@ public class Usuario : Entity<int>
         string nombre,
         string apellidos,
         string nombreUsuario,
+        string correo,
         string contraseniaHash,
         string telefono,
         Rol rol,
@@ -77,6 +89,7 @@ public class Usuario : Entity<int>
             Nombre = nombre,
             Apellidos = apellidos,
             NombreUsuario = nombreUsuario,
+            Correo = correo,
             ContraseniaHash = contraseniaHash,
             Telefono = telefono,
             IdRol = rol.Id,
@@ -90,4 +103,10 @@ public class Usuario : Entity<int>
     public bool PuedeIniciarSesion() => Activo;
 
     public void Desactivar() => Activo = false;
+
+    /// <summary>
+    /// HU-03: el correo se compara sin importar mayúsculas ni espacios:
+    /// " Ana.Lopez@Gmail.com " y "ana.lopez@gmail.com" son el mismo correo.
+    /// </summary>
+    public static string NormalizarCorreo(string correo) => correo.Trim().ToLowerInvariant();
 }

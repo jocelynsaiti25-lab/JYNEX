@@ -96,4 +96,15 @@ ALTER TABLE auditoria
 -- ---------------------------------------------------------------------
 -- No se requiere cambio: MySQL ya creó un índice para la llave foránea id_rol.
 
+-- ---------------------------------------------------------------------
+-- 7. USUARIO: correo electrónico (HU-03), obligatorio y sin repetirse
+--    Los usuarios que ya existían reciben un correo provisional único
+--    (nombre_usuario@pendiente.etbotfarma) que después se cambia por el real.
+--    (Es lo mismo que hace database/migracion_correo_usuario.sql)
+-- ---------------------------------------------------------------------
+ALTER TABLE usuario ADD COLUMN correo VARCHAR(100) NULL AFTER nombre_usuario;
+UPDATE usuario SET correo = CONCAT(nombre_usuario, '@pendiente.etbotfarma') WHERE correo IS NULL;
+ALTER TABLE usuario MODIFY correo VARCHAR(100) NOT NULL;
+ALTER TABLE usuario ADD UNIQUE uq_usuario_correo (correo);
+
 SELECT 'Migración a la versión 2 terminada' AS resultado;
