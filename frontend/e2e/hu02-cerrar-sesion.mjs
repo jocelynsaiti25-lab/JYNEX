@@ -76,10 +76,13 @@ async function cerrarSesion(pagina) {
   await pagina.waitForURL('**/iniciar-sesion**', { timeout: 15000 });
 }
 
-/** Número de sesiones del usuario que siguen abiertas en MySQL. */
-function sesionesAbiertas(nombreUsuario) {
-  return Number(consultar(
-    `SELECT COUNT(*) FROM sesion s JOIN usuario u ON u.id_usuario = s.id_usuario WHERE u.nombre_usuario = '${nombreUsuario}' AND s.fecha_cierre IS NULL`));
+/**
+ * true si la sesión MÁS RECIENTE del usuario (la que abrió esta prueba) quedó cerrada en MySQL.
+ * Se revisa solo la última porque otras pruebas (HU-01, HU-03) dejan sesiones del admin abiertas.
+ */
+function ultimaSesionCerrada(nombreUsuario) {
+  return consultar(
+    `SELECT s.fecha_cierre IS NOT NULL FROM sesion s JOIN usuario u ON u.id_usuario = s.id_usuario WHERE u.nombre_usuario = '${nombreUsuario}' ORDER BY s.id_sesion DESC LIMIT 1`) === '1';
 }
 
 await crearEmpleado();
@@ -106,7 +109,7 @@ const navegador = await chromium.launch();
   await cerrarSesion(pagina);
   revisar('1a. Al cerrar sesión llega al inicio de sesión', pagina.url().includes('/iniciar-sesion'));
   revisar('1b. Muestra "Sesión cerrada correctamente"', await aparece(pagina, 'Sesión cerrada correctamente'));
-  revisar('1c. La sesión quedó cerrada en MySQL (fecha_cierre)', sesionesAbiertas('admin') === 0);
+  revisar('1c. La sesión quedó cerrada en MySQL (fecha_cierre)', ultimaSesionCerrada('admin'));
   await pagina.screenshot({ path: `${CARPETA}/hu02-2-sesion-cerrada.png`, fullPage: true });
 
   // Escenario 3: el botón Atrás no muestra la página protegida
@@ -178,7 +181,7 @@ const navegador = await chromium.launch();
   await pregunta.getByRole('button', { name: 'Seguir editando' }).click();
   await pagina.waitForTimeout(500);
   revisar('7b. Al cancelar se queda en la misma pantalla con los datos', pagina.url().includes('/usuarios/crear') && (await pagina.inputValue('#nombre')) === 'Sin guardar');
-  revisar('7c. Al cancelar la sesión sigue activa', sesionesAbiertas('admin') >= 1 && (await botonCerrar(pagina).isEnabled()));
+  revisar('7c. Al cancelar la sesión sigue activa', !ultimaSesionCerrada('admin') && (await botonCerrar(pagina).isEnabled()));
 
   // Escenario 8: confirma
   await botonCerrar(pagina).click();
@@ -235,7 +238,7 @@ const navegador = await chromium.launch();
   await pagina.goto(`${URL}/iniciar-sesion`);
   await pagina.waitForSelector('#nombreUsuario');
   await pagina.waitForTimeout(1000);
-  revisar('11d. Con conexión, el cierre pendiente se completa en el servidor', sesionesAbiertas('admin') === 0);
+  revisar('11d. Con conexión, el cierre pendiente se completa en el servidor', ultimaSesionCerrada('admin'));
   await pagina.goto(`${URL}/inicio`);
   await pagina.waitForURL('**/iniciar-sesion**', { timeout: 15000 });
   revisar('11e. Nadie puede entrar con la sesión anterior', pagina.url().includes('/iniciar-sesion'));
