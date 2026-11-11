@@ -74,6 +74,14 @@ jobs:
           mysql -h127.0.0.1 -uroot -proot < database/migracion_v1_a_v2.sql
           mysql -h127.0.0.1 -uroot -proot -N < database/pruebas/verificar_migracion.sql | tee migracion.txt
           ! grep -q "FALLA" migracion.txt
+      - name: Migración del correo (base v2 que ya existía sin la columna correo)
+        run: |
+          mysql -h127.0.0.1 -uroot -proot -e "DROP DATABASE etbotfarma"
+          mysql -h127.0.0.1 -uroot -proot < database/etbotfarma_mysql_v2.sql
+          mysql -h127.0.0.1 -uroot -proot etbotfarma -e "ALTER TABLE usuario DROP COLUMN correo; INSERT INTO usuario (nombre, apellidos, nombre_usuario, contrasenia_hash, telefono, id_rol, fecha_registro) VALUES ('Ana', 'López', 'admin', 'x', '5512345678', 1, UTC_TIMESTAMP()), ('Luis', 'Pérez', 'luis', 'x', '5512345678', 2, UTC_TIMESTAMP())"
+          mysql -h127.0.0.1 -uroot -proot < database/migracion_correo_usuario.sql
+          mysql -h127.0.0.1 -uroot -proot -N etbotfarma -e "SELECT 'Correo provisional único para cada usuario', IF((SELECT COUNT(DISTINCT correo) FROM usuario WHERE correo LIKE '%@pendiente.etbotfarma') = 2, 'OK', 'FALLA')" | tee correo.txt
+          ! grep -q "FALLA" correo.txt
 
   e2e:
     name: Punta a punta (API + MySQL)
@@ -171,6 +179,10 @@ jobs:
       - name: Pruebas de HU-01 en el navegador
         working-directory: frontend
         run: node e2e/hu01-iniciar-sesion.mjs
+      - name: Pruebas de HU-03 en el navegador (crear usuarios, auditoría)
+        if: success() || failure()   # se ejecutan aunque falle HU-01, para ver ambos resultados
+        working-directory: frontend
+        run: node e2e/hu03-crear-usuario.mjs
       - name: Guardar capturas de pantalla
         if: always()
         uses: actions/upload-artifact@v4

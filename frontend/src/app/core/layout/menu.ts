@@ -66,6 +66,8 @@ export const MENU: OpcionMenu[] = [
     descripcion: 'Crear y consultar usuarios, y reasignar contraseñas.',
     icono: 'manage_accounts',
     historias: ['HU-03', 'HU-04', 'HU-05'],
+    // Por ahora abre la creación (HU-03). Cuando exista la consulta (HU-04), esta ruta puede apuntar a la lista.
+    ruta: '/usuarios/crear',
     roles: ['Administrador'],
   },
 ];

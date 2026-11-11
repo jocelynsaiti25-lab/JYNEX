@@ -29,6 +29,8 @@ public static class DependencyInjection
         // ---------- Repositorios ----------
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddScoped<ISesionRepository, SesionRepository>();
+        services.AddScoped<IRolRepository, RolRepository>();
+        services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();   // compartido: cambios administrativos
 
         // ---------- Seguridad ----------
         services.AddSingleton<IPasswordHasher, PasswordHasher>();

@@ -24,7 +24,7 @@ public class ValidationBehaviorTests
     public ValidationBehaviorTests()
     {
         var usuarios = new UsuarioRepositoryFalso();
-        usuarios.Usuarios.Add(Usuario.Crear("Ana", "López", "ana", "hash:Secreta123", "5512345678",
+        usuarios.Usuarios.Add(Usuario.Crear("Ana", "López", "ana", "ana@etbotfarma.com", "hash:Secreta123", "5512345678",
             Rol.Reconstruir(Rol.Empleado, "Empleado"), DateTime.UtcNow));
 
         var services = new ServiceCollection();

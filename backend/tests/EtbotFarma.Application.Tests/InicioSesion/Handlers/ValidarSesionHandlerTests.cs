@@ -21,7 +21,7 @@ public class ValidarSesionHandlerTests
 
     public ValidarSesionHandlerTests()
     {
-        _usuario = Usuario.Crear("Ana", "López", "ana", "hash", "5512345678",
+        _usuario = Usuario.Crear("Ana", "López", "ana", "ana@etbotfarma.com", "hash", "5512345678",
             Rol.Reconstruir(Rol.Empleado, "Empleado"), Inicio.UtcDateTime);
 
         _sesiones.Sesiones.Add(Sesion.Iniciar(_usuario, "h:token-123", Inicio.UtcDateTime, TimeSpan.FromMinutes(20)));
