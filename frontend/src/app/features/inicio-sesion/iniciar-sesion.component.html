@@ -17,6 +17,10 @@
   @if (sesionCerrada) {
     <app-alerta tipo="info">Sesión cerrada correctamente</app-alerta>
   }
+  <!-- HU-05 escenario 17 -->
+  @if (contraseniaActualizada) {
+    <app-alerta tipo="info">Contraseña actualizada correctamente. Inicia sesión con tu nueva contraseña.</app-alerta>
+  }
   <!-- HU-02 escenario 11 -->
   @if (cierreSinConexion) {
     <app-alerta tipo="aviso" titulo="Problema de conexión">

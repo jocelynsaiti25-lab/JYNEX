@@ -1,0 +1,162 @@
+<div class="pantalla">
+  <header class="pantalla__encabezado">
+    <div>
+      <h1 class="pantalla__titulo">Reasignar contraseña</h1>
+      <p class="pantalla__descripcion">Establece una contraseña nueva para una persona que perdió el acceso.</p>
+    </div>
+    <a class="boton boton--secundario" routerLink="/usuarios">
+      <span class="icono" aria-hidden="true">arrow_back</span>
+      Volver a usuarios
+    </a>
+  </header>
+
+  @if (cargando()) {
+    <p class="estado-carga" role="status">
+      <span class="cargando" aria-hidden="true"></span>
+      Cargando la cuenta…
+    </p>
+  } @else if (errorCarga(); as mensaje) {
+    <!-- Escenario 7: la cuenta no existe (dirección escrita a mano) -->
+    <app-alerta tipo="error">{{ mensaje }}</app-alerta>
+  } @else if (cuenta(); as cuenta) {
+    <!-- Datos de la cuenta afectada -->
+    <section class="tarjeta cuenta" aria-labelledby="titulo-cuenta">
+      <h2 id="titulo-cuenta" class="seccion__titulo">Cuenta</h2>
+      <dl class="resumen">
+        <dt>Nombre completo</dt>
+        <dd>{{ cuenta.nombreCompleto }}</dd>
+        <dt>Nombre de usuario</dt>
+        <dd>{{ cuenta.nombreUsuario }}</dd>
+        <dt>Correo electrónico</dt>
+        <dd>{{ cuenta.correo }}</dd>
+        <dt>Rol</dt>
+        <dd>{{ cuenta.rol }}</dd>
+      </dl>
+    </section>
+
+    @if (!cuenta.activo) {
+      <!-- Escenario 8 -->
+      <app-alerta tipo="error">La cuenta está desactivada</app-alerta>
+    } @else {
+      <!-- Escenario 1 -->
+      @if (exito()) {
+        <app-alerta tipo="exito" [cerrable]="true" (cerrar)="exito.set(false)">
+          Contraseña actualizada correctamente
+        </app-alerta>
+      }
+
+      <!-- Escenarios 7, 8 y 15: errores que responde el servidor -->
+      @if (errores().length) {
+        <app-alerta tipo="error" titulo="No se cambió la contraseña">
+          <ul class="lista-errores">
+            @for (error of errores(); track error) {
+              <li>{{ error }}</li>
+            }
+          </ul>
+        </app-alerta>
+      }
+
+      <!-- Escenario 4: solo la nueva contraseña y su confirmación (nunca la anterior) -->
+      <section class="tarjeta" aria-labelledby="titulo-nueva">
+        <h2 id="titulo-nueva" class="seccion__titulo">Nueva contraseña</h2>
+        <p class="campo__ayuda">
+          No se pide ni se muestra la contraseña anterior. Comunica la nueva a la persona de forma segura.
+        </p>
+
+        <form class="formulario" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+          <div class="campo">
+            <label class="campo__etiqueta" for="nuevaContrasenia">
+              Nueva contraseña <span class="obligatorio" aria-hidden="true">*</span>
+            </label>
+            <div class="campo__caja">
+              <span class="icono" aria-hidden="true">lock</span>
+              <input
+                id="nuevaContrasenia"
+                class="campo__control"
+                [type]="mostrarContrasenias() ? 'text' : 'password'"
+                formControlName="nuevaContrasenia"
+                autocomplete="new-password"
+                maxlength="100"
+                required
+                [attr.aria-invalid]="campoInvalido('nuevaContrasenia')"
+                [attr.aria-describedby]="campoInvalido('nuevaContrasenia') ? 'error-nuevaContrasenia' : 'ayuda-nuevaContrasenia'"
+              />
+              <button
+                type="button"
+                class="campo__boton"
+                [attr.aria-pressed]="mostrarContrasenias()"
+                (click)="mostrarContrasenias.set(!mostrarContrasenias())"
+              >
+                <span class="icono" aria-hidden="true">{{ mostrarContrasenias() ? 'visibility_off' : 'visibility' }}</span>
+                <span class="solo-lector">Mostrar contraseñas</span>
+              </button>
+            </div>
+            @if (campoInvalido('nuevaContrasenia')) {
+              <p id="error-nuevaContrasenia" class="campo__error">
+                <span class="icono" aria-hidden="true">error</span>{{ mensaje('nuevaContrasenia') }}
+              </p>
+            } @else {
+              <p id="ayuda-nuevaContrasenia" class="campo__ayuda">De 8 a 100 caracteres, con mayúscula, minúscula y número.</p>
+            }
+          </div>
+
+          <div class="campo">
+            <label class="campo__etiqueta" for="confirmarContrasenia">
+              Confirmar contraseña <span class="obligatorio" aria-hidden="true">*</span>
+            </label>
+            <div class="campo__caja">
+              <span class="icono" aria-hidden="true">lock_reset</span>
+              <input
+                id="confirmarContrasenia"
+                class="campo__control"
+                [type]="mostrarContrasenias() ? 'text' : 'password'"
+                formControlName="confirmarContrasenia"
+                autocomplete="new-password"
+                maxlength="100"
+                required
+                [attr.aria-invalid]="campoInvalido('confirmarContrasenia')"
+                [attr.aria-describedby]="campoInvalido('confirmarContrasenia') ? 'error-confirmarContrasenia' : null"
+              />
+            </div>
+            @if (campoInvalido('confirmarContrasenia')) {
+              <p id="error-confirmarContrasenia" class="campo__error">
+                <span class="icono" aria-hidden="true">error</span>{{ mensaje('confirmarContrasenia') }}
+              </p>
+            }
+          </div>
+
+          <div class="acciones">
+            <a class="boton boton--secundario" routerLink="/usuarios">Cancelar</a>
+            <!-- Escenario 16: desactivado mientras se procesa -->
+            <button type="submit" class="boton boton--primario" [disabled]="guardando()">
+              <span class="icono" aria-hidden="true">save</span>
+              Guardar
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Escenarios 2 y 3: confirmación con los datos de la cuenta, SIN la contraseña -->
+      <app-confirmacion
+        [abierta]="confirmando()"
+        titulo="¿Cambiar la contraseña de esta cuenta?"
+        textoConfirmar="Aceptar"
+        textoCancelar="Cancelar"
+        icono="lock_reset"
+        [procesando]="guardando()"
+        (confirmar)="reasignar()"
+        (cancelar)="confirmando.set(false)"
+      >
+        <dl class="resumen">
+          <dt>Nombre completo</dt>
+          <dd>{{ cuenta.nombreCompleto }}</dd>
+          <dt>Nombre de usuario</dt>
+          <dd>{{ cuenta.nombreUsuario }}</dd>
+          <dt>Correo electrónico</dt>
+          <dd>{{ cuenta.correo }}</dd>
+        </dl>
+        <p class="aviso-sesiones">Se cerrarán sus sesiones abiertas y deberá entrar con la contraseña nueva.</p>
+      </app-confirmacion>
+    }
+  }
+</div>

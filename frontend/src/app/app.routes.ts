@@ -56,6 +56,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/consulta-usuarios/consulta-usuarios.component').then((m) => m.ConsultaUsuariosComponent),
       },
+      {
+        // HU-05: la cuenta se elige en la lista de HU-04; solo el Administrador (escenario 5)
+        path: 'usuarios/:idUsuario/contrasenia',
+        title: 'Reasignar contraseña · Etbot Farma',
+        canActivate: [rolGuard(['Administrador'])],
+        loadComponent: () =>
+          import('./features/reasignacion-contrasena/reasignar-contrasena.component').then((m) => m.ReasignarContrasenaComponent),
+      },
     ],
   },
   { path: '**', redirectTo: 'inicio' },

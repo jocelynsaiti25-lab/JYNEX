@@ -28,6 +28,31 @@ export interface UsuarioRegistrado {
   rol: string;
 }
 
+/** HU-05: debe coincidir con CuentaResponse del backend (GET api/usuarios/{id}). */
+export interface CuentaUsuario {
+  idUsuario: number;
+  nombreCompleto: string;
+  nombreUsuario: string;
+  correo: string;
+  rol: string;
+  activo: boolean;
+}
+
+/** HU-05: debe coincidir con ReasignarContraseniaRequest del backend. Nunca se pide la anterior. */
+export interface ReasignarContraseniaRequest {
+  nuevaContrasenia: string;
+  confirmarContrasenia: string;
+}
+
+/** HU-05: debe coincidir con ReasignarContraseniaResponse del backend (nunca trae la contraseña). */
+export interface ReasignarContraseniaResponse {
+  idUsuario: number;
+  nombreUsuario: string;
+  nombreCompleto: string;
+  sesionesCerradas: number;
+  eraSuPropiaCuenta: boolean;
+}
+
 /** Roles que se pueden asignar (mismos id que la tabla rol de MySQL). */
 export const ROLES = [
   { id: 1, nombre: 'Administrador' },
