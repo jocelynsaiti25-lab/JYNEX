@@ -82,6 +82,41 @@ public sealed class UsuarioRepository(ConexionMySql conexion) : IUsuarioReposito
         }
     }
 
+    /// <summary>
+    /// HU-04: lista las cuentas con su rol. Solo LEE (SELECT): nunca modifica datos.
+    ///   - Búsqueda parcial: LIKE '%texto%' → "lopez" encuentra "mflopez" (escenario 4).
+    ///   - Sin importar mayúsculas: la tabla usa utf8mb4_spanish2_ci (ci = case insensitive).
+    ///   - El texto va como PARÁMETRO (nunca pegado al SQL) para evitar inyección SQL.
+    /// </summary>
+    public async Task<IReadOnlyList<Usuario>> ListarAsync(string? nombreUsuarioContiene, CancellationToken cancellationToken)
+    {
+        const string sql = $"""
+            SELECT {ColumnasUsuarioYRol}
+            FROM usuario u
+            INNER JOIN rol r ON r.id_rol = u.id_rol
+            WHERE @busqueda IS NULL OR u.nombre_usuario LIKE CONCAT('%', @busqueda, '%')
+            ORDER BY u.nombre, u.apellidos, u.nombre_usuario;
+            """;
+
+        await using var comando = await conexion.CrearComandoAsync(sql, cancellationToken);
+        comando.Parameters.AddWithValue("@busqueda", (object?)EscaparLike(nombreUsuarioContiene) ?? DBNull.Value);
+
+        var usuarios = new List<Usuario>();
+        await using var lector = await comando.ExecuteReaderAsync(cancellationToken);
+        while (await lector.ReadAsync(cancellationToken))
+        {
+            usuarios.Add(LeerUsuario(lector));
+        }
+        return usuarios;
+    }
+
+    /// <summary>
+    /// En LIKE, "%" y "_" son comodines. Si alguien busca "a_b" debe encontrar el texto "a_b"
+    /// y no "cualquier letra entre a y b". Se les pone "\" delante para que MySQL los tome como texto.
+    /// </summary>
+    private static string? EscaparLike(string? texto)
+        => texto?.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+
     /// <summary>Ejecuta un SELECT COUNT(*) con un solo parámetro (@valor) y dice si encontró filas.</summary>
     private async Task<bool> ExisteAsync(string sql, string valor, CancellationToken cancellationToken)
     {
