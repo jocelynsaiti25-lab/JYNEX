@@ -80,4 +80,24 @@ public sealed class SesionRepository(ConexionMySql conexion) : ISesionRepository
 
         await comando.ExecuteNonQueryAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// HU-05: cierra todas las sesiones ABIERTAS del usuario (las ya cerradas conservan su fecha).
+    /// GREATEST respeta la regla de la tabla "fecha_cierre >= fecha_inicio" aunque una sesión
+    /// se haya abierto en el mismo instante. Devuelve cuántas sesiones cerró.
+    /// </summary>
+    public async Task<int> CerrarSesionesDelUsuarioAsync(int idUsuario, DateTime fechaCierre, CancellationToken cancellationToken)
+    {
+        const string sql = """
+            UPDATE sesion
+            SET fecha_cierre = GREATEST(@fechaCierre, fecha_inicio)
+            WHERE id_usuario = @idUsuario AND fecha_cierre IS NULL;
+            """;
+
+        await using var comando = await conexion.CrearComandoAsync(sql, cancellationToken);
+        comando.Parameters.AddWithValue("@fechaCierre", fechaCierre);
+        comando.Parameters.AddWithValue("@idUsuario", idUsuario);
+
+        return await comando.ExecuteNonQueryAsync(cancellationToken);
+    }
 }

@@ -107,6 +107,25 @@ public class Usuario : Entity<int>
     public void Desactivar() => Activo = false;
 
     /// <summary>
+    /// HU-05: el Administrador establece una contraseña nueva (ya llega ENCRIPTADA: nunca en texto plano).
+    /// Regla de negocio (escenario 8): solo se puede reasignar la contraseña de una cuenta activa.
+    /// </summary>
+    public void ReasignarContrasenia(string nuevoHash)
+    {
+        if (!Activo)
+        {
+            throw new DomainException("La cuenta está desactivada");
+        }
+
+        if (string.IsNullOrWhiteSpace(nuevoHash))
+        {
+            throw new DomainException("La contraseña es obligatoria.");
+        }
+
+        ContraseniaHash = nuevoHash;
+    }
+
+    /// <summary>
     /// HU-03: el correo se compara sin importar mayúsculas ni espacios:
     /// " Ana.Lopez@Gmail.com " y "ana.lopez@gmail.com" son el mismo correo.
     /// </summary>
