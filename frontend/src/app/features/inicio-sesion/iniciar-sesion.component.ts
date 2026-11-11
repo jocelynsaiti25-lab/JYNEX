@@ -12,7 +12,8 @@ import { AlertaComponent } from '../../shared/components/alerta/alerta.component
  *   Criterio 3: con datos correctos redirige al módulo inicial.
  *   Criterio 4: con datos incorrectos muestra un mensaje genérico.
  *   Alerta de sesión expirada cuando se llega aquí con ?expirada=1.
- *   Aviso de sesión cerrada (HU-02) cuando se llega con ?cerrada=1.
+ *   HU-02: "Sesión cerrada correctamente" con ?cerrada=1, y aviso de problema de conexión
+ *   con ?cerrada=sin-conexion.
  * Diseño: Stitch "Inicio de sesión – login limpio"
  * (sin selector de rol ni bloqueo por intentos, que no piden las historias).
  */
@@ -34,7 +35,10 @@ export class IniciarSesionComponent {
 
   private readonly parametros = inject(ActivatedRoute).snapshot.queryParamMap;
   readonly sesionExpirada = this.parametros.has('expirada');
-  readonly sesionCerrada = this.parametros.has('cerrada');
+  /** HU-02 escenario 1: ?cerrada=1 → "Sesión cerrada correctamente". */
+  readonly sesionCerrada = this.parametros.get('cerrada') === '1';
+  /** HU-02 escenario 11: ?cerrada=sin-conexion → se cerró en el navegador, pero el servidor no respondió. */
+  readonly cierreSinConexion = this.parametros.get('cerrada') === 'sin-conexion';
   readonly mostrarContrasenia = signal(false);
   readonly enviando = signal(false);
   readonly mensajeError = signal<string | null>(null);

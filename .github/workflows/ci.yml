@@ -183,6 +183,10 @@ jobs:
         if: success() || failure()   # se ejecutan aunque falle HU-01, para ver ambos resultados
         working-directory: frontend
         run: node e2e/hu03-crear-usuario.mjs
+      - name: Pruebas de HU-02 en el navegador (cierre seguro de sesión)
+        if: success() || failure()   # se ejecutan aunque falle otra historia, para ver todos los resultados
+        working-directory: frontend
+        run: node e2e/hu02-cerrar-sesion.mjs
       - name: Guardar capturas de pantalla
         if: always()
         uses: actions/upload-artifact@v4

@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { map } from 'rxjs';
+import { catchError, map, of } from 'rxjs';
 
 import { SesionService } from '../services/sesion.service';
 
@@ -30,6 +30,16 @@ export const sesionGuard: CanActivateFn = () => {
 export const invitadoGuard: CanActivateFn = () => {
   const sesion = inject(SesionService);
   const router = inject(Router);
+
+  // HU-02 escenarios 11 y 13: si un cierre de sesión anterior no llegó al servidor,
+  // se reintenta ANTES de revisar la sesión. Así nadie entra con la cuenta de quien salió.
+  // Funcione o no el reintento, se muestra el inicio de sesión (nunca la cuenta anterior).
+  if (sesion.hayCierrePendiente()) {
+    return sesion.cerrarSesion().pipe(
+      map(() => true),
+      catchError(() => of(true)),
+    );
+  }
 
   return sesion
     .verificarSesion()

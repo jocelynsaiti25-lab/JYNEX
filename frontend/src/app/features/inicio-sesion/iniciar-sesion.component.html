@@ -13,8 +13,16 @@
       Tu sesión expiró por inactividad. Vuelve a iniciar sesión.
     </app-alerta>
   }
+  <!-- HU-02 escenario 1 -->
   @if (sesionCerrada) {
-    <app-alerta tipo="info">Cerraste sesión correctamente.</app-alerta>
+    <app-alerta tipo="info">Sesión cerrada correctamente</app-alerta>
+  }
+  <!-- HU-02 escenario 11 -->
+  @if (cierreSinConexion) {
+    <app-alerta tipo="aviso" titulo="Problema de conexión">
+      Se cerró la sesión en este navegador, pero no se pudo confirmar con el servidor.
+      Revisa tu conexión a internet.
+    </app-alerta>
   }
 
   <section class="tarjeta login__tarjeta" aria-labelledby="titulo-login">

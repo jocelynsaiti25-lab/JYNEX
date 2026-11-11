@@ -40,9 +40,14 @@ export class LayoutComponent {
   /** Menú abierto en celular/tableta. */
   readonly menuAbierto = signal(false);
 
+  /** HU-02 escenario 12: true mientras se está cerrando la sesión (desactiva el botón). */
+  readonly cerrando = signal(false);
+
+  private readonly router = inject(Router);
+
   constructor() {
     // Al cambiar de pantalla en celular, el menú se cierra solo
-    inject(Router)
+    this.router
       .events.pipe(
         filter((evento) => evento instanceof NavigationEnd),
         takeUntilDestroyed(),
@@ -56,5 +61,24 @@ export class LayoutComponent {
 
   cerrarMenu(): void {
     this.menuAbierto.set(false);
+  }
+
+  /**
+   * HU-02: cerrar sesión.
+   * Navega a /cerrar-sesion. Si la pantalla actual tiene datos sin guardar, su canDeactivate
+   * pregunta primero (escenarios 7 y 8). Si la persona cancela, la navegación devuelve false:
+   * la sesión sigue activa, se queda en la misma pantalla y el botón se vuelve a activar.
+   */
+  cerrarSesion(): void {
+    if (this.cerrando()) {
+      return;   // escenario 12: ignorar clics repetidos
+    }
+    this.cerrando.set(true);
+
+    this.router.navigateByUrl('/cerrar-sesion').then((salio) => {
+      if (!salio) {
+        this.cerrando.set(false);   // escenario 7: eligió "Cancelar"
+      }
+    });
   }
 }
