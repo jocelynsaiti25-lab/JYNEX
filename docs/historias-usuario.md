@@ -12,7 +12,7 @@ Fuente: `Historias_Usuario.xlsx` (Google Drive del equipo). 16 historias ordenad
 | Fase | ID | Historia | Carpeta | Tipo CQRS | Estado | Responsable |
 |------|----|----------|--------|-----------|--------|-------------|
 | 1. Acceso | HU-01 | Autenticación e inicio de sesión | `InicioSesion` | Command | Terminada | |
-| | HU-02 | Cierre seguro de sesión | `CierreSesion` | Command | Pendiente | |
+| | HU-02 | Cierre seguro de sesión | `CierreSesion` | Command | Terminada | Jocelyn |
 | 2. Usuarios | HU-03 | Creación de usuarios | `CreacionUsuarios` | Command | Terminada | Jocelyn |
 | | HU-04 | Consulta de usuarios registrados | `ConsultaUsuarios` | Query | Pendiente | |
 | | HU-05 | Reasignación de contraseña | `ReasignacionContrasena` | Command | Pendiente | |
