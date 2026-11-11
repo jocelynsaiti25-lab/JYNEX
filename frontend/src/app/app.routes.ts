@@ -48,6 +48,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/creacion-usuarios/crear-usuario.component').then((m) => m.CrearUsuarioComponent),
       },
+      {
+        // HU-04: solo el Administrador; un Empleado que escribe la dirección regresa al inicio (escenario 2)
+        path: 'usuarios',
+        title: 'Usuarios · Etbot Farma',
+        canActivate: [rolGuard(['Administrador'])],
+        loadComponent: () =>
+          import('./features/consulta-usuarios/consulta-usuarios.component').then((m) => m.ConsultaUsuariosComponent),
+      },
     ],
   },
   { path: '**', redirectTo: 'inicio' },

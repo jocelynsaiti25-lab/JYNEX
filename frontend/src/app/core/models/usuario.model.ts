@@ -18,6 +18,16 @@ export interface CrearUsuarioResponse {
   rol: string;
 }
 
+/** HU-04: debe coincidir con UsuarioRegistradoResponse del backend (nunca trae la contraseña ni su hash). */
+export interface UsuarioRegistrado {
+  idUsuario: number;
+  nombreCompleto: string;
+  nombreUsuario: string;
+  correo: string;
+  telefono: string;
+  rol: string;
+}
+
 /** Roles que se pueden asignar (mismos id que la tabla rol de MySQL). */
 export const ROLES = [
   { id: 1, nombre: 'Administrador' },
