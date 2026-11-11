@@ -1,3 +1,4 @@
+using EtbotFarma.Application.Common.Validacion;
 using EtbotFarma.Application.CreacionUsuarios.Commands;
 using EtbotFarma.Domain.Entities;
 using FluentValidation;
@@ -44,14 +45,10 @@ public sealed class CrearUsuarioValidator : AbstractValidator<CrearUsuarioComman
             .NotEmpty().WithMessage("El teléfono es obligatorio.")
             .Matches(@"^\d{10}$").WithMessage("Formato de teléfono inválido: escribe 10 dígitos, sin espacios ni guiones.");
 
-        // HU-03 criterio 3: seguridad de la contraseña
+        // HU-03 criterio 3: seguridad de la contraseña (política compartida con HU-05: Common/Validacion)
         RuleFor(command => command.Contrasenia)
             .NotEmpty().WithMessage("La contraseña es obligatoria.")
-            .MinimumLength(8).WithMessage("La contraseña debe tener al menos 8 caracteres.")
-            .MaximumLength(100).WithMessage("La contraseña no puede tener más de 100 caracteres.")
-            .Matches("[A-Z]").WithMessage("La contraseña debe tener al menos una letra mayúscula.")
-            .Matches("[a-z]").WithMessage("La contraseña debe tener al menos una letra minúscula.")
-            .Matches("[0-9]").WithMessage("La contraseña debe tener al menos un número.");
+            .ContraseniaSegura();
 
         // HU-03 criterio 2: solo existen dos roles
         RuleFor(command => command.IdRol)
