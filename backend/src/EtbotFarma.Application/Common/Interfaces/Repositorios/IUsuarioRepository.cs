@@ -19,4 +19,11 @@ public interface IUsuarioRepository
 
     /// <summary>HU-03: guarda un usuario nuevo y devuelve el id que le dio la base de datos.</summary>
     Task<int> AgregarAsync(Usuario usuario, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// HU-04: lista las cuentas (con su rol) ordenadas por nombre.
+    /// Si <paramref name="nombreUsuarioContiene"/> trae texto, solo las que lo contienen en el nombre de usuario
+    /// (coincidencia parcial y sin importar mayúsculas). null = todas.
+    /// </summary>
+    Task<IReadOnlyList<Usuario>> ListarAsync(string? nombreUsuarioContiene, CancellationToken cancellationToken);
 }

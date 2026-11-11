@@ -1,0 +1,91 @@
+<div class="pantalla">
+  <header class="pantalla__encabezado">
+    <div>
+      <h1 class="pantalla__titulo">Usuarios</h1>
+      <p class="pantalla__descripcion">Personal con acceso al sistema y el rol asignado a cada cuenta.</p>
+    </div>
+    <!-- Lleva a la HU-03. Esta pantalla es solo de consulta (escenario 14). -->
+    <a class="boton boton--primario" routerLink="/usuarios/crear">
+      <span class="icono" aria-hidden="true">person_add</span>
+      Crear usuario
+    </a>
+  </header>
+
+  <!-- Escenarios 4, 6 y 10: buscador por nombre de usuario -->
+  <div class="campo buscador" role="search">
+    <label class="campo__etiqueta" for="busqueda">Buscar por nombre de usuario</label>
+    <div class="campo__caja">
+      <span class="icono" aria-hidden="true">search</span>
+      <input
+        id="busqueda"
+        class="campo__control"
+        type="search"
+        [formControl]="busqueda"
+        placeholder="Ejemplo: lopez"
+        autocomplete="off"
+        autocapitalize="none"
+        maxlength="50"
+      />
+      @if (busqueda.value) {
+        <button type="button" class="campo__boton" (click)="limpiarBusqueda()">
+          <span class="icono" aria-hidden="true">close</span>
+          <span class="solo-lector">Limpiar búsqueda</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <!-- Escenario 11 -->
+    <p class="estado-carga" role="status">
+      <span class="cargando" aria-hidden="true"></span>
+      Cargando usuarios…
+    </p>
+  } @else if (error()) {
+    <!-- Escenario 12: sin datos incompletos y con opción de reintentar -->
+    <app-alerta tipo="error" titulo="No se pudo cargar la información">
+      Revisa tu conexión e inténtalo de nuevo.
+      <button type="button" class="boton boton--secundario reintentar" (click)="intentarDeNuevo()">
+        <span class="icono" aria-hidden="true">refresh</span>
+        Intentar de nuevo
+      </button>
+    </app-alerta>
+  } @else if (usuarios().length === 0) {
+    <!-- Escenario 5 -->
+    <div class="estado-vacio" role="status">
+      <span class="icono" aria-hidden="true">person_search</span>
+      <p>No se encontraron usuarios</p>
+    </div>
+  } @else {
+    <!-- Escenarios 1 y 9: el correo distingue a dos personas con el mismo nombre. Sin contraseñas (escenario 7). -->
+    <div class="tabla-contenedor">
+      <table class="tabla">
+        <caption>
+          {{ usuarios().length }} {{ usuarios().length === 1 ? 'cuenta registrada' : 'cuentas registradas' }}
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Nombre completo</th>
+            <th scope="col">Nombre de usuario</th>
+            <th scope="col">Correo electrónico</th>
+            <th scope="col">Teléfono</th>
+            <th scope="col">Rol</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (usuario of usuarios(); track usuario.idUsuario) {
+            <tr>
+              <td>{{ usuario.nombreCompleto }}</td>
+              <td>{{ usuario.nombreUsuario }}</td>
+              <td>{{ usuario.correo }}</td>
+              <td>{{ usuario.telefono }}</td>
+              <td>
+                <span class="etiqueta" [class.etiqueta--neutra]="usuario.rol !== 'Administrador'">{{ usuario.rol }}</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

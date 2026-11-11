@@ -187,6 +187,10 @@ jobs:
         if: success() || failure()   # se ejecutan aunque falle otra historia, para ver todos los resultados
         working-directory: frontend
         run: node e2e/hu02-cerrar-sesion.mjs
+      - name: Pruebas de HU-04 en el navegador (consulta de usuarios)
+        if: success() || failure()   # se ejecutan aunque falle otra historia, para ver todos los resultados
+        working-directory: frontend
+        run: node e2e/hu04-consulta-usuarios.mjs
       - name: Guardar capturas de pantalla
         if: always()
         uses: actions/upload-artifact@v4
