@@ -49,4 +49,19 @@ public class UsuarioTests
 
         Assert.Equal("ana.lopez@gmail.com", usuario.Correo);
     }
+
+    /// <summary>HU-03: la auditoría identifica la cuenta pero NUNCA lleva la contraseña, su hash ni el teléfono.</summary>
+    [Fact]
+    public void Datos_para_auditoria_no_incluyen_contrasenia_ni_telefono()
+    {
+        var usuario = Usuario.Crear("Ana", "López", "ana", "ana@etbotfarma.com", "hash-secreto", "5512345678", Empleado, DateTime.UtcNow);
+
+        var datos = usuario.DatosParaAuditoria();
+
+        Assert.Contains("\"nombreUsuario\":\"ana\"", datos);
+        Assert.Contains("\"correo\":\"ana@etbotfarma.com\"", datos);
+        Assert.Contains("López", datos);   // acentos legibles
+        Assert.DoesNotContain("hash-secreto", datos);
+        Assert.DoesNotContain("5512345678", datos);
+    }
 }

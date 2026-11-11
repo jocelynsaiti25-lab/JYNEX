@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostListener, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Observable, Subject } from 'rxjs';
 
 import { ConCambiosSinGuardar } from '../../core/guards/cambios-sin-guardar.guard';
@@ -43,8 +43,8 @@ export class CrearUsuarioComponent implements ConCambiosSinGuardar {
     nombreUsuario: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9._-]+$/)]],
     correo: ['', [Validators.required, Validators.maxLength(100), Validators.pattern(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)]],
     telefono: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
-    // Misma política que CrearUsuarioValidator: 8+ caracteres, mayúscula, minúscula y número
-    contrasenia: ['', [Validators.required, Validators.minLength(8), Validators.pattern(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).+$/)]],
+    // Mismas reglas que CrearUsuarioValidator (backend): 8 a 100 caracteres, mayúscula, minúscula y número
+    contrasenia: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100), reglasContrasenia]],
     idRol: [0, [Validators.min(1)]],
   });
 
@@ -118,7 +118,7 @@ export class CrearUsuarioComponent implements ConCambiosSinGuardar {
 
   /** Mensaje de error del campo (mismos textos que el backend). */
   mensaje(campo: Campo): string {
-    const errores = this.formulario.controls[campo].errors ?? {};
+    const errores: ValidationErrors = this.formulario.controls[campo].errors ?? {};
     const tiene = (clave: string) => clave in errores;
 
     if (tiene('required') || (campo === 'idRol' && tiene('min'))) {
@@ -132,7 +132,7 @@ export class CrearUsuarioComponent implements ConCambiosSinGuardar {
       case 'nombreUsuario':
         return 'Entre 3 y 50 caracteres: letras, números, punto, guion y guion bajo (sin espacios).';
       case 'contrasenia':
-        return 'Debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.';
+        return mensajeContrasenia(errores);
       default:
         return 'Es demasiado largo.';
     }
@@ -177,6 +177,32 @@ export class CrearUsuarioComponent implements ConCambiosSinGuardar {
     }
     return ['No se pudo crear el usuario. Revisa tu conexión e intenta de nuevo.'];
   }
+}
+
+/**
+ * Reglas de la contraseña que no trae Angular (mismas que CrearUsuarioValidator).
+ * Devuelve un error distinto por regla para poder decir exactamente qué falta.
+ */
+function reglasContrasenia(control: AbstractControl<string>): ValidationErrors | null {
+  const valor = control.value ?? '';
+  if (!valor) {
+    return null;   // de "obligatoria" se encarga Validators.required
+  }
+  const errores: ValidationErrors = {};
+  if (!/[A-Z]/.test(valor)) errores['sinMayuscula'] = true;
+  if (!/[a-z]/.test(valor)) errores['sinMinuscula'] = true;
+  if (!/[0-9]/.test(valor)) errores['sinNumero'] = true;
+  return Object.keys(errores).length ? errores : null;
+}
+
+/** Mensaje de la PRIMERA regla de contraseña que no se cumple (mismos textos y orden que el backend). */
+function mensajeContrasenia(errores: ValidationErrors): string {
+  if ('minlength' in errores) return 'La contraseña debe tener al menos 8 caracteres.';
+  if ('maxlength' in errores) return 'La contraseña no puede tener más de 100 caracteres.';
+  if ('sinMayuscula' in errores) return 'La contraseña debe tener al menos una letra mayúscula.';
+  if ('sinMinuscula' in errores) return 'La contraseña debe tener al menos una letra minúscula.';
+  if ('sinNumero' in errores) return 'La contraseña debe tener al menos un número.';
+  return 'La contraseña no es válida.';
 }
 
 const MENSAJES_OBLIGATORIO: Record<Campo, string> = {

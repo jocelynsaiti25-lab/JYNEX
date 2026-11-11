@@ -1,3 +1,4 @@
+using EtbotFarma.Application.Common.Exceptions;
 using EtbotFarma.Application.CreacionUsuarios.Commands;
 using EtbotFarma.Application.CreacionUsuarios.Handlers;
 using EtbotFarma.Application.Tests.Falsos;
@@ -13,6 +14,8 @@ public class CrearUsuarioHandlerTests
 
     private readonly UsuarioRepositoryFalso _usuarios = new();
     private readonly UnitOfWorkFalso _unitOfWork = new();
+    private readonly AuditoriaRepositoryFalso _auditorias = new();
+    private readonly UsuarioActualFalso _administrador = new() { IdUsuario = 1, NombreUsuario = "admin", Rol = "Administrador" };
     private readonly CrearUsuarioHandler _handler;
 
     private static readonly CrearUsuarioCommand Nuevo = new(
@@ -21,7 +24,7 @@ public class CrearUsuarioHandlerTests
     public CrearUsuarioHandlerTests()
     {
         _handler = new CrearUsuarioHandler(
-            _usuarios, new RolRepositoryFalso(), new PasswordHasherFalso(), _unitOfWork, new RelojFalso(Ahora));
+            _usuarios, new RolRepositoryFalso(), _auditorias, _administrador, new PasswordHasherFalso(), _unitOfWork, new RelojFalso(Ahora));
 
         // Ya existe una cuenta: Juan Pérez Gómez (usuario jperez, correo juan.perez@gmail.com)
         _usuarios.Usuarios.Add(Usuario.Crear(
@@ -55,6 +58,7 @@ public class CrearUsuarioHandlerTests
 
         Assert.Equal("Este correo ya está registrado.", ex.Message);
         Assert.Empty(_usuarios.Agregados);
+        Assert.Empty(_auditorias.Registros);   // sin usuario creado tampoco hay auditoría
         Assert.Equal(0, _unitOfWork.VecesGuardado);
     }
 
@@ -87,5 +91,36 @@ public class CrearUsuarioHandlerTests
         await Assert.ThrowsAsync<DomainException>(() => _handler.Handle(Nuevo with { IdRol = 99 }, CancellationToken.None));
 
         Assert.Empty(_usuarios.Agregados);
+    }
+
+    /// <summary>Corrección de HU-03: cada usuario creado deja su registro de auditoría en el MISMO guardado.</summary>
+    [Fact]
+    public async Task Al_crear_el_usuario_registra_la_auditoria_con_el_administrador_y_sin_contrasenia()
+    {
+        var resultado = await _handler.Handle(Nuevo, CancellationToken.None);
+
+        var auditoria = Assert.Single(_auditorias.Registros);
+        Assert.Equal(1, auditoria.IdUsuario);                    // quién: el administrador con sesión
+        Assert.Equal("CREAR USUARIO", auditoria.Accion);          // qué hizo
+        Assert.Equal("usuario", auditoria.TablaAfectada);
+        Assert.Equal(resultado.IdUsuario, auditoria.IdRegistro);  // qué usuario se creó
+        Assert.Equal(Ahora.UtcDateTime, auditoria.Fecha);         // cuándo (UTC)
+        Assert.Null(auditoria.ValorAnterior);
+        Assert.Contains("mflopez", auditoria.ValorNuevo);
+        Assert.DoesNotContain("Farmacia2026", auditoria.ValorNuevo!);   // nunca la contraseña
+        Assert.DoesNotContain("hash:", auditoria.ValorNuevo!);          // ni su hash
+        Assert.Equal(1, _unitOfWork.VecesGuardado);                     // usuario + auditoría: un solo COMMIT
+    }
+
+    [Fact]
+    public async Task Sin_usuario_con_sesion_no_crea_nada()
+    {
+        _administrador.IdUsuario = null;
+
+        await Assert.ThrowsAsync<NoAutenticadoException>(() => _handler.Handle(Nuevo, CancellationToken.None));
+
+        Assert.Empty(_usuarios.Agregados);
+        Assert.Empty(_auditorias.Registros);
+        Assert.Equal(0, _unitOfWork.VecesGuardado);
     }
 }

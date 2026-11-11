@@ -11,6 +11,7 @@ se pueden probar sin base de datos, sin cookies y con una fecha fija.
 | `IUsuarioRepository` | `UsuarioRepositoryFalso.cs` |
 | `ISesionRepository` | `SesionRepositoryFalso.cs` |
 | `IRolRepository` | `RolRepositoryFalso.cs` |
+| `IAuditoriaRepository` | `AuditoriaRepositoryFalso.cs` |
 | `IPasswordHasher` | `PasswordHasherFalso.cs` |
 | `ITokenSesionService` | `TokenSesionServiceFalso.cs` |
 | `IUnitOfWork` | `UnitOfWorkFalso.cs` |

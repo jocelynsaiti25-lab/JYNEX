@@ -1,3 +1,5 @@
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using EtbotFarma.Domain.Common;
 
 namespace EtbotFarma.Domain.Entities;
@@ -109,4 +111,21 @@ public class Usuario : Entity<int>
     /// " Ana.Lopez@Gmail.com " y "ana.lopez@gmail.com" son el mismo correo.
     /// </summary>
     public static string NormalizarCorreo(string correo) => correo.Trim().ToLowerInvariant();
+
+    /// <summary>
+    /// Datos del usuario para guardar en auditoria.valor_nuevo / valor_anterior (texto JSON).
+    /// Solo lo necesario para identificar la cuenta: NUNCA la contraseña ni su hash,
+    /// y tampoco el teléfono (dato de contacto que no hace falta para auditar).
+    /// </summary>
+    public string DatosParaAuditoria() => JsonSerializer.Serialize(new
+    {
+        nombreUsuario = NombreUsuario,
+        nombreCompleto = NombreCompleto,
+        correo = Correo,
+        rol = Rol.Nombre,
+        activo = Activo
+    }, OpcionesJson);
+
+    /// <summary>Guarda los acentos tal cual ("López" y no "L\u00F3pez") para que se lea fácil en MySQL.</summary>
+    private static readonly JsonSerializerOptions OpcionesJson = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 }

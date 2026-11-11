@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using EtbotFarma.Infrastructure.Persistence;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EtbotFarma.Api.IntegrationTests.Historias.CreacionUsuarios;
 
@@ -73,6 +75,41 @@ public class CreacionUsuariosEndpointsTests(ApiConMySql api) : IClassFixture<Api
 
         // Escenario 17: la cuenta nueva puede iniciar sesión
         await IniciarSesionAsync($"maria.{sufijo}", "Farmacia2026");
+    }
+
+    /// <summary>
+    /// Corrección de HU-03: al crear el usuario queda su auditoría en MySQL
+    /// (quién = el admin con sesión, acción, usuario creado, fecha) y sin contraseña.
+    /// </summary>
+    [Fact]
+    public async Task Al_crear_un_usuario_queda_su_registro_en_auditoria()
+    {
+        var admin = await IniciarSesionAsync("admin", ContraseniaAdmin);
+        var sufijo = Unico();
+        Assert.Equal(HttpStatusCode.Created, (await CrearUsuarioAsync(DatosNuevos(sufijo), admin)).StatusCode);
+
+        // Consulta directa a MySQL (solo en la prueba): auditoría del usuario recién creado
+        await using var scope = api.Services.CreateAsyncScope();
+        var conexion = scope.ServiceProvider.GetRequiredService<ConexionMySql>();
+        await using var comando = await conexion.CrearComandoAsync("""
+            SELECT quien.nombre_usuario AS quien, a.accion, a.valor_anterior, a.valor_nuevo, a.fecha
+            FROM auditoria a
+            INNER JOIN usuario creado ON creado.id_usuario = a.id_registro
+            INNER JOIN usuario quien ON quien.id_usuario = a.id_usuario
+            WHERE a.tabla_afectada = 'usuario' AND creado.nombre_usuario = @nombreUsuario;
+            """, CancellationToken.None);
+        comando.Parameters.AddWithValue("@nombreUsuario", $"maria.{sufijo}");
+
+        await using var lector = await comando.ExecuteReaderAsync();
+        Assert.True(await lector.ReadAsync(), "No se encontró la auditoría del usuario creado.");
+        Assert.Equal("admin", lector.GetString(lector.GetOrdinal("quien")));
+        Assert.Equal("CREAR USUARIO", lector.GetString(lector.GetOrdinal("accion")));
+        Assert.True(lector.IsDBNull(lector.GetOrdinal("valor_anterior")));
+        var valorNuevo = lector.GetString(lector.GetOrdinal("valor_nuevo"));
+        Assert.Contains($"maria.{sufijo}@etbotfarma.com", valorNuevo);
+        Assert.DoesNotContain("Farmacia2026", valorNuevo);
+        Assert.True((DateTime.UtcNow - lector.GetDateTime(lector.GetOrdinal("fecha"))).Duration() < TimeSpan.FromMinutes(5));
+        Assert.False(await lector.ReadAsync(), "Debe haber UN solo registro de auditoría por usuario creado.");
     }
 
     [Fact]

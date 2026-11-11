@@ -179,6 +179,10 @@ jobs:
       - name: Pruebas de HU-01 en el navegador
         working-directory: frontend
         run: node e2e/hu01-iniciar-sesion.mjs
+      - name: Pruebas de HU-03 en el navegador (crear usuarios, auditoría)
+        if: success() || failure()   # se ejecutan aunque falle HU-01, para ver ambos resultados
+        working-directory: frontend
+        run: node e2e/hu03-crear-usuario.mjs
       - name: Guardar capturas de pantalla
         if: always()
         uses: actions/upload-artifact@v4

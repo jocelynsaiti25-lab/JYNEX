@@ -150,3 +150,25 @@ Decisión del equipo: el **correo** identifica a cada persona y evita registrarl
   (en Codespaces lo hace solo `preparar.sh`). Los usuarios que ya existían reciben un correo provisional
   `nombre_usuario@pendiente.etbotfarma`; cámbialo por el real.
 - El administrador inicial toma su correo de `AdministradorInicial:Correo` (`appsettings.json`).
+
+## Auditoría de cambios administrativos (compartida)
+
+Se usa la tabla `auditoria` tal como está (no se agregaron columnas).
+
+| Pieza | Dónde | Para qué |
+|-------|-------|----------|
+| `Auditoria` (entidad) | `Domain/Entities/Auditoria.cs` | Arma el registro y revisa que tenga quién, acción, tabla y registro. Constantes de acciones (`CREAR USUARIO`) y tablas |
+| `IAuditoriaRepository` | `Application/Common/Interfaces/Repositorios/` | Lo que usan los handlers |
+| `AuditoriaRepository` | `Infrastructure/Persistence/Repositorios/` | El `INSERT` parametrizado |
+
+- **Quién**: `IUsuarioActual.IdUsuario` (lo deja la cookie de sesión). Nunca un id fijo.
+- **Misma transacción**: el handler guarda el cambio, después la auditoría y al final llama UNA vez a
+  `GuardarCambiosAsync` (COMMIT). Si algo falla, no se guarda ninguno de los dos.
+- **Sin datos sensibles**: `valor_nuevo` / `valor_anterior` son JSON sin contraseña, hash, token ni teléfono
+  (`Usuario.DatosParaAuditoria()`).
+- **Limitación**: la tabla no tiene columna de *resultado*. Por la transacción, solo existen registros de operaciones
+  que SÍ se hicieron; los intentos rechazados (correo repetido, sin permiso) no dejan registro.
+- **Reutilizar** (HU-05, desactivar usuario, editar medicamento...): agrega la constante de la acción en `Auditoria`,
+  inyecta `IAuditoriaRepository` + `IUsuarioActual` en tu handler y llama a
+  `Auditoria.Crear(idUsuario, accion, tabla, idRegistro, valorAnterior, valorNuevo, fecha)` antes del COMMIT.
+
