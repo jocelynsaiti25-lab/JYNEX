@@ -83,10 +83,12 @@ async function crear(pagina, datos) {
 }
 
 // ---------------------------------------------------------------------
-// 1. El administrador entra al formulario (desde el menú)
+// 1. El administrador entra al formulario (menú "Usuarios" → lista de HU-04 → "Crear usuario")
 // ---------------------------------------------------------------------
 const admin = await abrirSesion('admin', CONTRASENIA_ADMIN);
 await admin.getByRole('navigation', { name: 'Menú principal' }).getByRole('link', { name: 'Usuarios', exact: true }).click();
+await admin.waitForURL('**/usuarios');
+await admin.getByRole('link', { name: 'Crear usuario' }).click();
 await admin.waitForURL('**/usuarios/crear');
 revisar('1. El administrador abre "Crear usuario" desde el menú', await aparece(admin, 'Datos de la persona'));
 await admin.screenshot({ path: `${CARPETA}/hu03-1-formulario.png`, fullPage: true });
