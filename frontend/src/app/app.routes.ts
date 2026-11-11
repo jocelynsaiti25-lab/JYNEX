@@ -20,6 +20,14 @@ export const routes: Routes = [
       import('./features/inicio-sesion/iniciar-sesion.component').then((m) => m.IniciarSesionComponent),
   },
   {
+    // HU-02: pantalla de paso para cerrar sesión. Va FUERA del LayoutComponent y sin sesionGuard:
+    // si la sesión ya expiró (escenario 10) también debe poder cerrarse sin error.
+    path: 'cerrar-sesion',
+    title: 'Cerrando sesión · Etbot Farma',
+    loadComponent: () =>
+      import('./features/cierre-sesion/cerrar-sesion.component').then((m) => m.CerrarSesionComponent),
+  },
+  {
     path: '',
     // Se revisa la sesión en CADA cambio de pantalla protegida
     canActivateChild: [sesionGuard],

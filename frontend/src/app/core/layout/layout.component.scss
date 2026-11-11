@@ -200,6 +200,35 @@
   color: var(--color-navegacion-tenue);
 }
 
+// HU-02: botón "Cerrar sesión" con el mismo aspecto que los enlaces del menú
+.cerrar-sesion {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  width: 100%;
+  min-height: var(--toque-minimo);
+  margin-bottom: var(--espacio-3);
+  padding: var(--espacio-2) var(--espacio-3);
+  font: inherit;
+  font-weight: var(--peso-medio);
+  color: var(--color-navegacion-tenue);
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: var(--radio-md);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: var(--color-navegacion-texto);
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  &:disabled {
+    cursor: progress;
+    opacity: 0.7;
+  }
+}
+
 // ---------- Contenido ----------
 .contenido {
   max-width: var(--ancho-contenido);
