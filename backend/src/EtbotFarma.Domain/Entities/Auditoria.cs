@@ -15,6 +15,7 @@ public class Auditoria : Entity<int>
 {
     /// <summary>Acciones registradas (columna accion, máximo 50 caracteres).</summary>
     public const string CrearUsuario = "CREAR USUARIO";
+    public const string ReasignarContrasenia = "REASIGNAR CONTRASEÑA";
 
     /// <summary>Nombres reales de las tablas (columna tabla_afectada).</summary>
     public const string TablaUsuario = "usuario";

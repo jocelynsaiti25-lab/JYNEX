@@ -91,7 +91,7 @@ public class CierreSesionEndpointsTests(ApiConMySql api) : IClassFixture<ApiConM
             nombreUsuario = $"luis.{sufijo}",
             correo = $"luis.{sufijo}@etbotfarma.com",
             telefono = "5512345678",
-            contrasenia = "Farmacia2026",
+            contrasenia = "Farmacia#2026",
             idRol = 2
         });
 

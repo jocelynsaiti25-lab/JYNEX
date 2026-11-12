@@ -11,7 +11,7 @@ public class CrearUsuarioValidatorTests
 
     /// <summary>Datos correctos; cada prueba cambia solo lo que quiere revisar con "with".</summary>
     private static readonly CrearUsuarioCommand Valido = new(
-        "María Fernanda", "López García", "mflopez", "maria.lopez@gmail.com", "5512345678", "Farmacia2026", 2);
+        "María Fernanda", "López García", "mflopez", "maria.lopez@gmail.com", "5512345678", "Farmacia#2026", 2);
 
     [Fact]
     public void Con_datos_correctos_no_hay_errores()
@@ -57,14 +57,26 @@ public class CrearUsuarioValidatorTests
 
     [Theory]
     [InlineData("Corta1", "La contraseña debe tener al menos 8 caracteres.")]
-    [InlineData("farmacia2026", "La contraseña debe tener al menos una letra mayúscula.")]
-    [InlineData("FARMACIA2026", "La contraseña debe tener al menos una letra minúscula.")]
-    [InlineData("FarmaciaEtbot", "La contraseña debe tener al menos un número.")]
+    [InlineData("Farmacia#2026XYZ", "La contraseña no puede tener más de 15 caracteres.")]
+    [InlineData("farmacia#2026", "La contraseña debe tener al menos una letra mayúscula.")]
+    [InlineData("FARMACIA#2026", "La contraseña debe tener al menos una letra minúscula.")]
+    [InlineData("Farmacia#Etbot", "La contraseña debe tener al menos un número.")]
+    [InlineData("Farmacia2026", "La contraseña debe tener al menos un carácter especial (por ejemplo @, #, $, %, ! o &).")]
     public void Contrasenia_que_no_cumple_la_politica_dice_que_falta(string contrasenia, string mensaje)
     {
         var resultado = _validator.TestValidate(Valido with { Contrasenia = contrasenia });
 
         resultado.ShouldHaveValidationErrorFor(c => c.Contrasenia).WithErrorMessage(mensaje);
+    }
+
+    /// <summary>La política (ReglasContrasenia) acepta los límites: 8 y 15 caracteres.</summary>
+    [Theory]
+    [InlineData("Farma#26")]          // 8 caracteres
+    [InlineData("Farmacia#202601")]   // 15 caracteres
+    public void Contrasenia_de_8_y_de_15_caracteres_es_valida(string contrasenia)
+    {
+        _validator.TestValidate(Valido with { Contrasenia = contrasenia })
+            .ShouldNotHaveValidationErrorFor(c => c.Contrasenia);
     }
 
     [Fact]

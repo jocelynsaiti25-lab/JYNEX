@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostListener, inject, signal } from '@angular/core';
-import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Observable, Subject } from 'rxjs';
 
 import { ConCambiosSinGuardar } from '../../core/guards/cambios-sin-guardar.guard';
@@ -8,6 +8,7 @@ import { CrearUsuarioResponse, ROLES } from '../../core/models/usuario.model';
 import { UsuariosService } from '../../core/services/usuarios.service';
 import { AlertaComponent } from '../../shared/components/alerta/alerta.component';
 import { ConfirmacionComponent } from '../../shared/components/confirmacion/confirmacion.component';
+import { AYUDA_CONTRASENIA, CONTRASENIA_MAXIMO, mensajeContrasenia, validadoresContrasenia } from '../../shared/validators/contrasenia';
 
 /** Respuesta de error de la API (ProblemDetails de GlobalExceptionHandler). */
 interface ErrorApi {
@@ -43,10 +44,14 @@ export class CrearUsuarioComponent implements ConCambiosSinGuardar {
     nombreUsuario: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9._-]+$/)]],
     correo: ['', [Validators.required, Validators.maxLength(100), Validators.pattern(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)]],
     telefono: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
-    // Mismas reglas que CrearUsuarioValidator (backend): 8 a 100 caracteres, mayúscula, minúscula y número
-    contrasenia: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100), reglasContrasenia]],
+    // Mismas reglas que CrearUsuarioValidator (backend): 8 a 15 caracteres, mayúscula, minúscula, número y carácter especial
+    contrasenia: ['', [Validators.required, ...validadoresContrasenia]],   // política compartida con HU-05
     idRol: [0, [Validators.min(1)]],
   });
+
+  /** Política compartida (shared/validators/contrasenia.ts): límite del campo y texto de ayuda. */
+  readonly maximoContrasenia = CONTRASENIA_MAXIMO;
+  readonly ayudaContrasenia = AYUDA_CONTRASENIA;
 
   readonly mostrarContrasenia = signal(false);
   readonly confirmando = signal(false);
@@ -177,32 +182,6 @@ export class CrearUsuarioComponent implements ConCambiosSinGuardar {
     }
     return ['No se pudo crear el usuario. Revisa tu conexión e intenta de nuevo.'];
   }
-}
-
-/**
- * Reglas de la contraseña que no trae Angular (mismas que CrearUsuarioValidator).
- * Devuelve un error distinto por regla para poder decir exactamente qué falta.
- */
-function reglasContrasenia(control: AbstractControl<string>): ValidationErrors | null {
-  const valor = control.value ?? '';
-  if (!valor) {
-    return null;   // de "obligatoria" se encarga Validators.required
-  }
-  const errores: ValidationErrors = {};
-  if (!/[A-Z]/.test(valor)) errores['sinMayuscula'] = true;
-  if (!/[a-z]/.test(valor)) errores['sinMinuscula'] = true;
-  if (!/[0-9]/.test(valor)) errores['sinNumero'] = true;
-  return Object.keys(errores).length ? errores : null;
-}
-
-/** Mensaje de la PRIMERA regla de contraseña que no se cumple (mismos textos y orden que el backend). */
-function mensajeContrasenia(errores: ValidationErrors): string {
-  if ('minlength' in errores) return 'La contraseña debe tener al menos 8 caracteres.';
-  if ('maxlength' in errores) return 'La contraseña no puede tener más de 100 caracteres.';
-  if ('sinMayuscula' in errores) return 'La contraseña debe tener al menos una letra mayúscula.';
-  if ('sinMinuscula' in errores) return 'La contraseña debe tener al menos una letra minúscula.';
-  if ('sinNumero' in errores) return 'La contraseña debe tener al menos un número.';
-  return 'La contraseña no es válida.';
 }
 
 const MENSAJES_OBLIGATORIO: Record<Campo, string> = {

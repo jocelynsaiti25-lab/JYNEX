@@ -29,6 +29,18 @@ public sealed class UsuarioRepositoryFalso : IUsuarioRepository
         return Task.FromResult(100 + Agregados.Count);   // id "inventado", como lo daría MySQL
     }
 
+    /// <summary>Usuarios a los que se les guardó una contraseña nueva (HU-05).</summary>
+    public List<Usuario> ContraseniasActualizadas { get; } = [];
+
+    public Task<Usuario?> ObtenerPorIdAsync(int idUsuario, CancellationToken cancellationToken)
+        => Task.FromResult(Usuarios.FirstOrDefault(u => u.Id == idUsuario));
+
+    public Task ActualizarContraseniaAsync(Usuario usuario, CancellationToken cancellationToken)
+    {
+        ContraseniasActualizadas.Add(usuario);
+        return Task.CompletedTask;
+    }
+
     /// <summary>Texto que recibió ListarAsync (HU-04), para revisar que el handler lo limpió.</summary>
     public string? UltimaBusqueda { get; private set; }
 

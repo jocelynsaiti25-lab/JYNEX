@@ -175,7 +175,9 @@ jobs:
         working-directory: frontend
         run: |
           npm install --no-save playwright@1
-          npx playwright install --with-deps chromium
+          # --with-deps instala paquetes extra de Ubuntu (fuentes) con apt. Si el servidor de paquetes
+          # de Ubuntu no responde, se instala solo Chromium: la máquina de GitHub ya trae sus librerías.
+          npx playwright install --with-deps chromium || npx playwright install chromium
       - name: Pruebas de HU-01 en el navegador
         working-directory: frontend
         run: node e2e/hu01-iniciar-sesion.mjs
@@ -191,6 +193,10 @@ jobs:
         if: success() || failure()   # se ejecutan aunque falle otra historia, para ver todos los resultados
         working-directory: frontend
         run: node e2e/hu04-consulta-usuarios.mjs
+      - name: Pruebas de HU-05 en el navegador (reasignación de contraseña)
+        if: success() || failure()   # se ejecutan aunque falle otra historia, para ver todos los resultados
+        working-directory: frontend
+        run: node e2e/hu05-reasignar-contrasena.mjs
       - name: Guardar capturas de pantalla
         if: always()
         uses: actions/upload-artifact@v4

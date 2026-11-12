@@ -39,6 +39,8 @@ export class IniciarSesionComponent {
   readonly sesionCerrada = this.parametros.get('cerrada') === '1';
   /** HU-02 escenario 11: ?cerrada=sin-conexion → se cerró en el navegador, pero el servidor no respondió. */
   readonly cierreSinConexion = this.parametros.get('cerrada') === 'sin-conexion';
+  /** HU-05 escenario 17: el Administrador cambió su propia contraseña y debe volver a entrar. */
+  readonly contraseniaActualizada = this.parametros.get('contrasenia') === 'actualizada';
   readonly mostrarContrasenia = signal(false);
   readonly enviando = signal(false);
   readonly mensajeError = signal<string | null>(null);

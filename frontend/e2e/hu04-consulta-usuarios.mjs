@@ -43,7 +43,7 @@ async function crearCuentas() {
       headers: { 'Content-Type': 'application/json', Cookie: cookie },
       body: JSON.stringify({
         nombre, apellidos, nombreUsuario, correo: `${nombreUsuario}@etbotfarma.test`,
-        telefono: '5500000004', contrasenia: 'Farmacia2026', idRol: 2,
+        telefono: '5500000004', contrasenia: 'Farmacia#2026', idRol: 2,
       }),
     });
     if (respuesta.status !== 201) throw new Error(`No se pudo crear ${nombreUsuario}: ${respuesta.status}`);
@@ -144,9 +144,9 @@ const navegador = await chromium.launch();
 
   // Escenario 7: ni en pantalla ni en la respuesta de la API
   const textoPantalla = await pagina.locator('main').innerText();
-  revisar('7a. La pantalla no muestra contraseñas ni hashes', !textoPantalla.includes('Farmacia2026') && !textoPantalla.includes('AQAAAA'));
+  revisar('7a. La pantalla no muestra contraseñas ni hashes', !textoPantalla.includes('Farmacia#2026') && !textoPantalla.includes('AQAAAA'));
   revisar('7b. La respuesta de la API no trae contraseñas ni hashes',
-    respuestasApi.length > 0 && respuestasApi.every((r) => !/contrasenia|hash"|AQAAAA|Farmacia2026/i.test(r)));
+    respuestasApi.length > 0 && respuestasApi.every((r) => !/contrasenia|hash"|AQAAAA|Farmacia#2026/i.test(r)));
 
   // Escenario 14: solo lectura
   const acciones = await pagina.getByRole('button', { name: /editar|desactivar|eliminar|borrar/i }).count();
@@ -188,7 +188,7 @@ const navegador = await chromium.launch();
 {
   const contexto = await navegador.newContext({ viewport: { width: 1280, height: 900 } });
   const pagina = await contexto.newPage();
-  await iniciarSesion(pagina, EMPLEADO, 'Farmacia2026');
+  await iniciarSesion(pagina, EMPLEADO, 'Farmacia#2026');
 
   const opcion = await pagina.getByRole('navigation', { name: 'Menú principal' }).getByRole('link', { name: 'Usuarios', exact: true }).count();
   revisar('2a. El Empleado no ve "Usuarios" en el menú', opcion === 0);

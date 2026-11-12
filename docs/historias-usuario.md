@@ -15,7 +15,7 @@ Fuente: `Historias_Usuario.xlsx` (Google Drive del equipo). 16 historias ordenad
 | | HU-02 | Cierre seguro de sesión | `CierreSesion` | Command | Terminada | Jocelyn |
 | 2. Usuarios | HU-03 | Creación de usuarios | `CreacionUsuarios` | Command | Terminada | Jocelyn |
 | | HU-04 | Consulta de usuarios registrados | `ConsultaUsuarios` | Query | Terminada | Jocelyn |
-| | HU-05 | Reasignación de contraseña | `ReasignacionContrasena` | Command | Pendiente | |
+| | HU-05 | Reasignación de contraseña | `ReasignacionContrasena` | Command | Terminada | Jocelyn |
 | 3. Catálogo | HU-06 | Registro de medicamentos | `RegistroMedicamentos` | Command | Pendiente | |
 | | HU-07 | Registro de entrada de lote | `EntradaLote` | Command | Pendiente | |
 | | HU-08 | Búsqueda de medicamentos | `BusquedaMedicamentos` | Query | Pendiente | |

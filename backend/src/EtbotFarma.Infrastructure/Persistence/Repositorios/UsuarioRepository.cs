@@ -110,6 +110,38 @@ public sealed class UsuarioRepository(ConexionMySql conexion) : IUsuarioReposito
         return usuarios;
     }
 
+    /// <summary>HU-05: busca una cuenta por su id (null si no existe).</summary>
+    public async Task<Usuario?> ObtenerPorIdAsync(int idUsuario, CancellationToken cancellationToken)
+    {
+        const string sql = $"""
+            SELECT {ColumnasUsuarioYRol}
+            FROM usuario u
+            INNER JOIN rol r ON r.id_rol = u.id_rol
+            WHERE u.id_usuario = @idUsuario
+            LIMIT 1;
+            """;
+
+        await using var comando = await conexion.CrearComandoAsync(sql, cancellationToken);
+        comando.Parameters.AddWithValue("@idUsuario", idUsuario);
+
+        await using var lector = await comando.ExecuteReaderAsync(cancellationToken);
+        return await lector.ReadAsync(cancellationToken) ? LeerUsuario(lector) : null;
+    }
+
+    /// <summary>
+    /// HU-05: guarda el NUEVO HASH de la contraseña (nunca la contraseña en texto).
+    /// Queda confirmado cuando el handler llama a GuardarCambiosAsync.
+    /// </summary>
+    public async Task ActualizarContraseniaAsync(Usuario usuario, CancellationToken cancellationToken)
+    {
+        const string sql = "UPDATE usuario SET contrasenia_hash = @contraseniaHash WHERE id_usuario = @idUsuario;";
+
+        await using var comando = await conexion.CrearComandoAsync(sql, cancellationToken);
+        comando.Parameters.AddWithValue("@contraseniaHash", usuario.ContraseniaHash);
+        comando.Parameters.AddWithValue("@idUsuario", usuario.Id);
+        await comando.ExecuteNonQueryAsync(cancellationToken);
+    }
+
     /// <summary>
     /// En LIKE, "%" y "_" son comodines. Si alguien busca "a_b" debe encontrar el texto "a_b"
     /// y no "cualquier letra entre a y b". Se les pone "\" delante para que MySQL los tome como texto.

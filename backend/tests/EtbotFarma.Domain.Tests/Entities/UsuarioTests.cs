@@ -64,4 +64,37 @@ public class UsuarioTests
         Assert.DoesNotContain("hash-secreto", datos);
         Assert.DoesNotContain("5512345678", datos);
     }
+
+    /// <summary>HU-05 escenario 1: una cuenta activa recibe el hash de la contraseña nueva.</summary>
+    [Fact]
+    public void Una_cuenta_activa_puede_recibir_una_contrasenia_nueva()
+    {
+        var usuario = Usuario.Crear("Ana", "López", "ana", "ana@etbotfarma.com", "hash-viejo", "5512345678", Empleado, DateTime.UtcNow);
+
+        usuario.ReasignarContrasenia("hash-nuevo");
+
+        Assert.Equal("hash-nuevo", usuario.ContraseniaHash);
+    }
+
+    /// <summary>HU-05 escenario 8: a una cuenta desactivada no se le puede reasignar la contraseña.</summary>
+    [Fact]
+    public void A_una_cuenta_desactivada_no_se_le_puede_reasignar_la_contrasenia()
+    {
+        var usuario = Usuario.Crear("Ana", "López", "ana", "ana@etbotfarma.com", "hash-viejo", "5512345678", Empleado, DateTime.UtcNow);
+        usuario.Desactivar();
+
+        var ex = Assert.Throws<DomainException>(() => usuario.ReasignarContrasenia("hash-nuevo"));
+
+        Assert.Equal("La cuenta está desactivada", ex.Message);
+        Assert.Equal("hash-viejo", usuario.ContraseniaHash);   // no cambió
+    }
+
+    [Fact]
+    public void No_se_puede_reasignar_una_contrasenia_vacia()
+    {
+        var usuario = Usuario.Crear("Ana", "López", "ana", "ana@etbotfarma.com", "hash-viejo", "5512345678", Empleado, DateTime.UtcNow);
+
+        Assert.Throws<DomainException>(() => usuario.ReasignarContrasenia(" "));
+        Assert.Equal("hash-viejo", usuario.ContraseniaHash);
+    }
 }

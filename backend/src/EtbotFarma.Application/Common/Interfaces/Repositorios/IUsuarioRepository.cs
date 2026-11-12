@@ -26,4 +26,10 @@ public interface IUsuarioRepository
     /// (coincidencia parcial y sin importar mayúsculas). null = todas.
     /// </summary>
     Task<IReadOnlyList<Usuario>> ListarAsync(string? nombreUsuarioContiene, CancellationToken cancellationToken);
+
+    /// <summary>HU-05: devuelve el usuario (con su rol) o null si no existe.</summary>
+    Task<Usuario?> ObtenerPorIdAsync(int idUsuario, CancellationToken cancellationToken);
+
+    /// <summary>HU-05: UPDATE del hash de la contraseña. Queda confirmado con IUnitOfWork.GuardarCambiosAsync.</summary>
+    Task ActualizarContraseniaAsync(Usuario usuario, CancellationToken cancellationToken);
 }

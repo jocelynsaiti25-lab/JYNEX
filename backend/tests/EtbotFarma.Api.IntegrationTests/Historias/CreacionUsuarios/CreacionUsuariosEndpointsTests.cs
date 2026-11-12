@@ -20,7 +20,7 @@ public class CreacionUsuariosEndpointsTests(ApiConMySql api) : IClassFixture<Api
     /// <summary>Terminación distinta en cada ejecución para no chocar con usuarios de pruebas anteriores.</summary>
     private static string Unico() => Guid.NewGuid().ToString("N")[..8];
 
-    private static object DatosNuevos(string sufijo, int idRol = 2, string contrasenia = "Farmacia2026") => new
+    private static object DatosNuevos(string sufijo, int idRol = 2, string contrasenia = "Farmacia#2026") => new
     {
         nombre = "María",
         apellidos = "López",
@@ -74,7 +74,7 @@ public class CreacionUsuariosEndpointsTests(ApiConMySql api) : IClassFixture<Api
         Assert.False(json.TryGetProperty("contraseniaHash", out _));
 
         // Escenario 17: la cuenta nueva puede iniciar sesión
-        await IniciarSesionAsync($"maria.{sufijo}", "Farmacia2026");
+        await IniciarSesionAsync($"maria.{sufijo}", "Farmacia#2026");
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public class CreacionUsuariosEndpointsTests(ApiConMySql api) : IClassFixture<Api
         Assert.True(lector.IsDBNull(lector.GetOrdinal("valor_anterior")));
         var valorNuevo = lector.GetString(lector.GetOrdinal("valor_nuevo"));
         Assert.Contains($"maria.{sufijo}@etbotfarma.com", valorNuevo);
-        Assert.DoesNotContain("Farmacia2026", valorNuevo);
+        Assert.DoesNotContain("Farmacia#2026", valorNuevo);
         Assert.True((DateTime.UtcNow - lector.GetDateTime(lector.GetOrdinal("fecha"))).Duration() < TimeSpan.FromMinutes(5));
         Assert.False(await lector.ReadAsync(), "Debe haber UN solo registro de auditoría por usuario creado.");
     }
@@ -123,7 +123,7 @@ public class CreacionUsuariosEndpointsTests(ApiConMySql api) : IClassFixture<Api
         var repetido = new
         {
             nombre = "Otra", apellidos = "Persona", nombreUsuario = $"otra.{sufijo}",
-            correo = $"MARIA.{sufijo}@ETBOTFARMA.COM", telefono = "5512345678", contrasenia = "Farmacia2026", idRol = 2
+            correo = $"MARIA.{sufijo}@ETBOTFARMA.COM", telefono = "5512345678", contrasenia = "Farmacia#2026", idRol = 2
         };
         var respuesta = await CrearUsuarioAsync(repetido, admin);
 
@@ -138,7 +138,7 @@ public class CreacionUsuariosEndpointsTests(ApiConMySql api) : IClassFixture<Api
         var datos = new
         {
             nombre = "María", apellidos = "López", nombreUsuario = $"maria.{Unico()}",
-            correo = "maria.gmail", telefono = "55-12", contrasenia = "Farmacia2026", idRol = 2
+            correo = "maria.gmail", telefono = "55-12", contrasenia = "Farmacia#2026", idRol = 2
         };
 
         var respuesta = await CrearUsuarioAsync(datos, admin);
@@ -158,9 +158,43 @@ public class CreacionUsuariosEndpointsTests(ApiConMySql api) : IClassFixture<Api
         Assert.Equal(HttpStatusCode.Created, (await CrearUsuarioAsync(DatosNuevos(sufijo), admin)).StatusCode);
 
         // 2. El empleado inicia sesión e intenta crear otra cuenta (criterio 1)
-        var empleado = await IniciarSesionAsync($"maria.{sufijo}", "Farmacia2026");
+        var empleado = await IniciarSesionAsync($"maria.{sufijo}", "Farmacia#2026");
         var respuesta = await CrearUsuarioAsync(DatosNuevos(Unico()), empleado);
 
         Assert.Equal(HttpStatusCode.Forbidden, respuesta.StatusCode);
+    }
+
+    /// <summary>Política de contraseñas: se aceptan 8 y 15 caracteres y con esa contraseña se puede entrar.</summary>
+    [Theory]
+    [InlineData("Farma#26")]          // 8 caracteres
+    [InlineData("Farmacia#202601")]   // 15 caracteres
+    public async Task Contrasenia_de_8_y_15_caracteres_crea_la_cuenta(string contrasenia)
+    {
+        var admin = await IniciarSesionAsync("admin", ContraseniaAdmin);
+        var sufijo = Unico();
+
+        var respuesta = await CrearUsuarioAsync(DatosNuevos(sufijo, contrasenia: contrasenia), admin);
+
+        Assert.Equal(HttpStatusCode.Created, respuesta.StatusCode);
+        await IniciarSesionAsync($"maria.{sufijo}", contrasenia);
+    }
+
+    /// <summary>Política de contraseñas: si no se cumple responde 400 con el requisito que falta y no crea nada.</summary>
+    [Theory]
+    [InlineData("Fa#2026", "La contraseña debe tener al menos 8 caracteres.")]
+    [InlineData("Farmacia#2026XYZ", "La contraseña no puede tener más de 15 caracteres.")]
+    [InlineData("Farmacia2026", "La contraseña debe tener al menos un carácter especial")]
+    public async Task Contrasenia_fuera_de_la_politica_responde_400(string contrasenia, string mensaje)
+    {
+        var admin = await IniciarSesionAsync("admin", ContraseniaAdmin);
+        var sufijo = Unico();
+
+        var respuesta = await CrearUsuarioAsync(DatosNuevos(sufijo, contrasenia: contrasenia), admin);
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+        Assert.Contains(mensaje, await respuesta.Content.ReadAsStringAsync());
+        var noEntra = await api.CrearCliente().PostAsJsonAsync("/api/sesiones/iniciar",
+            new { nombreUsuario = $"maria.{sufijo}", contrasenia });
+        Assert.NotEqual(HttpStatusCode.OK, noEntra.StatusCode);   // la cuenta no se creó
     }
 }

@@ -57,7 +57,8 @@
       <p>No se encontraron usuarios</p>
     </div>
   } @else {
-    <!-- Escenarios 1 y 9: el correo distingue a dos personas con el mismo nombre. Sin contraseñas (escenario 7). -->
+    <!-- Escenarios 1 y 9: el correo distingue a dos personas con el mismo nombre. Sin contraseñas (escenario 7).
+         La última columna lleva a la HU-05 (reasignar contraseña). -->
     <div class="tabla-contenedor">
       <table class="tabla">
         <caption>
@@ -70,6 +71,7 @@
             <th scope="col">Correo electrónico</th>
             <th scope="col">Teléfono</th>
             <th scope="col">Rol</th>
+            <th scope="col"><span class="solo-lector">Acciones</span></th>
           </tr>
         </thead>
         <tbody>
@@ -81,6 +83,17 @@
               <td>{{ usuario.telefono }}</td>
               <td>
                 <span class="etiqueta" [class.etiqueta--neutra]="usuario.rol !== 'Administrador'">{{ usuario.rol }}</span>
+              </td>
+              <td>
+                <!-- HU-05: la cuenta se elige desde aquí. Abre otra pantalla; la lista sigue siendo solo de consulta. -->
+                <a
+                  class="boton boton--texto"
+                  [routerLink]="['/usuarios', usuario.idUsuario, 'contrasenia']"
+                  [attr.aria-label]="'Reasignar contraseña de ' + usuario.nombreUsuario"
+                >
+                  <span class="icono" aria-hidden="true">lock_reset</span>
+                  Reasignar contraseña
+                </a>
               </td>
             </tr>
           }

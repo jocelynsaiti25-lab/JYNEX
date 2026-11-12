@@ -23,4 +23,12 @@ public sealed class SesionRepositoryFalso : ISesionRepository
         VecesActualizada++;
         return Task.CompletedTask;
     }
+
+    /// <summary>HU-05: cierra en memoria las sesiones abiertas del usuario, igual que el UPDATE de MySQL.</summary>
+    public Task<int> CerrarSesionesDelUsuarioAsync(int idUsuario, DateTime fechaCierre, CancellationToken cancellationToken)
+    {
+        var abiertas = Sesiones.Where(s => s.IdUsuario == idUsuario && !s.Cerrada).ToList();
+        abiertas.ForEach(s => s.Cerrar(fechaCierre));
+        return Task.FromResult(abiertas.Count);
+    }
 }

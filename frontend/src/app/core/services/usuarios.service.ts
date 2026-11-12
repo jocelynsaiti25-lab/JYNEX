@@ -3,11 +3,18 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { CrearUsuarioRequest, CrearUsuarioResponse, UsuarioRegistrado } from '../models/usuario.model';
+import {
+  CrearUsuarioRequest,
+  CrearUsuarioResponse,
+  CuentaUsuario,
+  ReasignarContraseniaRequest,
+  ReasignarContraseniaResponse,
+  UsuarioRegistrado,
+} from '../models/usuario.model';
 
 /**
  * Comunicación con la API de usuarios (api/usuarios).
- * HU-03: crear usuario · HU-04: consultar y buscar usuarios. (HU-05 agregará aquí su método.)
+ * HU-03: crear usuario · HU-04: consultar y buscar usuarios · HU-05: reasignar contraseña.
  */
 @Injectable({ providedIn: 'root' })
 export class UsuariosService {
@@ -26,5 +33,15 @@ export class UsuariosService {
     const texto = busqueda.trim();
     const params = texto ? new HttpParams().set('busqueda', texto) : undefined;
     return this.http.get<UsuarioRegistrado[]>(this.url, { params });
+  }
+
+  /** HU-05: GET api/usuarios/{id} → datos de la cuenta para el formulario y la confirmación. */
+  obtenerCuenta(idUsuario: number): Observable<CuentaUsuario> {
+    return this.http.get<CuentaUsuario>(`${this.url}/${idUsuario}`);
+  }
+
+  /** HU-05: PUT api/usuarios/{id}/contrasenia → establece la contraseña nueva. */
+  reasignarContrasenia(idUsuario: number, datos: ReasignarContraseniaRequest): Observable<ReasignarContraseniaResponse> {
+    return this.http.put<ReasignarContraseniaResponse>(`${this.url}/${idUsuario}/contrasenia`, datos);
   }
 }

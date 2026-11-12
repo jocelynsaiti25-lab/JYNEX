@@ -171,7 +171,7 @@
             [type]="mostrarContrasenia() ? 'text' : 'password'"
             formControlName="contrasenia"
             autocomplete="new-password"
-            maxlength="100"
+            [attr.maxlength]="maximoContrasenia"
             required
             [attr.aria-invalid]="campoInvalido('contrasenia')"
             [attr.aria-describedby]="campoInvalido('contrasenia') ? 'error-contrasenia' : 'ayuda-contrasenia'"
@@ -191,7 +191,7 @@
             <span class="icono" aria-hidden="true">error</span>{{ mensaje('contrasenia') }}
           </p>
         } @else {
-          <p id="ayuda-contrasenia" class="campo__ayuda">De 8 a 100 caracteres, con mayúscula, minúscula y número.</p>
+          <p id="ayuda-contrasenia" class="campo__ayuda">{{ ayudaContrasenia }}</p>
         }
       </div>
 
