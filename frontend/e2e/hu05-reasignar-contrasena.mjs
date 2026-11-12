@@ -17,8 +17,8 @@ const CARPETA = 'e2e/capturas';
 mkdirSync(CARPETA, { recursive: true });
 
 const SUFIJO = Date.now().toString(36);
-const VIEJA = 'Farmacia2026';
-const NUEVA = 'Reasignada2027';
+const VIEJA = 'Farmacia#2026';
+const NUEVA = 'Reasignada#2027';   // 15 caracteres (el máximo)
 const ANA = `e2e.ana.${SUFIJO}`;            // la persona que perdió el acceso
 const LUIS = `e2e.luis.${SUFIJO}`;          // un Empleado (escenario 5)
 const INACTIVA = `e2e.inactiva.${SUFIJO}`;  // escenario 8
@@ -135,9 +135,17 @@ await iniciarSesion(paginaAna, ANA, VIEJA);
   await pagina.getByRole('button', { name: 'Guardar' }).click();
   revisar('9a. Dice qué requisito falta ("La contraseña debe tener al menos un número.")', await aparece(pagina, 'La contraseña debe tener al menos un número.'));
   revisar('9b. No se abre la confirmación', !(await dialogoAbierto(pagina)));
+  await llenar(pagina, 'SinEspecial2027', 'SinEspecial2027');
+  revisar('9c. Sin carácter especial: "al menos un carácter especial"', await aparece(pagina, 'La contraseña debe tener al menos un carácter especial'));
+  revisar('9d. La contraseña no acepta más de 15 caracteres (igual que el backend)',
+    (await pagina.getAttribute('#nuevaContrasenia', 'maxlength')) === '15');
+  await llenar(pagina, 'Farma#26', 'Farma#26');   // 8 caracteres: el mínimo se acepta
+  revisar('9e. Contraseña de 8 caracteres con todos los requisitos: sin error y con la misma ayuda que HU-03',
+    (await pagina.locator('#error-nuevaContrasenia').count()) === 0
+    && await aparece(pagina, 'De 8 a 15 caracteres, con mayúscula, minúscula, número y un carácter especial'));
 
   // Escenario 10: no coinciden
-  await llenar(pagina, NUEVA, `${NUEVA}x`);
+  await llenar(pagina, NUEVA, 'Reasignada#2028');   // distinta (el campo no deja escribir más de 15)
   await pagina.getByRole('button', { name: 'Guardar' }).click();
   revisar('10a. Muestra "Las contraseñas no coinciden"', await aparece(pagina, 'Las contraseñas no coinciden'));
   revisar('10b. No se abre la confirmación', !(await dialogoAbierto(pagina)));

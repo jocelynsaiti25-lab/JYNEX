@@ -21,7 +21,7 @@ const EMPLEADO = {
   nombreUsuario: `e2e.cierre.${SUFIJO}`,
   correo: `e2e.cierre.${SUFIJO}@etbotfarma.test`,
   telefono: '5500000002',
-  contrasenia: 'Farmacia2026',
+  contrasenia: 'Farmacia#2026',
   idRol: 2,
 };
 

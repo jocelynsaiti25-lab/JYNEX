@@ -21,7 +21,7 @@ const EMPLEADO = {
   nombreUsuario: `e2e.empleado.${SUFIJO}`,
   correo: `e2e.empleado.${SUFIJO}@etbotfarma.test`,
   telefono: '5500000001',
-  contrasenia: 'Farmacia2026',
+  contrasenia: 'Farmacia#2026',
   rol: 'Empleado',
 };
 
@@ -107,12 +107,21 @@ revisar('2b. Correo sin @: "Formato de correo inválido."', await aparece(admin,
 revisar('2b. Teléfono con guiones: "Formato de teléfono inválido"', await aparece(admin, 'Formato de teléfono inválido'));
 revisar('2b. Contraseña corta: "al menos 8 caracteres"', await aparece(admin, 'La contraseña debe tener al menos 8 caracteres.'));
 
-await admin.fill('#contrasenia', 'farmacia2026');
+await admin.fill('#contrasenia', 'farmacia#2026');
 revisar('2c. Contraseña sin mayúscula: "al menos una letra mayúscula"', await aparece(admin, 'La contraseña debe tener al menos una letra mayúscula.'));
-await admin.fill('#contrasenia', 'FarmaciaEtbot');
+await admin.fill('#contrasenia', 'FARMACIA#2026');
+revisar('2c. Contraseña sin minúscula: "al menos una letra minúscula"', await aparece(admin, 'La contraseña debe tener al menos una letra minúscula.'));
+await admin.fill('#contrasenia', 'Farmacia#Etbot');
 revisar('2d. Contraseña sin número: "al menos un número"', await aparece(admin, 'La contraseña debe tener al menos un número.'));
+await admin.fill('#contrasenia', 'Farmacia2026');
+revisar('2d. Contraseña sin carácter especial: "al menos un carácter especial"', await aparece(admin, 'La contraseña debe tener al menos un carácter especial'));
 const maximo = await admin.getAttribute('#contrasenia', 'maxlength');
-revisar('2e. La contraseña no acepta más de 100 caracteres (igual que el backend)', maximo === '100');
+revisar('2e. La contraseña no acepta más de 15 caracteres (igual que el backend)', maximo === '15');
+for (const valida of ['Farma#26', 'Farmacia#202601']) {   // 8 y 15 caracteres: los límites se aceptan
+  await admin.fill('#contrasenia', valida);
+  revisar(`2e. Contraseña de ${valida.length} caracteres con todos los requisitos: sin error`,
+    (await admin.locator('#error-contrasenia').count()) === 0 && await aparece(admin, 'De 8 a 15 caracteres'));
+}
 
 const dialogoAbierto = await admin.getByRole('dialog', { name: '¿Crear este usuario?' }).isVisible();
 revisar('2f. Con errores NO se abre la confirmación', !dialogoAbierto);

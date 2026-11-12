@@ -8,7 +8,7 @@ import { SesionService } from '../../core/services/sesion.service';
 import { UsuariosService } from '../../core/services/usuarios.service';
 import { AlertaComponent } from '../../shared/components/alerta/alerta.component';
 import { ConfirmacionComponent } from '../../shared/components/confirmacion/confirmacion.component';
-import { mensajeContrasenia, validadoresContrasenia } from '../../shared/validators/contrasenia';
+import { AYUDA_CONTRASENIA, CONTRASENIA_MAXIMO, mensajeContrasenia, validadoresContrasenia } from '../../shared/validators/contrasenia';
 
 /** Respuesta de error de la API (ProblemDetails de GlobalExceptionHandler). */
 interface ErrorApi {
@@ -57,6 +57,10 @@ export class ReasignarContrasenaComponent implements OnInit {
     },
     { validators: contraseniasCoinciden },
   );
+
+  /** Política compartida (shared/validators/contrasenia.ts): límite del campo y texto de ayuda. */
+  readonly maximoContrasenia = CONTRASENIA_MAXIMO;
+  readonly ayudaContrasenia = AYUDA_CONTRASENIA;
 
   readonly mostrarContrasenias = signal(false);
   readonly confirmando = signal(false);

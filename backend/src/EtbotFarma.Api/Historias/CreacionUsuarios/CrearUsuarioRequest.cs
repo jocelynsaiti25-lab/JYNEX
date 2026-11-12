@@ -9,7 +9,7 @@ namespace EtbotFarma.Api.Historias.CreacionUsuarios;
 ///   "nombreUsuario": "mflopez",
 ///   "correo": "maria.lopez@gmail.com",
 ///   "telefono": "5512345678",
-///   "contrasenia": "Farmacia2026",
+///   "contrasenia": "Farmacia#2026",
 ///   "idRol": 2
 /// }
 /// idRol: 1 = Administrador, 2 = Empleado.

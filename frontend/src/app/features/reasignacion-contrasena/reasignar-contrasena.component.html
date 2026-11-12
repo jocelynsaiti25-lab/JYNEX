@@ -76,7 +76,7 @@
                 [type]="mostrarContrasenias() ? 'text' : 'password'"
                 formControlName="nuevaContrasenia"
                 autocomplete="new-password"
-                maxlength="100"
+                [attr.maxlength]="maximoContrasenia"
                 required
                 [attr.aria-invalid]="campoInvalido('nuevaContrasenia')"
                 [attr.aria-describedby]="campoInvalido('nuevaContrasenia') ? 'error-nuevaContrasenia' : 'ayuda-nuevaContrasenia'"
@@ -96,7 +96,7 @@
                 <span class="icono" aria-hidden="true">error</span>{{ mensaje('nuevaContrasenia') }}
               </p>
             } @else {
-              <p id="ayuda-nuevaContrasenia" class="campo__ayuda">De 8 a 100 caracteres, con mayúscula, minúscula y número.</p>
+              <p id="ayuda-nuevaContrasenia" class="campo__ayuda">{{ ayudaContrasenia }}</p>
             }
           </div>
 
@@ -112,7 +112,7 @@
                 [type]="mostrarContrasenias() ? 'text' : 'password'"
                 formControlName="confirmarContrasenia"
                 autocomplete="new-password"
-                maxlength="100"
+                [attr.maxlength]="maximoContrasenia"
                 required
                 [attr.aria-invalid]="campoInvalido('confirmarContrasenia')"
                 [attr.aria-describedby]="campoInvalido('confirmarContrasenia') ? 'error-confirmarContrasenia' : null"

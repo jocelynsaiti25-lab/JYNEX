@@ -8,7 +8,7 @@ import { CrearUsuarioResponse, ROLES } from '../../core/models/usuario.model';
 import { UsuariosService } from '../../core/services/usuarios.service';
 import { AlertaComponent } from '../../shared/components/alerta/alerta.component';
 import { ConfirmacionComponent } from '../../shared/components/confirmacion/confirmacion.component';
-import { mensajeContrasenia, validadoresContrasenia } from '../../shared/validators/contrasenia';
+import { AYUDA_CONTRASENIA, CONTRASENIA_MAXIMO, mensajeContrasenia, validadoresContrasenia } from '../../shared/validators/contrasenia';
 
 /** Respuesta de error de la API (ProblemDetails de GlobalExceptionHandler). */
 interface ErrorApi {
@@ -44,10 +44,14 @@ export class CrearUsuarioComponent implements ConCambiosSinGuardar {
     nombreUsuario: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9._-]+$/)]],
     correo: ['', [Validators.required, Validators.maxLength(100), Validators.pattern(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)]],
     telefono: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
-    // Mismas reglas que CrearUsuarioValidator (backend): 8 a 100 caracteres, mayúscula, minúscula y número
+    // Mismas reglas que CrearUsuarioValidator (backend): 8 a 15 caracteres, mayúscula, minúscula, número y carácter especial
     contrasenia: ['', [Validators.required, ...validadoresContrasenia]],   // política compartida con HU-05
     idRol: [0, [Validators.min(1)]],
   });
+
+  /** Política compartida (shared/validators/contrasenia.ts): límite del campo y texto de ayuda. */
+  readonly maximoContrasenia = CONTRASENIA_MAXIMO;
+  readonly ayudaContrasenia = AYUDA_CONTRASENIA;
 
   readonly mostrarContrasenia = signal(false);
   readonly confirmando = signal(false);

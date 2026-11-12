@@ -49,7 +49,7 @@ public class ConsultaUsuariosEndpointsTests(ApiConMySql api) : IClassFixture<Api
             nombreUsuario,
             correo = $"{nombreUsuario}@etbotfarma.com",
             telefono = "5512345678",
-            contrasenia = "Farmacia2026",
+            contrasenia = "Farmacia#2026",
             idRol
         });
         Assert.Equal(HttpStatusCode.Created, respuesta.StatusCode);
@@ -97,7 +97,7 @@ public class ConsultaUsuariosEndpointsTests(ApiConMySql api) : IClassFixture<Api
         {
             Assert.Equal(esperados, cuenta.EnumerateObject().Select(p => p.Name).ToArray());
         }
-        Assert.DoesNotContain("Farmacia2026", json);   // la contraseña en texto
+        Assert.DoesNotContain("Farmacia#2026", json);   // la contraseña en texto
         Assert.DoesNotContain("AQAAAA", json);         // inicio de los hashes PBKDF2 de ASP.NET Identity
     }
 
@@ -117,7 +117,7 @@ public class ConsultaUsuariosEndpointsTests(ApiConMySql api) : IClassFixture<Api
     {
         var admin = await IniciarSesionAsync("admin", ContraseniaAdmin);
         var empleado = await CrearCuentaAsync(admin, $"empleado.{Unico()}");
-        var cookieEmpleado = await IniciarSesionAsync(empleado, "Farmacia2026");
+        var cookieEmpleado = await IniciarSesionAsync(empleado, "Farmacia#2026");
 
         var respuesta = await EnviarAsync(HttpMethod.Get, "/api/usuarios", cookieEmpleado);
 

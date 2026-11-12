@@ -18,8 +18,8 @@ public class ReasignacionContrasenaEndpointsTests(ApiConMySql api) : IClassFixtu
     private static readonly string ContraseniaAdmin =
         Environment.GetEnvironmentVariable("AdministradorInicial__Contrasenia") ?? "Prueba123!";
 
-    private const string Vieja = "Farmacia2026";
-    private const string Nueva = "Reasignada2027";
+    private const string Vieja = "Farmacia#2026";
+    private const string Nueva = "Reasignada#2027";
 
     private static string Unico() => Guid.NewGuid().ToString("N")[..8];
 
@@ -202,7 +202,9 @@ public class ReasignacionContrasenaEndpointsTests(ApiConMySql api) : IClassFixtu
     [Theory]
     [InlineData("corta1A", "corta1A", "La contraseña debe tener al menos 8 caracteres.")]
     [InlineData("SinNumeroAqui", "SinNumeroAqui", "La contraseña debe tener al menos un número.")]
-    [InlineData("Farmacia2027", "Farmacia2028", "Las contraseñas no coinciden")]
+    [InlineData("Farmacia#2027XYZ", "Farmacia#2027XYZ", "La contraseña no puede tener más de 15 caracteres.")]
+    [InlineData("SinEspecial2027", "SinEspecial2027", "La contraseña debe tener al menos un carácter especial")]
+    [InlineData("Farmacia#2027", "Farmacia#2028", "Las contraseñas no coinciden")]
     [InlineData("", "", "La nueva contraseña es obligatoria.")]
     public async Task Datos_invalidos_responden_400_y_no_cambian_nada(string nueva, string confirmar, string mensaje)
     {
