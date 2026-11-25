@@ -64,6 +64,16 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/reasignacion-contrasena/reasignar-contrasena.component').then((m) => m.ReasignarContrasenaComponent),
       },
+      {
+        // HU-07: Registro de entrada de lote (Administrador y Empleado; avisa si sale sin guardar)
+        path: 'inventario/entrada-lote',
+        title: 'Entrada de lote · Etbot Farma',
+        canDeactivate: [cambiosSinGuardarGuard],
+        loadComponent: () =>
+          import('./features/inventario/registrar-entrada-lote/registrar-entrada-lote.component').then(
+            (m) => m.RegistrarEntradaLoteComponent
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: 'inicio' },

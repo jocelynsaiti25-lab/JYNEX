@@ -43,11 +43,12 @@ export const MENU: OpcionMenu[] = [
     icono: 'medication',
     historias: ['HU-06'],
   },
-  {
+{
     etiqueta: 'Entrada de lote',
     descripcion: 'Registrar un lote nuevo de un medicamento existente.',
     icono: 'move_to_inbox',
     historias: ['HU-07'],
+    ruta: '/inventario/entrada-lote',
   },
   {
     etiqueta: 'Salida de medicamentos',
