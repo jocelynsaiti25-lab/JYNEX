@@ -26,4 +26,7 @@ public interface IMedicamentoRepository
     /// HU-07 escenarios 1 y 2: busca medicamentos ACTIVOS por nombre comercial, sustancia activa o número de lote.
     /// </summary>
     Task<IReadOnlyList<Medicamento>> BuscarActivosAsync(string? termino, CancellationToken cancellationToken);
+
+    /// <summary>HU-08: obtiene todos los medicamentos activos del catálogo para consulta de inventario.</summary>
+    Task<IReadOnlyList<Medicamento>> ObtenerTodosActivosAsync(CancellationToken cancellationToken);
 }

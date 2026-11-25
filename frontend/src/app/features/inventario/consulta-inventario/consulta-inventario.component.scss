@@ -1,0 +1,149 @@
+.inventario-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.page-header h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+}
+
+.page-header p {
+  margin: 0;
+  color: #475569;
+}
+
+.filtros-card,
+.tabla-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.filtros-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.buscador-wrapper {
+  display: flex;
+  gap: 0.5rem;
+
+  input {
+    flex: 1;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+}
+
+.btn-limpiar {
+  padding: 0.65rem 1rem;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.filtros-semaforo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  button {
+    padding: 0.45rem 0.85rem;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    cursor: pointer;
+
+    &.activo {
+      background: #0284c7;
+      border-color: #0284c7;
+      color: #ffffff;
+      font-weight: 600;
+    }
+  }
+}
+
+.tabla-responsive {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.92rem;
+
+  th,
+  td {
+    padding: 0.75rem 0.85rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  th {
+    background: #f8fafc;
+    color: #334155;
+    font-weight: 600;
+  }
+}
+
+.subtexto {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.badges-estado {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.semaforo-rojo,
+.estado-agotado {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.semaforo-amarillo,
+.estado-bajo {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.semaforo-verde,
+.estado-ok {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.estado-vacio {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #475569;
+
+  p {
+    margin: 0.35rem 0 0;
+  }
+}
+
+.alerta-error {
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}

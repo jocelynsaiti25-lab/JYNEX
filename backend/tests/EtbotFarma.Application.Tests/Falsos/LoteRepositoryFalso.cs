@@ -24,4 +24,7 @@ public sealed class LoteRepositoryFalso : ILoteRepository
     public Task<IReadOnlyList<Lote>> ObtenerPorMedicamentosAsync(
         IReadOnlyCollection<int> idsMedicamento, CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<Lote>>(Lotes.Where(l => idsMedicamento.Contains(l.IdMedicamento)).ToList());
+
+    public Task<IReadOnlyList<Lote>> ObtenerTodosOrdenadosPorCaducidadAsync(CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyList<Lote>>(Lotes.OrderBy(l => l.FechaCaducidad).ToList());
 }

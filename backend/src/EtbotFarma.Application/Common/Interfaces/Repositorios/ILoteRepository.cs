@@ -19,4 +19,9 @@ public interface ILoteRepository
     Task<IReadOnlyList<Lote>> ObtenerPorMedicamentosAsync(
         IReadOnlyCollection<int> idsMedicamento,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// HU-08 escenarios 3 y 4: obtiene todos los lotes ordenados por fecha de caducidad ascendente.
+    /// </summary>
+    Task<IReadOnlyList<Lote>> ObtenerTodosOrdenadosPorCaducidadAsync(CancellationToken cancellationToken);
 }

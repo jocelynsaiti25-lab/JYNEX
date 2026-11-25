@@ -84,6 +84,15 @@ export const routes: Routes = [
             (m) => m.RegistrarEntradaLoteComponent
           ),
       },
+      {
+        // HU-08: Búsqueda y consulta de medicamentos en inventario (Administrador y Empleado)
+        path: 'inventario',
+        title: 'Inventario · Etbot Farma',
+        loadComponent: () =>
+          import('./features/inventario/consulta-inventario/consulta-inventario.component').then(
+            (m) => m.ConsultaInventarioComponent
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: 'inicio' },
