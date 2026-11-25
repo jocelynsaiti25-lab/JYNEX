@@ -48,8 +48,21 @@ public class RepositoriosMySqlTests(ApiConMySql api) : IClassFixture<ApiConMySql
         Assert.NotNull(admin);
         Assert.Equal("admin", admin.NombreUsuario);
         Assert.Equal("Administrador", admin.Rol.Nombre);
+        Assert.Equal("admin@etbotfarma.local", admin.Correo);   // HU-03: appsettings.json → AdministradorInicial:Correo
         Assert.True(admin.Activo);
         Assert.NotEqual("Prueba123!", admin.ContraseniaHash);   // la contraseña está encriptada
+    }
+
+    /// <summary>HU-03: el correo y el nombre de usuario existentes se detectan (MySQL no distingue mayúsculas).</summary>
+    [Fact]
+    public async Task UsuarioRepository_detecta_correo_y_nombre_de_usuario_existentes()
+    {
+        await using var scope = api.Services.CreateAsyncScope();
+        var usuarios = scope.ServiceProvider.GetRequiredService<IUsuarioRepository>();
+
+        Assert.True(await usuarios.ExisteCorreoAsync("ADMIN@etbotfarma.local", CancellationToken.None));
+        Assert.True(await usuarios.ExisteNombreUsuarioAsync("admin", CancellationToken.None));
+        Assert.False(await usuarios.ExisteCorreoAsync("nadie@etbotfarma.local", CancellationToken.None));
     }
 
     [Fact]

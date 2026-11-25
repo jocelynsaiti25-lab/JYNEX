@@ -16,4 +16,10 @@ public interface ISesionRepository
 
     /// <summary>UPDATE de actividad, expiración y cierre de una sesión existente.</summary>
     Task ActualizarAsync(Sesion sesion, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// HU-05: cierra TODAS las sesiones abiertas de un usuario (pone la fecha de cierre).
+    /// Devuelve cuántas cerró. Queda confirmado con IUnitOfWork.GuardarCambiosAsync.
+    /// </summary>
+    Task<int> CerrarSesionesDelUsuarioAsync(int idUsuario, DateTime fechaCierre, CancellationToken cancellationToken);
 }

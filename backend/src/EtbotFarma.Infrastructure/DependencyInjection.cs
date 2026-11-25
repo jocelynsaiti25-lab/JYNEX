@@ -10,18 +10,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EtbotFarma.Infrastructure;
 
-/// <summary>
-/// Registra las implementaciones técnicas: cada interfaz de Application con su clase real.
-/// Se llama desde Program.cs con: builder.Services.AddInfrastructure(builder.Configuration);
-/// </summary>
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // ---------- Base de datos (MySQL con SQL a mano, sin ORM) ----------
-        // Una conexión + transacción por petición. También es el IUnitOfWork (COMMIT).
         var cadenaConexion = configuration.GetConnectionString("EtbotFarma") ?? string.Empty;
         services.AddScoped(_ => new ConexionMySql(cadenaConexion));
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ConexionMySql>());
@@ -29,9 +23,11 @@ public static class DependencyInjection
         // ---------- Repositorios ----------
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddScoped<ISesionRepository, SesionRepository>();
-        services.AddScoped<IMedicamentoRepository, MedicamentoRepository>();
-        services.AddScoped<ILoteRepository, LoteRepository>();
-        services.AddScoped<IMovimientoRepository, MovimientoRepository>();
+        services.AddScoped<IRolRepository, RolRepository>();
+        services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();   // compartido: cambios administrativos
+        services.AddScoped<IMedicamentoRepository, MedicamentoRepository>(); // HU-06
+        services.AddScoped<ILoteRepository, LoteRepository>();               // HU-06
+        services.AddScoped<IMovimientoRepository, MovimientoRepository>();   // HU-06
 
         // ---------- Seguridad ----------
         services.AddSingleton<IPasswordHasher, PasswordHasher>();

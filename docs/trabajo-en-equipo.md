@@ -38,9 +38,9 @@ Ejemplo para HU-02 (`CierreSesion`):
 
 | Capa | Dónde |
 |---|---|
-| Application | `Commands/CierreSesion/`, `Queries/CierreSesion/`, `Validators/CierreSesion/`, `Handlers/CierreSesion/`, `Dtos/CierreSesion/` |
-| Api | `Controllers/CierreSesionController.cs`, `Contracts/CierreSesion/` |
-| Pruebas | `tests/EtbotFarma.Application.Tests/Handlers/CierreSesion/`, `.../Validators/CierreSesion/` |
+| Application | `CierreSesion/` con `Commands/`, `Queries/`, `Validators/`, `Handlers/`, `Dtos/` (solo las que necesites) |
+| Api | `Historias/CierreSesion/` (`CierreSesionController.cs` + sus Request/Response) |
+| Pruebas | `tests/EtbotFarma.Application.Tests/CierreSesion/Handlers/`, `.../CierreSesion/Validators/`; integración en `tests/EtbotFarma.Api.IntegrationTests/Historias/CierreSesion/` |
 | Falsos nuevos | `tests/EtbotFarma.Application.Tests/Falsos/<Nombre>Falso.cs`: un archivo por clase (ver `Falsos/README.md`) |
 | Angular | `frontend/src/app/features/cierre-sesion/` |
 

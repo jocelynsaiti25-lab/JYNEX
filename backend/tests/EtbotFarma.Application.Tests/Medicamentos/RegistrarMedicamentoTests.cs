@@ -1,9 +1,9 @@
-using EtbotFarma.Application.Commands.Medicamentos;
+﻿using EtbotFarma.Application.Medicamentos.Commands;
 using EtbotFarma.Application.Common.Exceptions;
 using EtbotFarma.Application.Common.Interfaces;
 using EtbotFarma.Application.Common.Interfaces.Repositorios;
-using EtbotFarma.Application.Handlers.Medicamentos;
-using EtbotFarma.Application.Validators.Medicamentos;
+using EtbotFarma.Application.Medicamentos.Handlers;
+using EtbotFarma.Application.Medicamentos.Validators;
 using EtbotFarma.Domain.Common;
 using EtbotFarma.Domain.Entities;
 
@@ -176,3 +176,4 @@ public sealed class RegistrarMedicamentoTests
         public string Rol => "Empleado";
     }
 }
+

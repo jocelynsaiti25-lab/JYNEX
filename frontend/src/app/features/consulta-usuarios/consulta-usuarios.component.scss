@@ -1,0 +1,28 @@
+// HU-04: estilos propios de la pantalla. Todo lo demás viene de styles/_componentes.scss.
+@use 'quiebres' as *;
+
+.buscador {
+  max-width: 28rem;
+}
+
+// Escenario 11: "Cargando usuarios…"
+.estado-carga {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  padding: var(--espacio-6) 0;
+  color: var(--color-texto-secundario);
+}
+
+// Escenario 12: botón dentro de la alerta de error
+.reintentar {
+  margin-top: var(--espacio-3);
+}
+
+.tabla td:nth-child(3) {
+  word-break: break-all;   // correos largos no rompen la tabla en celular
+
+  @include tableta {
+    word-break: normal;
+  }
+}

@@ -35,3 +35,10 @@ SELECT 'Migración: los detalles recibieron el id_medicamento de su movimiento',
 
 SELECT 'Migración: el stock de los lotes no cambió (Tempra = 8)',
     IF((SELECT SUM(stock) FROM lote WHERE id_medicamento = 1) = 8, 'OK', 'FALLA');
+
+SELECT 'Migración: usuario tiene correo obligatorio y único (HU-03)',
+    IF((SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = 'etbotfarma' AND table_name = 'usuario'
+        AND column_name = 'correo' AND is_nullable = 'NO') = 1
+       AND (SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema = 'etbotfarma' AND table_name = 'usuario'
+        AND column_name = 'correo' AND non_unique = 0) = 1
+       AND (SELECT COUNT(*) FROM usuario WHERE correo = 'admin@pendiente.etbotfarma') = 1, 'OK', 'FALLA');

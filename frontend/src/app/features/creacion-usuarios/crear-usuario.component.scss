@@ -1,0 +1,36 @@
+// HU-03: estilos propios de la pantalla. Todo lo demás viene de styles/_componentes.scss.
+
+.seccion__titulo {
+  font-size: var(--texto-lg);
+}
+
+.formulario-rejilla {
+  margin-top: var(--espacio-5);
+}
+
+.obligatorio {
+  color: var(--color-error);
+}
+
+.lista-errores {
+  margin: 0;
+  padding-left: var(--espacio-5);
+}
+
+// Resumen de la confirmación: etiqueta y valor
+.resumen {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--espacio-2) var(--espacio-4);
+  margin: 0;
+
+  dt {
+    font-weight: var(--peso-semi);
+    color: var(--color-texto);
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}

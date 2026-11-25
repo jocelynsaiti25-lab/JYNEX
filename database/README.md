@@ -7,6 +7,7 @@ Explicación completa (cambios, diagrama, reglas): [`docs/base-de-datos.md`](../
 |---------|----------------|
 | `etbotfarma_mysql_v2.sql` | **Versión actual.** Crea la base `etbotfarma` con sus 8 tablas y los 2 roles. Se puede ejecutar varias veces |
 | `migracion_v1_a_v2.sql` | Actualiza una base que ya tenías (versión 1) a la versión 2 **sin perder datos**. Se ejecuta UNA vez |
+| `migracion_correo_usuario.sql` | Agrega el **correo** (HU-03) a una base que ya estaba en la versión 2. Se ejecuta UNA vez |
 | `etbotfarma_mysql.sql` | Versión 1 (original). Se conserva como historial; ya no se usa para bases nuevas |
 | `pruebas/pruebas_v2.sql` | Registro de usuarios, medicamentos y lotes; entrada; salida FEFO; baja; existencias; próximos a caducar; auditoría; rechazo de stock negativo |
 | `pruebas/reglas_que_deben_fallar_v2.sh` | Comprueba que MySQL rechaza datos incorrectos (stock negativo, lote de otro medicamento, baja sin motivo, duplicados...) |
@@ -21,6 +22,7 @@ GitHub Actions ejecuta todas en cada push.
 |---------|---------|
 | No tengo la base (o la quiero desde cero) | `mysql -u root -p < database/etbotfarma_mysql_v2.sql` |
 | Ya tengo la base de antes (versión 1) | `mysql -u root -p < database/migracion_v1_a_v2.sql` |
+| Ya tengo la versión 2 pero la tabla `usuario` no tiene `correo` | `mysql -u root -p < database/migracion_correo_usuario.sql` |
 | Codespaces | Nada: `bash .devcontainer/preparar.sh` detecta la versión y hace lo correcto |
 
 ¿Cómo sé si tengo la versión 1? Si la tabla `sesion` tiene la columna `cerrada`, es la versión 1.

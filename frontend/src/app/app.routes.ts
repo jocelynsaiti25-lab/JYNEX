@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { cambiosSinGuardarGuard } from './core/guards/cambios-sin-guardar.guard';
+import { rolGuard } from './core/guards/rol.guard';
 import { sesionGuard, invitadoGuard } from './core/guards/sesion.guard';
 
 export const routes: Routes = [
@@ -12,8 +13,13 @@ export const routes: Routes = [
       import('./features/inicio-sesion/iniciar-sesion.component').then((m) => m.IniciarSesionComponent),
   },
   {
+    path: 'cerrar-sesion',
+    title: 'Cerrando sesión · Etbot Farma',
+    loadComponent: () =>
+      import('./features/cierre-sesion/cerrar-sesion.component').then((m) => m.CerrarSesionComponent),
+  },
+  {
     path: '',
-    // Se revisa la sesión en CADA cambio de pantalla protegida
     canActivateChild: [sesionGuard],
     loadComponent: () => import('./core/layout/layout.component').then((m) => m.LayoutComponent),
     children: [
@@ -24,6 +30,7 @@ export const routes: Routes = [
         loadComponent: () => import('./features/inicio/inicio.component').then((m) => m.InicioComponent),
       },
       {
+        // HU-06: acceso para Administrador y Empleado; avisa si sale con datos sin guardar
         path: 'medicamentos/registrar',
         canDeactivate: [cambiosSinGuardarGuard],
         title: 'Registrar medicamento · Etbot Farma',
@@ -31,6 +38,31 @@ export const routes: Routes = [
           import('./features/medicamentos/registrar-medicamento/registrar-medicamento.component').then(
             (m) => m.RegistrarMedicamentoComponent
           ),
+      },
+      {
+        // HU-03: solo el Administrador (criterio 1); avisa si sale con datos sin guardar (escenario 16)
+        path: 'usuarios/crear',
+        title: 'Crear usuario · Etbot Farma',
+        canActivate: [rolGuard(['Administrador'])],
+        canDeactivate: [cambiosSinGuardarGuard],
+        loadComponent: () =>
+          import('./features/creacion-usuarios/crear-usuario.component').then((m) => m.CrearUsuarioComponent),
+      },
+      {
+        // HU-04: solo el Administrador; un Empleado que escribe la dirección regresa al inicio (escenario 2)
+        path: 'usuarios',
+        title: 'Usuarios · Etbot Farma',
+        canActivate: [rolGuard(['Administrador'])],
+        loadComponent: () =>
+          import('./features/consulta-usuarios/consulta-usuarios.component').then((m) => m.ConsultaUsuariosComponent),
+      },
+      {
+        // HU-05: la cuenta se elige en la lista de HU-04; solo el Administrador (escenario 5)
+        path: 'usuarios/:idUsuario/contrasenia',
+        title: 'Reasignar contraseña · Etbot Farma',
+        canActivate: [rolGuard(['Administrador'])],
+        loadComponent: () =>
+          import('./features/reasignacion-contrasena/reasignar-contrasena.component').then((m) => m.ReasignarContrasenaComponent),
       },
     ],
   },

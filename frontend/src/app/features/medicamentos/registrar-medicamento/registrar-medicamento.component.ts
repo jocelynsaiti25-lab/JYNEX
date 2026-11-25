@@ -8,7 +8,7 @@ import {
   ValidatorFn,
 } from '@angular/forms';
 
-import { TieneCambiosSinGuardar } from '../../../core/guards/cambios-sin-guardar.guard';
+import { ConCambiosSinGuardar } from '../../../core/guards/cambios-sin-guardar.guard';
 import {
   RegistrarMedicamentoRequest,
   RegistrarMedicamentoResponse,
@@ -27,7 +27,7 @@ import { AlertaComponent } from '../../../shared/components/alerta/alerta.compon
   templateUrl: './registrar-medicamento.component.html',
   styleUrl: './registrar-medicamento.component.scss',
 })
-export class RegistrarMedicamentoComponent implements TieneCambiosSinGuardar {
+export class RegistrarMedicamentoComponent implements ConCambiosSinGuardar {
   private readonly fb = inject(FormBuilder);
   private readonly medicamentosService = inject(MedicamentosService);
 
@@ -64,18 +64,23 @@ export class RegistrarMedicamentoComponent implements TieneCambiosSinGuardar {
   });
 
   /** HU-06 escenario 19: advierte si intenta cerrar o recargar la pestaña con datos sin guardar. */
-  @HostListener('window:beforeunload', ['$event'])
-  alCerrarPestana(event: BeforeUnloadEvent): void {
-    if (this.tieneCambiosSinGuardar()) {
-      event.preventDefault();
-    }
+@HostListener('window:beforeunload', ['$event'])
+alCerrarPestana(event: BeforeUnloadEvent): void {
+  if (this.formulario.dirty && !this.guardando()) {
+    event.preventDefault();
+  }
+}
+
+/** Usado por cambiosSinGuardarGuard al navegar dentro de la app o cerrar sesión. */
+puedeSalir(): boolean {
+  if (!this.formulario.dirty || this.guardando()) {
+    return true;
   }
 
-  /** Usado por cambiosSinGuardarGuard al navegar dentro de la app o cerrar sesión. */
-  tieneCambiosSinGuardar(): boolean {
-    return this.formulario.dirty && !this.guardando();
-  }
-
+  return window.confirm(
+    'Tienes datos capturados sin guardar. Si sales ahora, se perderán. ¿Deseas salir de todos modos?'
+  );
+}
   /** HU-06 escenarios 4, 8, 9, 10, 11, 12 y 13: valida y abre el resumen antes de guardar. */
   solicitarConfirmacion(): void {
     this.mensajeExito.set(null);

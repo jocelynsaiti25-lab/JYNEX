@@ -1,0 +1,52 @@
+// HU-05: estilos propios de la pantalla. Todo lo demás viene de styles/_componentes.scss.
+
+.seccion__titulo {
+  font-size: var(--texto-lg);
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-5);
+  max-width: 28rem;
+  margin-top: var(--espacio-5);
+}
+
+.obligatorio {
+  color: var(--color-error);
+}
+
+.lista-errores {
+  margin: 0;
+  padding-left: var(--espacio-5);
+}
+
+.estado-carga {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  padding: var(--espacio-6) 0;
+  color: var(--color-texto-secundario);
+}
+
+// Datos de la cuenta y resumen de la confirmación: etiqueta y valor
+.resumen {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--espacio-2) var(--espacio-4);
+  margin: var(--espacio-3) 0 0;
+
+  dt {
+    font-weight: var(--peso-semi);
+    color: var(--color-texto);
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.aviso-sesiones {
+  margin-top: var(--espacio-4);
+}

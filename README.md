@@ -9,7 +9,7 @@ salidas FEFO, bitácora de movimientos y exportación a Excel.
 |-------|------------|
 | Frontend | Angular 20 (componentes standalone, signals) |
 | Backend | .NET 10 / ASP.NET Core (C#) |
-| Arquitectura | Clean Architecture + CQRS (MediatR), carpetas por tipo y por historia |
+| Arquitectura | Clean Architecture + CQRS (MediatR), carpetas por historia y luego por tipo |
 | Validaciones | FluentValidation 12.1.1, ejecutada automáticamente por MediatR |
 | Base de datos | MySQL 8 con SQL a mano (MySqlConnector), sin ORM |
 | Pruebas | xUnit (unitarias, de arquitectura y de integración), Playwright |
@@ -26,11 +26,10 @@ etbotfarma-web/
 │  │  ├─ EtbotFarma.Domain/           Entidades y reglas de negocio
 │  │  ├─ EtbotFarma.Application/      Casos de uso (CQRS) y validadores
 │  │  │  ├─ Common/                   ValidationBehavior, interfaces, excepciones
-│  │  │  ├─ Commands/ Queries/        Por tipo, con una subcarpeta por historia
-│  │  │  ├─ Validators/ Handlers/     (ej.: Handlers/InicioSesion/)
-│  │  │  └─ Dtos/
+│  │  │  └─ <Historia>/               Una carpeta por historia (ej.: InicioSesion/)
+│  │  │     └─ Commands/ Queries/ Validators/ Handlers/ Dtos/
 │  │  ├─ EtbotFarma.Infrastructure/   BD, servicios técnicos
-│  │  └─ EtbotFarma.Api/              Controladores y manejo de errores
+│  │  └─ EtbotFarma.Api/              Historias/<Historia>/ (controller + Request/Response) y manejo de errores
 │  └─ tests/                          Pruebas unitarias
 ├─ frontend/                          Angular
 │  └─ src/app/
@@ -104,11 +103,11 @@ El estado de cada historia está en [`docs/historias-usuario.md`](docs/historias
 Las reglas completas están en [`CLAUDE.md`](CLAUDE.md). En resumen (copiar HU-01 como molde):
 
 1. Buscar el nombre de carpeta de la historia en `backend/src/EtbotFarma.Application/README.md` (ej.: HU-02 → `CierreSesion`).
-2. Crear en Application: `Commands/<Historia>/`, `Validators/<Historia>/`, `Handlers/<Historia>/`, `Dtos/<Historia>/`.
+2. Crear en Application la carpeta `<Historia>/` con las subcarpetas que necesite: `Commands/`, `Queries/`, `Validators/`, `Handlers/`, `Dtos/`.
 3. Las reglas de negocio van en las entidades de `Domain/Entities/`.
-4. Crear `Api/Controllers/<Historia>Controller.cs` y `Api/Contracts/<Historia>/` (el controller recibe `ISender` por constructor y solo llama `sender.Send(...)`).
+4. Crear `Api/Historias/<Historia>/` con `<Historia>Controller.cs` y sus Request/Response (el controller recibe `ISender` por constructor y solo llama `sender.Send(...)`).
 5. Crear la pantalla en `frontend/src/app/features/<historia-en-kebab>/`.
-6. Escribir pruebas en `backend/tests/` (`Handlers/<Historia>/`, `Validators/<Historia>/`); los falsos nuevos van en su propio archivo en `Falsos/`.
+6. Escribir pruebas en `backend/tests/` (`Application.Tests/<Historia>/Handlers/`, `<Historia>/Validators/`; integración en `IntegrationTests/Historias/<Historia>/`); los falsos nuevos van en su propio archivo en `Falsos/`.
 
 ## Flujo de trabajo en Git
 
