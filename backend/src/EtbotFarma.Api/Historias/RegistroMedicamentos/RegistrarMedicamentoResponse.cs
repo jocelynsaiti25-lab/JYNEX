@@ -1,9 +1,9 @@
-﻿namespace EtbotFarma.Application.Medicamentos.Dtos;
+namespace EtbotFarma.Api.Historias.RegistroMedicamentos;
 
 /// <summary>
-/// Resultado del registro exitoso de un medicamento y su lote inicial (HU-06 escenarios 1, 2, 11 y 20).
+/// Contrato JSON que devuelve POST /api/medicamentos tras registrar el medicamento y su lote inicial.
 /// </summary>
-public sealed record MedicamentoRegistradoDto(
+public sealed record RegistrarMedicamentoResponse(
     int IdMedicamento,
     string NombreComercial,
     string NombreSustancia,
@@ -12,9 +12,8 @@ public sealed record MedicamentoRegistradoDto(
     bool EsControlado,
     int IdLote,
     string NumeroLote,
-    DateOnly FechaCaducidad,
+    string FechaCaducidad,
     int Stock,
     string SemaforoCaducidad,
     bool SeRegistroEntrada,
     string Mensaje);
-

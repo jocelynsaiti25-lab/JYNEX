@@ -71,16 +71,17 @@ alCerrarPestana(event: BeforeUnloadEvent): void {
   }
 }
 
-/** Usado por cambiosSinGuardarGuard al navegar dentro de la app o cerrar sesión. */
-puedeSalir(): boolean {
-  if (!this.formulario.dirty || this.guardando()) {
-    return true;
+  /** Usado por cambiosSinGuardarGuard al navegar dentro de la app o cerrar sesión. */
+  puedeSalir(): boolean {
+    if (!this.formulario.dirty || this.guardando()) {
+      return true;
+    }
+
+    return window.confirm(
+      'Tienes datos capturados sin guardar. Si sales ahora, se perderán. ¿Deseas salir de todos modos?'
+    );
   }
 
-  return window.confirm(
-    'Tienes datos capturados sin guardar. Si sales ahora, se perderán. ¿Deseas salir de todos modos?'
-  );
-}
   /** HU-06 escenarios 4, 8, 9, 10, 11, 12 y 13: valida y abre el resumen antes de guardar. */
   solicitarConfirmacion(): void {
     this.mensajeExito.set(null);

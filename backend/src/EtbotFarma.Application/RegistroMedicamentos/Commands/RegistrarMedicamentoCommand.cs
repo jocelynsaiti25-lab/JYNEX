@@ -1,7 +1,7 @@
 ﻿using EtbotFarma.Application.Common.Messaging;
-using EtbotFarma.Application.Medicamentos.Dtos;
+using EtbotFarma.Application.RegistroMedicamentos.Dtos;
 
-namespace EtbotFarma.Application.Medicamentos.Commands;
+namespace EtbotFarma.Application.RegistroMedicamentos.Commands;
 
 /// <summary>
 /// HU-06: datos de entrada para dar de alta un medicamento nuevo con su lote inicial.

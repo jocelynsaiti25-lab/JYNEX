@@ -1,4 +1,4 @@
-namespace EtbotFarma.Api.Historias.Medicamentos;
+namespace EtbotFarma.Api.Historias.RegistroMedicamentos;
 
 /// <summary>
 /// Contrato JSON que recibe POST /api/medicamentos (HU-06).

@@ -1,8 +1,8 @@
 ﻿using System.Globalization;
-using EtbotFarma.Application.Medicamentos.Commands;
+using EtbotFarma.Application.RegistroMedicamentos.Commands;
 using FluentValidation;
 
-namespace EtbotFarma.Application.Medicamentos.Validators;
+namespace EtbotFarma.Application.RegistroMedicamentos.Validators;
 
 /// <summary>
 /// HU-06 criterios 8, 9, 12 y 13: valida el formato y obligatoriedad de los datos de entrada

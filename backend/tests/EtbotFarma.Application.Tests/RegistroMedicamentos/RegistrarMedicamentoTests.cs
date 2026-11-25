@@ -1,13 +1,13 @@
-﻿using EtbotFarma.Application.Medicamentos.Commands;
+﻿using EtbotFarma.Application.RegistroMedicamentos.Commands;
 using EtbotFarma.Application.Common.Exceptions;
 using EtbotFarma.Application.Common.Interfaces;
 using EtbotFarma.Application.Common.Interfaces.Repositorios;
-using EtbotFarma.Application.Medicamentos.Handlers;
-using EtbotFarma.Application.Medicamentos.Validators;
+using EtbotFarma.Application.RegistroMedicamentos.Handlers;
+using EtbotFarma.Application.RegistroMedicamentos.Validators;
 using EtbotFarma.Domain.Common;
 using EtbotFarma.Domain.Entities;
 
-namespace EtbotFarma.Application.Tests.Medicamentos;
+namespace EtbotFarma.Application.Tests.RegistroMedicamentos;
 
 public sealed class RegistrarMedicamentoTests
 {

@@ -4,6 +4,13 @@ import { cambiosSinGuardarGuard } from './core/guards/cambios-sin-guardar.guard'
 import { rolGuard } from './core/guards/rol.guard';
 import { sesionGuard, invitadoGuard } from './core/guards/sesion.guard';
 
+/**
+ * Rutas de la aplicación. Cada pantalla se carga solo cuando se necesita (lazy loading).
+ *   iniciar-sesion → pública (si ya hay sesión, manda al inicio)
+ *   todo lo demás  → protegido (HU-01 criterio 5) y dentro del LayoutComponent
+ *
+ * PARA AGREGAR UNA PANTALLA: añádela en `children` y pon su ruta en core/layout/menu.ts.
+ */
 export const routes: Routes = [
   {
     path: 'iniciar-sesion',
@@ -13,6 +20,8 @@ export const routes: Routes = [
       import('./features/inicio-sesion/iniciar-sesion.component').then((m) => m.IniciarSesionComponent),
   },
   {
+    // HU-02: pantalla de paso para cerrar sesión. Va FUERA del LayoutComponent y sin sesionGuard:
+    // si la sesión ya expiró (escenario 10) también debe poder cerrarse sin error.
     path: 'cerrar-sesion',
     title: 'Cerrando sesión · Etbot Farma',
     loadComponent: () =>
@@ -20,6 +29,7 @@ export const routes: Routes = [
   },
   {
     path: '',
+    // Se revisa la sesión en CADA cambio de pantalla protegida
     canActivateChild: [sesionGuard],
     loadComponent: () => import('./core/layout/layout.component').then((m) => m.LayoutComponent),
     children: [
@@ -28,16 +38,6 @@ export const routes: Routes = [
         path: 'inicio',
         title: 'Inicio · Etbot Farma',
         loadComponent: () => import('./features/inicio/inicio.component').then((m) => m.InicioComponent),
-      },
-      {
-        // HU-06: acceso para Administrador y Empleado; avisa si sale con datos sin guardar
-        path: 'medicamentos/registrar',
-        canDeactivate: [cambiosSinGuardarGuard],
-        title: 'Registrar medicamento · Etbot Farma',
-        loadComponent: () =>
-          import('./features/medicamentos/registrar-medicamento/registrar-medicamento.component').then(
-            (m) => m.RegistrarMedicamentoComponent
-          ),
       },
       {
         // HU-03: solo el Administrador (criterio 1); avisa si sale con datos sin guardar (escenario 16)
@@ -63,6 +63,16 @@ export const routes: Routes = [
         canActivate: [rolGuard(['Administrador'])],
         loadComponent: () =>
           import('./features/reasignacion-contrasena/reasignar-contrasena.component').then((m) => m.ReasignarContrasenaComponent),
+      },
+      {
+        // HU-06: acceso para Administrador y Empleado; avisa si sale con datos sin guardar
+        path: 'medicamentos/registrar',
+        canDeactivate: [cambiosSinGuardarGuard],
+        title: 'Registrar medicamento · Etbot Farma',
+        loadComponent: () =>
+          import('./features/medicamentos/registrar-medicamento/registrar-medicamento.component').then(
+            (m) => m.RegistrarMedicamentoComponent
+          ),
       },
     ],
   },

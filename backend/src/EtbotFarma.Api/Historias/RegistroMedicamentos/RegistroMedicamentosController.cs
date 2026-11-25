@@ -1,8 +1,8 @@
-﻿using EtbotFarma.Application.Medicamentos.Commands;
+﻿using EtbotFarma.Application.RegistroMedicamentos.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EtbotFarma.Api.Historias.Medicamentos;
+namespace EtbotFarma.Api.Historias.RegistroMedicamentos;
 
 /// <summary>
 /// HU-06: Registro de medicamentos.
@@ -11,7 +11,7 @@ namespace EtbotFarma.Api.Historias.Medicamentos;
 /// </summary>
 [ApiController]
 [Route("api/medicamentos")]
-public sealed class MedicamentosController(ISender sender) : ControllerBase
+public sealed class RegistroMedicamentosController(ISender sender) : ControllerBase
 {
     /// <summary>
     /// POST api/medicamentos

@@ -1,14 +1,14 @@
 ﻿using System.Globalization;
-using EtbotFarma.Application.Medicamentos.Commands;
+using EtbotFarma.Application.RegistroMedicamentos.Commands;
 using EtbotFarma.Application.Common.Exceptions;
 using EtbotFarma.Application.Common.Interfaces;
 using EtbotFarma.Application.Common.Interfaces.Repositorios;
 using EtbotFarma.Application.Common.Messaging;
-using EtbotFarma.Application.Medicamentos.Dtos;
+using EtbotFarma.Application.RegistroMedicamentos.Dtos;
 using EtbotFarma.Domain.Common;
 using EtbotFarma.Domain.Entities;
 
-namespace EtbotFarma.Application.Medicamentos.Handlers;
+namespace EtbotFarma.Application.RegistroMedicamentos.Handlers;
 
 /// <summary>
 /// HU-06: Coordina el alta de un medicamento nuevo, su primer lote y (si cantidad > 0)
