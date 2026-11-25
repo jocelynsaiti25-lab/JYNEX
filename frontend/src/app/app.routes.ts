@@ -64,6 +64,16 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/reasignacion-contrasena/reasignar-contrasena.component').then((m) => m.ReasignarContrasenaComponent),
       },
+      {
+        // HU-06: acceso para Administrador y Empleado; avisa si sale con datos sin guardar
+        path: 'medicamentos/registrar',
+        canDeactivate: [cambiosSinGuardarGuard],
+        title: 'Registrar medicamento · Etbot Farma',
+        loadComponent: () =>
+          import('./features/medicamentos/registrar-medicamento/registrar-medicamento.component').then(
+            (m) => m.RegistrarMedicamentoComponent
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: 'inicio' },

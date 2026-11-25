@@ -70,6 +70,13 @@ export const MENU: OpcionMenu[] = [
     ruta: '/usuarios',
     roles: ['Administrador'],
   },
+  {
+    etiqueta: 'Registrar medicamento',
+    descripcion: 'Dar de alta un medicamento nuevo con su primer lote.',
+    icono: 'medication',
+    historias: ['HU-06'],
+    ruta: '/medicamentos/registrar',
+  },
 ];
 
 /** Opciones que el rol puede ver (con o sin pantalla terminada). */
