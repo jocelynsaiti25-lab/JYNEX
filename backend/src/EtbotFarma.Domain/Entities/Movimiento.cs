@@ -32,6 +32,27 @@ public class Movimiento : Entity<int>
         int idLote,
         int idUsuario,
         int cantidad,
+        DateTime fechaUtc) =>
+        CrearEntrada(idMedicamento, idLote, idUsuario, cantidad, "Alta inicial de medicamento", fechaUtc);
+
+    /// <summary>
+    /// Crea un movimiento de ENTRADA en bitácora al registrar la llegada de un nuevo lote.
+    /// HU-07 escenario 10.
+    /// </summary>
+    public static Movimiento CrearEntradaLote(
+        int idMedicamento,
+        int idLote,
+        int idUsuario,
+        int cantidad,
+        DateTime fechaUtc) =>
+        CrearEntrada(idMedicamento, idLote, idUsuario, cantidad, "Entrada de nuevo lote", fechaUtc);
+
+    private static Movimiento CrearEntrada(
+        int idMedicamento,
+        int idLote,
+        int idUsuario,
+        int cantidad,
+        string motivo,
         DateTime fechaUtc)
     {
         if (cantidad <= 0)
@@ -43,7 +64,7 @@ public class Movimiento : Entity<int>
             IdMedicamento = idMedicamento,
             IdUsuario = idUsuario,
             CantidadTotal = cantidad,
-            Motivo = "Alta inicial de medicamento",
+            Motivo = motivo,
             Fecha = fechaUtc
         };
 

@@ -76,4 +76,97 @@ public sealed class MedicamentoRepository(ConexionMySql conexion) : IMedicamento
         var idGenerado = await comando.ExecuteScalarAsync(cancellationToken);
         return Convert.ToInt32(idGenerado);
     }
+
+    public async Task<Medicamento?> ObtenerPorIdAsync(int idMedicamento, CancellationToken cancellationToken)
+    {
+        // HU-07 escenarios 1 y 2
+        const string sql = """
+            SELECT
+                id_medicamento,
+                nombre_comercial,
+                nombre_sustancia,
+                presentacion,
+                concentracion,
+                es_controlado,
+                stock_minimo,
+                activo,
+                fecha_registro
+            FROM medicamento
+            WHERE id_medicamento = @idMedicamento
+            LIMIT 1;
+            """;
+
+        await using var comando = await conexion.CrearComandoAsync(sql, cancellationToken);
+        comando.Parameters.AddWithValue("@idMedicamento", idMedicamento);
+
+        await using var lector = await comando.ExecuteReaderAsync(cancellationToken);
+        if (!await lector.ReadAsync(cancellationToken))
+            return null;
+
+        return Medicamento.Reconstruir(
+            lector.GetInt32("id_medicamento"),
+            lector.GetString("nombre_comercial"),
+            lector.GetString("nombre_sustancia"),
+            lector.GetString("presentacion"),
+            lector.GetString("concentracion"),
+            lector.GetBoolean("es_controlado"),
+            lector.GetInt32("stock_minimo"),
+            lector.GetBoolean("activo"),
+            lector.GetDateTime("fecha_registro"));
+    }
+
+    public async Task<IReadOnlyList<Medicamento>> BuscarActivosAsync(
+        string? termino,
+        CancellationToken cancellationToken)
+    {
+        // HU-07 escenarios 1 y 2: busca SOLO medicamentos activos por nombre, sustancia o número de lote
+        const string sql = """
+            SELECT DISTINCT
+                m.id_medicamento,
+                m.nombre_comercial,
+                m.nombre_sustancia,
+                m.presentacion,
+                m.concentracion,
+                m.es_controlado,
+                m.stock_minimo,
+                m.activo,
+                m.fecha_registro
+            FROM medicamento m
+            LEFT JOIN lote l ON l.id_medicamento = m.id_medicamento
+            WHERE m.activo = TRUE
+              AND (
+                    @filtro = ''
+                    OR LOWER(m.nombre_comercial) LIKE @patron ESCAPE '\\'
+                    OR LOWER(m.nombre_sustancia) LIKE @patron ESCAPE '\\'
+                    OR LOWER(l.numero_lote) LIKE @patron ESCAPE '\\'
+                  )
+            ORDER BY m.nombre_comercial ASC, m.concentracion ASC
+            LIMIT 50;
+            """;
+
+        var filtroNormalizado = termino?.Trim().ToLowerInvariant() ?? string.Empty;
+        var filtroEscapado = filtroNormalizado.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+
+        await using var comando = await conexion.CrearComandoAsync(sql, cancellationToken);
+        comando.Parameters.AddWithValue("@filtro", filtroNormalizado);
+        comando.Parameters.AddWithValue("@patron", $"%{filtroEscapado}%");
+
+        var resultado = new List<Medicamento>();
+        await using var lector = await comando.ExecuteReaderAsync(cancellationToken);
+        while (await lector.ReadAsync(cancellationToken))
+        {
+            resultado.Add(Medicamento.Reconstruir(
+                lector.GetInt32("id_medicamento"),
+                lector.GetString("nombre_comercial"),
+                lector.GetString("nombre_sustancia"),
+                lector.GetString("presentacion"),
+                lector.GetString("concentracion"),
+                lector.GetBoolean("es_controlado"),
+                lector.GetInt32("stock_minimo"),
+                lector.GetBoolean("activo"),
+                lector.GetDateTime("fecha_registro")));
+        }
+
+        return resultado;
+    }
 }

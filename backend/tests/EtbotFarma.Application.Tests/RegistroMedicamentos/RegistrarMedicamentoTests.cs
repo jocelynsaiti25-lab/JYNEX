@@ -4,6 +4,7 @@ using EtbotFarma.Application.Common.Interfaces;
 using EtbotFarma.Application.Common.Interfaces.Repositorios;
 using EtbotFarma.Application.RegistroMedicamentos.Handlers;
 using EtbotFarma.Application.RegistroMedicamentos.Validators;
+using EtbotFarma.Application.Tests.Falsos;
 using EtbotFarma.Domain.Common;
 using EtbotFarma.Domain.Entities;
 
@@ -29,10 +30,10 @@ public sealed class RegistrarMedicamentoTests
         Assert.Equal("Medicamento registrado", resultado.Mensaje);
         Assert.Equal(50, resultado.Stock);
         Assert.True(resultado.SeRegistroEntrada);
-        Assert.Single(medRepo.Guardados);
-        Assert.Single(loteRepo.Guardados);
-        Assert.Single(movRepo.Guardados);
-        Assert.Equal(50, movRepo.Guardados[0].CantidadTotal);
+        Assert.Single(medRepo.Medicamentos);
+        Assert.Single(loteRepo.Lotes);
+        Assert.Single(movRepo.Movimientos);
+        Assert.Equal(50, movRepo.Movimientos[0].CantidadTotal);
         Assert.True(uow.Confirmado);
     }
 
@@ -53,9 +54,9 @@ public sealed class RegistrarMedicamentoTests
 
         Assert.Equal(0, resultado.Stock);
         Assert.False(resultado.SeRegistroEntrada);
-        Assert.Single(medRepo.Guardados);
-        Assert.Single(loteRepo.Guardados);
-        Assert.Empty(movRepo.Guardados);
+        Assert.Single(medRepo.Medicamentos);
+        Assert.Single(loteRepo.Lotes);
+        Assert.Empty(movRepo.Movimientos);
         Assert.True(uow.Confirmado);
     }
 
@@ -76,7 +77,7 @@ public sealed class RegistrarMedicamentoTests
             handler.Handle(command, CancellationToken.None));
 
         Assert.Equal("El medicamento ya está registrado. Para agregar otro lote usa Entrada de lote.", ex.Message);
-        Assert.Empty(medRepo.Guardados);
+        Assert.Empty(medRepo.Medicamentos);
         Assert.False(uow.Confirmado);
     }
 
@@ -114,44 +115,6 @@ public sealed class RegistrarMedicamentoTests
     }
 
     // --- Clases falsas para pruebas sin MySQL ---
-
-    private sealed class MedicamentoRepositoryFalso : IMedicamentoRepository
-    {
-        public bool SimularDuplicado { get; init; }
-        public List<Medicamento> Guardados { get; } = [];
-
-        public Task<bool> ExisteDuplicadoAsync(
-            string nombreComercial, string nombreSustancia, string presentacion, string concentracion, CancellationToken cancellationToken)
-            => Task.FromResult(SimularDuplicado);
-
-        public Task<int> AgregarAsync(Medicamento medicamento, CancellationToken cancellationToken)
-        {
-            Guardados.Add(medicamento);
-            return Task.FromResult(Guardados.Count);
-        }
-    }
-
-    private sealed class LoteRepositoryFalso : ILoteRepository
-    {
-        public List<Lote> Guardados { get; } = [];
-
-        public Task<int> AgregarAsync(Lote lote, CancellationToken cancellationToken)
-        {
-            Guardados.Add(lote);
-            return Task.FromResult(Guardados.Count);
-        }
-    }
-
-    private sealed class MovimientoRepositoryFalso : IMovimientoRepository
-    {
-        public List<Movimiento> Guardados { get; } = [];
-
-        public Task<int> AgregarConDetallesAsync(Movimiento movimiento, CancellationToken cancellationToken)
-        {
-            Guardados.Add(movimiento);
-            return Task.FromResult(Guardados.Count);
-        }
-    }
 
     private sealed class UnitOfWorkFalso : IUnitOfWork
     {

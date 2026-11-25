@@ -48,6 +48,7 @@ export const MENU: OpcionMenu[] = [
     descripcion: 'Registrar un lote nuevo de un medicamento existente.',
     icono: 'move_to_inbox',
     historias: ['HU-07'],
+    ruta: '/inventario/entrada-lote',
   },
   {
     etiqueta: 'Salida de medicamentos',

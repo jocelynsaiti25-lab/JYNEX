@@ -62,6 +62,26 @@ public class Lote : Entity<int>
         };
     }
 
+    /// <summary>
+    /// Crea un nuevo lote para reabastecer un medicamento existente (HU-07 escenarios 3, 4 y 5).
+    /// A diferencia del alta inicial, la cantidad debe ser estrictamente mayor a 0.
+    /// </summary>
+    public static Lote CrearEntrada(
+        int idMedicamento,
+        string numeroLote,
+        DateOnly fechaCaducidad,
+        int cantidad,
+        DateOnly fechaHoy)
+    {
+        if (idMedicamento <= 0)
+            throw new DomainException("Debe seleccionar un medicamento válido.");
+
+        if (cantidad <= 0)
+            throw new DomainException("La cantidad de entrada debe ser un número entero mayor que cero.");
+
+        return Crear(idMedicamento, numeroLote, fechaCaducidad, cantidad, fechaHoy);
+    }
+
     public void AsignarId(int id) => Id = id;
 
     /// <summary>
