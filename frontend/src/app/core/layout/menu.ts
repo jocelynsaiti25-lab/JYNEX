@@ -36,6 +36,7 @@ export const MENU: OpcionMenu[] = [
     descripcion: 'Buscar medicamentos, semáforo de caducidad, stock mínimo, agotados y baja de lotes.',
     icono: 'inventory_2',
     historias: ['HU-08', 'HU-09', 'HU-10', 'HU-11', 'HU-12', 'HU-14'],
+    ruta: '/inventario',
   },
   {
     etiqueta: 'Registrar medicamento',
