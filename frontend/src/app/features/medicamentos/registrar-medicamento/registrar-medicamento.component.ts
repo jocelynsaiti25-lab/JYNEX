@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, HostListener, inject, signal } from '@angular/core';
+import { Component, HostListener, inject, signal } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -49,27 +49,20 @@ export class RegistrarMedicamentoComponent implements ConCambiosSinGuardar {
     cantidadInicial: ['', [this.campoObligatorioValidator(), this.cantidadEnteraValidator()]],
   });
 
-  readonly datosResumen = computed<RegistrarMedicamentoRequest>(() => {
-    const raw = this.formulario.getRawValue();
-    return {
-      nombreComercial: raw.nombreComercial.trim(),
-      nombreSustancia: raw.nombreSustancia.trim(),
-      presentacion: raw.presentacion.trim(),
-      concentracion: raw.concentracion.trim(),
-      esControlado: raw.esControlado,
-      numeroLote: raw.numeroLote.trim(),
-      fechaCaducidad: raw.fechaCaducidad.trim(),
-      cantidadInicial: String(raw.cantidadInicial).trim(),
-    };
-  });
+  /**
+   * Datos que se muestran en la confirmación y que se envían al servidor.
+   * Es un signal que se actualiza al abrir la confirmación: un `computed` sobre el formulario
+   * NO se recalcula (el formulario no es un signal) y mostraría siempre el primer registro.
+   */
+  readonly datosResumen = signal<RegistrarMedicamentoRequest>(this.construirDatos());
 
   /** HU-06 escenario 19: advierte si intenta cerrar o recargar la pestaña con datos sin guardar. */
-@HostListener('window:beforeunload', ['$event'])
-alCerrarPestana(event: BeforeUnloadEvent): void {
-  if (this.formulario.dirty && !this.guardando()) {
-    event.preventDefault();
+  @HostListener('window:beforeunload', ['$event'])
+  alCerrarPestana(event: BeforeUnloadEvent): void {
+    if (this.formulario.dirty && !this.guardando()) {
+      event.preventDefault();
+    }
   }
-}
 
   /** Usado por cambiosSinGuardarGuard al navegar dentro de la app o cerrar sesión. */
   puedeSalir(): boolean {
@@ -96,6 +89,7 @@ alCerrarPestana(event: BeforeUnloadEvent): void {
     // HU-06 escenario 11: calcular si caduca en 3 meses o menos para mostrar aviso en el resumen
     const fecha = this.parsearFechaIso(this.formulario.controls.fechaCaducidad.value);
     this.advertenciaCaducidadCorta.set(fecha !== null && this.caducaEnTresMesesOMenos(fecha));
+    this.datosResumen.set(this.construirDatos());
     this.mostrarConfirmacion.set(true);
   }
 
@@ -260,6 +254,21 @@ alCerrarPestana(event: BeforeUnloadEvent): void {
         break;
       }
     }
+  }
+
+  /** Lee lo capturado en el formulario, sin espacios al inicio ni al final. */
+  private construirDatos(): RegistrarMedicamentoRequest {
+    const raw = this.formulario.getRawValue();
+    return {
+      nombreComercial: raw.nombreComercial.trim(),
+      nombreSustancia: raw.nombreSustancia.trim(),
+      presentacion: raw.presentacion.trim(),
+      concentracion: raw.concentracion.trim(),
+      esControlado: raw.esControlado,
+      numeroLote: raw.numeroLote.trim(),
+      fechaCaducidad: raw.fechaCaducidad.trim(),
+      cantidadInicial: String(raw.cantidadInicial).trim(),
+    };
   }
 
   private obtenerMensajeError(error: HttpErrorResponse): string {

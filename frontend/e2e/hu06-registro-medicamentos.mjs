@@ -155,6 +155,8 @@ try {
   await llenar(pagina, sinStock);
   await pagina.getByRole('button', { name: 'Guardar', exact: true }).click();
   await dialogo.waitFor({ timeout: 5000 });
+  // El resumen debe mostrar el medicamento NUEVO, no el del registro anterior
+  revisar('La confirmación del segundo registro muestra los datos nuevos', (await dialogo.innerText()).includes(sinStock.nombreComercial));
   await dialogo.getByRole('button', { name: 'Aceptar' }).click();
   await dialogo.waitFor({ state: 'hidden', timeout: 10000 });
   const idCero = consultar(`SELECT id_medicamento FROM medicamento WHERE nombre_comercial = '${sinStock.nombreComercial}'`);
