@@ -29,6 +29,9 @@ public static class DependencyInjection
         // ---------- Repositorios ----------
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddScoped<ISesionRepository, SesionRepository>();
+        services.AddScoped<IMedicamentoRepository, MedicamentoRepository>();
+        services.AddScoped<ILoteRepository, LoteRepository>();
+        services.AddScoped<IMovimientoRepository, MovimientoRepository>();
 
         // ---------- Seguridad ----------
         services.AddSingleton<IPasswordHasher, PasswordHasher>();

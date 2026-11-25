@@ -1,14 +1,8 @@
 import { Routes } from '@angular/router';
 
+import { cambiosSinGuardarGuard } from './core/guards/cambios-sin-guardar.guard';
 import { sesionGuard, invitadoGuard } from './core/guards/sesion.guard';
 
-/**
- * Rutas de la aplicación. Cada pantalla se carga solo cuando se necesita (lazy loading).
- *   iniciar-sesion → pública (si ya hay sesión, manda al inicio)
- *   todo lo demás  → protegido (HU-01 criterio 5) y dentro del LayoutComponent
- *
- * PARA AGREGAR UNA PANTALLA: añádela en `children` y pon su ruta en core/layout/menu.ts.
- */
 export const routes: Routes = [
   {
     path: 'iniciar-sesion',
@@ -28,6 +22,15 @@ export const routes: Routes = [
         path: 'inicio',
         title: 'Inicio · Etbot Farma',
         loadComponent: () => import('./features/inicio/inicio.component').then((m) => m.InicioComponent),
+      },
+      {
+        path: 'medicamentos/registrar',
+        canDeactivate: [cambiosSinGuardarGuard],
+        title: 'Registrar medicamento · Etbot Farma',
+        loadComponent: () =>
+          import('./features/medicamentos/registrar-medicamento/registrar-medicamento.component').then(
+            (m) => m.RegistrarMedicamentoComponent
+          ),
       },
     ],
   },
