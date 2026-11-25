@@ -13,4 +13,5 @@ public sealed record ItemInventarioResponse(
     int Existencias,
     string? FechaCaducidad,
     string SemaforoCaducidad,
+    bool EstaCaducado,
     string EstadoDisponibilidad);

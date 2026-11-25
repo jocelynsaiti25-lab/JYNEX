@@ -140,6 +140,20 @@ public class BusquedaMedicamentosEndpointsTests(ApiConMySql api) : IClassFixture
     }
 
     [Fact]
+    public async Task Lote_vigente_no_viene_marcado_como_caducado()
+    {
+        // HU-10 escenario 5: un lote vigente no lleva la marca de caducado
+        var cookie = await IniciarSesionAsync();
+        var (id, nombre) = await CrearMedicamentoAsync(cookie, "10");
+        await AgregarLoteAsync(cookie, id, "L-ROJO", Fecha(2), "5");
+
+        var lista = await ConsultarAsync(cookie, $"termino={Uri.EscapeDataString(nombre)}");
+
+        Assert.False(lista[0].GetProperty("estaCaducado").GetBoolean());
+        Assert.False(lista[1].GetProperty("estaCaducado").GetBoolean());
+    }
+
+    [Fact]
     public async Task Sin_coincidencias_responde_200_con_lista_vacia()
     {
         var cookie = await IniciarSesionAsync();

@@ -69,7 +69,7 @@
     } @else if (resultadosFiltrados().length === 0) {
       <div class="estado-vacio" role="status">
         <strong>No se encontraron coincidencias</strong>
-        <p>No hay medicamentos ni lotes que coincidan con los criterios de búsqueda seleccionados.</p>
+        <p>{{ mensajeSinResultados() }}</p>
       </div>
     } @else {
       <div class="tabla-responsive">
@@ -99,12 +99,8 @@
                 <td>{{ item.fechaCaducidad ?? '—' }}</td>
                 <td>
                   <div class="badges-estado">
-                    @if (item.semaforoCaducidad === 'Rojo') {
-                      <span class="badge semaforo-rojo">Rojo (≤ 3 meses)</span>
-                    } @else if (item.semaforoCaducidad === 'Amarillo') {
-                      <span class="badge semaforo-amarillo">Amarillo (4-12 meses)</span>
-                    } @else if (item.semaforoCaducidad === 'Verde') {
-                      <span class="badge semaforo-verde">Verde (> 12 meses)</span>
+                    @if (estadoSemaforo(item); as estado) {
+                      <app-semaforo [estado]="estado" />
                     }
 
                     @if (item.estadoDisponibilidad === 'Agotado') {

@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ItemInventario } from '../models/inventario.model';
 
-/** Servicio HTTP para búsqueda y consulta del inventario (HU-08). */
+/** Servicio HTTP para búsqueda y consulta del inventario, incluido el semáforo de caducidad (HU-08, HU-10). */
 @Injectable({ providedIn: 'root' })
 export class InventarioService {
   private readonly http = inject(HttpClient);
