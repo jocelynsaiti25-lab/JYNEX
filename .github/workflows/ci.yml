@@ -197,6 +197,14 @@ jobs:
         if: success() || failure()   # se ejecutan aunque falle otra historia, para ver todos los resultados
         working-directory: frontend
         run: node e2e/hu05-reasignar-contrasena.mjs
+      - name: Pruebas de HU-06 en el navegador (registro de medicamentos)
+        if: success() || failure()   # se ejecutan aunque falle otra historia, para ver todos los resultados
+        working-directory: frontend
+        run: node e2e/hu06-registro-medicamentos.mjs
+      - name: Pruebas de HU-07 en el navegador (entrada de lote)
+        if: success() || failure()   # se ejecutan aunque falle otra historia, para ver todos los resultados
+        working-directory: frontend
+        run: node e2e/hu07-registro-entrada-lote.mjs
       - name: Guardar capturas de pantalla
         if: always()
         uses: actions/upload-artifact@v4

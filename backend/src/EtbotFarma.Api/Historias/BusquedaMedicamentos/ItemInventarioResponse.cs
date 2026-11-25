@@ -1,4 +1,4 @@
-namespace EtbotFarma.Api.Historias.Inventario;
+namespace EtbotFarma.Api.Historias.BusquedaMedicamentos;
 
 public sealed record ItemInventarioResponse(
     int IdMedicamento,

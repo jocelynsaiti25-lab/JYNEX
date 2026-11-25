@@ -1,7 +1,7 @@
 namespace EtbotFarma.Domain.Enums;
 
 /// <summary>
-/// Clasificación preventiva por meses calendario hasta la fecha de caducidad:
+/// Clasificación visual de caducidad por meses calendario:
 /// Verde (> 12 meses), Amarillo (> 3 y <= 12 meses), Rojo (<= 3 meses, incluye caducados).
 /// </summary>
 public enum SemaforoCaducidad

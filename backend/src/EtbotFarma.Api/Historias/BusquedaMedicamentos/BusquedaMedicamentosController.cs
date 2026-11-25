@@ -1,8 +1,8 @@
-using EtbotFarma.Application.Inventario.Queries;
+using EtbotFarma.Application.BusquedaMedicamentos.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EtbotFarma.Api.Historias.Inventario;
+namespace EtbotFarma.Api.Historias.BusquedaMedicamentos;
 
 /// <summary>
 /// HU-08: Búsqueda y consulta de medicamentos en el inventario.
@@ -10,7 +10,7 @@ namespace EtbotFarma.Api.Historias.Inventario;
 /// </summary>
 [ApiController]
 [Route("api/inventario")]
-public sealed class InventarioController(ISender sender) : ControllerBase
+public sealed class BusquedaMedicamentosController(ISender sender) : ControllerBase
 {
     /// <summary>
     /// GET api/inventario?termino=...&semaforo=...

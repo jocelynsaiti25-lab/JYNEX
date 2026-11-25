@@ -65,6 +65,26 @@ export const routes: Routes = [
           import('./features/reasignacion-contrasena/reasignar-contrasena.component').then((m) => m.ReasignarContrasenaComponent),
       },
       {
+        // HU-06: acceso para Administrador y Empleado; avisa si sale con datos sin guardar
+        path: 'medicamentos/registrar',
+        canDeactivate: [cambiosSinGuardarGuard],
+        title: 'Registrar medicamento · Etbot Farma',
+        loadComponent: () =>
+          import('./features/medicamentos/registrar-medicamento/registrar-medicamento.component').then(
+            (m) => m.RegistrarMedicamentoComponent
+          ),
+      },
+      {
+        // HU-07: Registro de entrada de lote (Administrador y Empleado; avisa si sale sin guardar)
+        path: 'inventario/entrada-lote',
+        title: 'Entrada de lote · Etbot Farma',
+        canDeactivate: [cambiosSinGuardarGuard],
+        loadComponent: () =>
+          import('./features/inventario/registrar-entrada-lote/registrar-entrada-lote.component').then(
+            (m) => m.RegistrarEntradaLoteComponent
+          ),
+      },
+      {
         // HU-08: Búsqueda y consulta de medicamentos en inventario (Administrador y Empleado)
         path: 'inventario',
         title: 'Inventario · Etbot Farma',

@@ -1,4 +1,4 @@
-namespace EtbotFarma.Application.Inventario.Dtos;
+namespace EtbotFarma.Application.BusquedaMedicamentos.Dtos;
 
 /// <summary>
 /// HU-08 escenario 3: datos completos de cada fila de medicamento y lote en el inventario.

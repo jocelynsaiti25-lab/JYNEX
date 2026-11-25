@@ -1,11 +1,13 @@
 using EtbotFarma.Domain.Common;
+using EtbotFarma.Domain.ValueObjects;
 
 namespace EtbotFarma.Domain.Entities;
 
 /// <summary>
-/// Entidad de dominio que representa un medicamento del catálogo de la farmacia.
+/// Representa un medicamento del catálogo. Tabla: medicamento.
+/// El stock NO se almacena aquí; vive en cada Lote.
 /// </summary>
-public sealed class Medicamento : Entity<int>
+public class Medicamento : Entity<int>
 {
     public string NombreComercial { get; private set; } = string.Empty;
     public string NombreSustancia { get; private set; } = string.Empty;
@@ -18,25 +20,29 @@ public sealed class Medicamento : Entity<int>
 
     private Medicamento() { }
 
+    /// <summary>
+    /// Crea un medicamento nuevo para el catálogo.
+    /// HU-06 criterios 1, 15, 16 y regla de negocio (stock_minimo inicia en 0 y activo en true).
+    /// </summary>
     public static Medicamento Crear(
         string nombreComercial,
         string nombreSustancia,
         string presentacion,
         string concentracion,
         bool esControlado,
-        int stockMinimo,
-        DateTime fechaRegistroUtc)
+        DateTime fechaRegistro)
     {
         if (string.IsNullOrWhiteSpace(nombreComercial))
-            throw new DomainException("El nombre comercial del medicamento es obligatorio.");
+            throw new DomainException("El nombre comercial es obligatorio.");
+
         if (string.IsNullOrWhiteSpace(nombreSustancia))
-            throw new DomainException("La sustancia activa del medicamento es obligatoria.");
+            throw new DomainException("La sustancia activa es obligatoria.");
+
         if (string.IsNullOrWhiteSpace(presentacion))
-            throw new DomainException("La presentación del medicamento es obligatoria.");
+            throw new DomainException("La presentación es obligatoria.");
+
         if (string.IsNullOrWhiteSpace(concentracion))
-            throw new DomainException("La concentración del medicamento es obligatoria.");
-        if (stockMinimo < 0)
-            throw new DomainException("El stock mínimo no puede ser negativo.");
+            throw new DomainException("La concentración es obligatoria.");
 
         return new Medicamento
         {
@@ -45,12 +51,42 @@ public sealed class Medicamento : Entity<int>
             Presentacion = presentacion.Trim(),
             Concentracion = concentracion.Trim(),
             EsControlado = esControlado,
-            StockMinimo = stockMinimo,
+            StockMinimo = 0, // Regla de negocio US06: al registrar queda en 0 (se configura en HU-11)
             Activo = true,
-            FechaRegistro = fechaRegistroUtc
+            FechaRegistro = fechaRegistro
         };
     }
 
+    /// <summary>
+    /// HU-07 escenario 2: valida que el medicamento esté activo en el catálogo antes de recibir un nuevo lote.
+    /// </summary>
+    public void ValidarDisponibleParaEntrada()
+    {
+        if (!Activo)
+            throw new DomainException("No se puede registrar una entrada de lote para un medicamento inactivo.");
+    }
+
+    public ExistenciasMedicamento CalcularExistencias(IEnumerable<Lote> lotes, DateOnly hoy)
+    {
+        var lotesConStock = lotes.Where(l => l.Stock > 0).ToList();
+        var total = lotesConStock.Sum(l => l.Stock);
+        var estaAgotado = total == 0;
+        var enStockBajo = !estaAgotado && StockMinimo > 0 && total <= StockMinimo;
+        return new ExistenciasMedicamento(total, CalcularSemaforoGeneral(lotesConStock, hoy), estaAgotado, enStockBajo);
+    }
+
+    private static string CalcularSemaforoGeneral(IReadOnlyCollection<Lote> lotesConStock, DateOnly hoy)
+    {
+        if (lotesConStock.Count == 0) return "SinStock";
+
+        var peor = lotesConStock.Max(l => l.ObtenerSemaforo(hoy));
+        return peor.ToString();
+    }
+
+    /// <summary>Asigna el identificador generado por MySQL tras el INSERT.</summary>
+    public void AsignarId(int id) => Id = id;
+
+    /// <summary>Reconstruye la entidad desde una fila de MySQL sin ejecutar reglas de creación.</summary>
     public static Medicamento Reconstruir(
         int id,
         string nombreComercial,

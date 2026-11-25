@@ -49,6 +49,7 @@ export const MENU: OpcionMenu[] = [
     descripcion: 'Registrar un lote nuevo de un medicamento existente.',
     icono: 'move_to_inbox',
     historias: ['HU-07'],
+    ruta: '/inventario/entrada-lote',
   },
   {
     etiqueta: 'Salida de medicamentos',
@@ -70,6 +71,13 @@ export const MENU: OpcionMenu[] = [
     // HU-04 escenario 1: abre la lista de usuarios; desde ahí se llega a "Crear usuario" (HU-03).
     ruta: '/usuarios',
     roles: ['Administrador'],
+  },
+  {
+    etiqueta: 'Registrar medicamento',
+    descripcion: 'Dar de alta un medicamento nuevo con su primer lote.',
+    icono: 'medication',
+    historias: ['HU-06'],
+    ruta: '/medicamentos/registrar',
   },
 ];
 

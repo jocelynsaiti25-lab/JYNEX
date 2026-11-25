@@ -2,10 +2,11 @@ using EtbotFarma.Application.Common.Exceptions;
 using EtbotFarma.Application.Common.Interfaces;
 using EtbotFarma.Application.Common.Interfaces.Repositorios;
 using EtbotFarma.Application.Common.Messaging;
-using EtbotFarma.Application.Inventario.Dtos;
-using EtbotFarma.Application.Inventario.Queries;
+using EtbotFarma.Application.BusquedaMedicamentos.Dtos;
+using EtbotFarma.Application.BusquedaMedicamentos.Queries;
+using EtbotFarma.Domain.ValueObjects;
 
-namespace EtbotFarma.Application.Inventario.Handlers;
+namespace EtbotFarma.Application.BusquedaMedicamentos.Handlers;
 
 /// <summary>
 /// HU-08: Coordina la búsqueda de medicamentos y lotes en el inventario.
@@ -40,17 +41,14 @@ public sealed class ConsultarInventarioHandler(
 
         foreach (var med in listaMedicamentos)
         {
-            var stockTotalMedicamento = lotesPorMedicamento.TryGetValue(med.Id, out var lotesMed)
-                ? lotesMed.Sum(l => l.Stock)
-                : 0;
-
-            var estadoDisponibilidad = DeterminarEstadoDisponibilidad(stockTotalMedicamento, med.StockMinimo);
+            lotesPorMedicamento.TryGetValue(med.Id, out var lotesMed);
+            var existencias = med.CalcularExistencias(lotesMed ?? [], hoy);
+            var estadoDisponibilidad = DeterminarEstadoDisponibilidad(existencias);
 
             if (lotesMed is { Count: > 0 })
             {
                 foreach (var lote in lotesMed)
                 {
-                    var semaforo = lote.ObtenerSemaforo(hoy).ToString();
                     filas.Add(new ItemInventarioDto(
                         med.Id,
                         lote.Id,
@@ -63,13 +61,12 @@ public sealed class ConsultarInventarioHandler(
                         lote.NumeroLote,
                         lote.Stock,
                         lote.FechaCaducidad,
-                        semaforo,
+                        lote.ObtenerSemaforo(hoy).ToString(),
                         estadoDisponibilidad));
                 }
             }
             else
             {
-                // Medicamento activo sin lotes con stock (Agotado)
                 filas.Add(new ItemInventarioDto(
                     med.Id,
                     null,
@@ -83,7 +80,7 @@ public sealed class ConsultarInventarioHandler(
                     0,
                     null,
                     "SinStock",
-                    "Agotado"));
+                    estadoDisponibilidad));
             }
         }
 
@@ -112,10 +109,10 @@ public sealed class ConsultarInventarioHandler(
         return filas;
     }
 
-    private static string DeterminarEstadoDisponibilidad(int stockTotal, int stockMinimo)
+    private static string DeterminarEstadoDisponibilidad(ExistenciasMedicamento existencias)
     {
-        if (stockTotal == 0) return "Agotado";
-        if (stockMinimo > 0 && stockTotal <= stockMinimo) return "Stock bajo";
+        if (existencias.EstaAgotado) return "Agotado";
+        if (existencias.EnStockBajo) return "Stock bajo";
         return "Disponible";
     }
 }

@@ -1,11 +1,12 @@
 using EtbotFarma.Application.Common.Exceptions;
 using EtbotFarma.Application.Common.Interfaces;
 using EtbotFarma.Application.Common.Interfaces.Repositorios;
-using EtbotFarma.Application.Inventario.Handlers;
-using EtbotFarma.Application.Inventario.Queries;
+using EtbotFarma.Application.BusquedaMedicamentos.Handlers;
+using EtbotFarma.Application.BusquedaMedicamentos.Queries;
+using EtbotFarma.Application.Tests.Falsos;
 using EtbotFarma.Domain.Entities;
 
-namespace EtbotFarma.Application.Tests.Inventario;
+namespace EtbotFarma.Application.Tests.BusquedaMedicamentos;
 
 public class ConsultarInventarioTests
 {
@@ -76,33 +77,19 @@ public class ConsultarInventarioTests
     private static ConsultarInventarioHandler CrearHandlerConDatosDePrueba(int? idUsuario = 1)
     {
         var hoy = new DateOnly(2026, 11, 25);
-        var repoMed = new FalsoMedicamentoRepository();
+        var repoMed = new MedicamentoRepositoryFalso();
         repoMed.Medicamentos.Add(
             Medicamento.Reconstruir(1, "Paracetamol Genérico", "Paracetamol", "Tabletas", "500 mg", false, 10, true, DateTime.UtcNow));
         repoMed.Medicamentos.Add(
             Medicamento.Reconstruir(2, "Advil", "Ibuprofeno", "Cápsulas", "400 mg", false, 5, true, DateTime.UtcNow));
 
-        var repoLotes = new FalsoLoteRepository();
+        var repoLotes = new LoteRepositoryFalso();
         repoLotes.Lotes.Add(Lote.Reconstruir(1, 1, "LOT-LEJANO", hoy.AddMonths(15), 40, hoy));
         repoLotes.Lotes.Add(Lote.Reconstruir(2, 1, "LOT-PROXIMO", hoy.AddMonths(2), 15, hoy));
         repoLotes.Lotes.Add(Lote.Reconstruir(3, 2, "LOT-2026-B", hoy.AddMonths(6), 30, hoy));
 
         var reloj = new FalsoDateTimeProvider(new DateTimeOffset(2026, 11, 25, 10, 0, 0, TimeSpan.Zero));
         return new ConsultarInventarioHandler(repoMed, repoLotes, new FalsoUsuarioActual(idUsuario), reloj);
-    }
-
-    private sealed class FalsoMedicamentoRepository : IMedicamentoRepository
-    {
-        public List<Medicamento> Medicamentos { get; } = [];
-        public Task<IReadOnlyList<Medicamento>> ObtenerTodosActivosAsync(CancellationToken ct) =>
-            Task.FromResult<IReadOnlyList<Medicamento>>(Medicamentos.Where(m => m.Activo).ToList());
-    }
-
-    private sealed class FalsoLoteRepository : ILoteRepository
-    {
-        public List<Lote> Lotes { get; } = [];
-        public Task<IReadOnlyList<Lote>> ObtenerTodosOrdenadosPorCaducidadAsync(CancellationToken ct) =>
-            Task.FromResult<IReadOnlyList<Lote>>(Lotes.OrderBy(l => l.FechaCaducidad).ToList());
     }
 
     private sealed class FalsoUsuarioActual(int? idUsuario) : IUsuarioActual
