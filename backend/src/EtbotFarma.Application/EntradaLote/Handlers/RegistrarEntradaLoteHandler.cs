@@ -7,7 +7,6 @@ using EtbotFarma.Application.EntradaLote.Commands;
 using EtbotFarma.Application.EntradaLote.Dtos;
 using EtbotFarma.Domain.Common;
 using EtbotFarma.Domain.Entities;
-using EtbotFarma.Domain.Enums;
 
 namespace EtbotFarma.Application.EntradaLote.Handlers;
 
@@ -74,20 +73,10 @@ public sealed class RegistrarEntradaLoteHandler(
 
         await movimientos.AgregarConDetallesAsync(movimiento, cancellationToken);
 
-        // 6. Confirmar toda la transacción atómica (HU-07 escenario 13: rollback automático si algo falla)
+        var lotesActualizados = await lotes.ObtenerPorMedicamentosAsync([medicamento.Id], cancellationToken);
+        var existencias = medicamento.CalcularExistencias(lotesActualizados, hoy);
+
         await unitOfWork.GuardarCambiosAsync(cancellationToken);
-
-        // 7. Recalcular existencias totales, semáforo y estados agotado / stock bajo (HU-07 escenarios 11 y 12)
-        var lotesActualizados = await lotes.ObtenerPorMedicamentoAsync(medicamento.Id, cancellationToken);
-        var lotesConStock = lotesActualizados.Where(l => l.Stock > 0).ToList();
-        if (lotesConStock.All(l => l.Id != nuevoLote.Id))
-            lotesConStock.Add(nuevoLote);
-
-        var existenciasTotales = lotesConStock.Sum(l => l.Stock);
-        var semaforoLote = nuevoLote.ObtenerSemaforo(hoy).ToString();
-        var semaforoGeneral = CalcularSemaforoGeneral(lotesConStock.Select(l => l.ObtenerSemaforo(hoy)));
-        var estaAgotado = existenciasTotales == 0;
-        var enStockBajo = !estaAgotado && medicamento.StockMinimo > 0 && existenciasTotales <= medicamento.StockMinimo;
 
         var descripcionMedicamento = $"{medicamento.NombreComercial} ({medicamento.NombreSustancia} {medicamento.Concentracion} - {medicamento.Presentacion})";
 
@@ -98,20 +87,11 @@ public sealed class RegistrarEntradaLoteHandler(
             nuevoLote.NumeroLote,
             nuevoLote.FechaCaducidad,
             cantidad,
-            semaforoLote,
-            existenciasTotales,
-            semaforoGeneral,
-            estaAgotado,
-            enStockBajo,
+            nuevoLote.ObtenerSemaforo(hoy).ToString(),
+            existencias.Total,
+            existencias.SemaforoGeneral,
+            existencias.EstaAgotado,
+            existencias.EnStockBajo,
             "Entrada de lote registrada correctamente.");
-    }
-
-    private static string CalcularSemaforoGeneral(IEnumerable<SemaforoCaducidad> semaforos)
-    {
-        var lista = semaforos.ToList();
-        if (lista.Count == 0) return "SinStock";
-        if (lista.Contains(SemaforoCaducidad.Rojo)) return SemaforoCaducidad.Rojo.ToString();
-        if (lista.Contains(SemaforoCaducidad.Amarillo)) return SemaforoCaducidad.Amarillo.ToString();
-        return SemaforoCaducidad.Verde.ToString();
     }
 }

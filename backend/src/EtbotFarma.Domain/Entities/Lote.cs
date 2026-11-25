@@ -20,7 +20,7 @@ public class Lote : Entity<int>
     private Lote() { }
 
     /// <summary>
-    /// Crea el lote inicial de un medicamento nuevo (permite cantidad 0).
+    /// Crea el lote inicial de un medicamento nuevo.
     /// HU-06 escenarios 2, 3, 10, 11, 12 y 13.
     /// </summary>
     public static Lote Crear(
@@ -32,6 +32,7 @@ public class Lote : Entity<int>
     {
         var loteNormalizado = numeroLote?.Trim() ?? string.Empty;
 
+        // HU-06 escenario 13: solo letras, números y guiones, máximo 50 caracteres
         if (string.IsNullOrWhiteSpace(loteNormalizado)
             || loteNormalizado.Length > 50
             || !PatronNumeroLote.IsMatch(loteNormalizado))
@@ -39,11 +40,13 @@ public class Lote : Entity<int>
             throw new DomainException("El número de lote solo puede tener letras, números y guiones.");
         }
 
+        // HU-06 escenario 12: la cantidad debe ser 0 o mayor
         if (cantidadInicial < 0)
         {
             throw new DomainException("La cantidad debe ser un número entero de 0 o más.");
         }
 
+        // HU-06 escenario 10: no se permite registrar un lote caducado (hoy o anterior)
         if (fechaCaducidad <= fechaHoy)
         {
             throw new DomainException("No se puede registrar un lote caducado.");
@@ -73,18 +76,16 @@ public class Lote : Entity<int>
         if (idMedicamento <= 0)
             throw new DomainException("Debe seleccionar un medicamento válido.");
 
-        // HU-07 escenario 4: cantidad estrictamente mayor que cero
         if (cantidad <= 0)
             throw new DomainException("La cantidad de entrada debe ser un número entero mayor que cero.");
 
-        // Reutiliza validación de formato de lote y caducidad > fechaHoy (HU-07 escenario 5)
         return Crear(idMedicamento, numeroLote, fechaCaducidad, cantidad, fechaHoy);
     }
 
     public void AsignarId(int id) => Id = id;
 
     /// <summary>
-    /// Calcula el color del semáforo de caducidad en meses calendario (HU-06 / HU-07 escenario 12).
+    /// Calcula el color del semáforo de caducidad en meses calendario (HU-06 escenarios 11 y 20).
     /// Rojo: <= 3 meses · Amarillo: > 3 y <= 12 meses · Verde: > 12 meses.
     /// </summary>
     public SemaforoCaducidad ObtenerSemaforo(DateOnly fechaHoy)

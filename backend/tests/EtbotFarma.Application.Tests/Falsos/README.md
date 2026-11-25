@@ -18,6 +18,9 @@ se pueden probar sin base de datos, sin cookies y con una fecha fija.
 | `IDateTimeProvider` | `RelojFalso.cs` |
 | `ICookieSesionService` | `CookieSesionServiceFalso.cs` |
 | `IUsuarioActual` | `UsuarioActualFalso.cs` |
+| `IMedicamentoRepository` | `MedicamentoRepositoryFalso.cs` |
+| `ILoteRepository` | `LoteRepositoryFalso.cs` |
+| `IMovimientoRepository` | `MovimientoRepositoryFalso.cs` |
 
 ## Cómo agregar el falso de tu historia
 

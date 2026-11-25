@@ -4,13 +4,13 @@ using EtbotFarma.Domain.Entities;
 namespace EtbotFarma.Infrastructure.Persistence.Repositorios;
 
 /// <summary>
-/// Consultas SQL de las tablas movimiento y detalle_movimiento.
+/// Consultas SQL de las tablas movimiento y detalle_movimiento (bitácora).
 /// </summary>
 public sealed class MovimientoRepository(ConexionMySql conexion) : IMovimientoRepository
 {
     public async Task<int> AgregarConDetallesAsync(Movimiento movimiento, CancellationToken cancellationToken)
     {
-        // HU-07 escenario 10: inserta el movimiento de ENTRADA con usuario, fecha y hora
+        // HU-06 escenarios 1 y 3: registra el encabezado de ENTRADA en la bitácora
         const string sqlMovimiento = """
             INSERT INTO movimiento (
                 tipo,
@@ -18,8 +18,7 @@ public sealed class MovimientoRepository(ConexionMySql conexion) : IMovimientoRe
                 id_usuario,
                 cantidad_total,
                 motivo,
-                fecha,
-                hora
+                fecha
             )
             VALUES (
                 @tipo,
@@ -27,33 +26,33 @@ public sealed class MovimientoRepository(ConexionMySql conexion) : IMovimientoRe
                 @idUsuario,
                 @cantidadTotal,
                 @motivo,
-                @fecha,
-                @hora
+                @fecha
             );
             SELECT LAST_INSERT_ID();
             """;
 
-        await using var cmdMov = await conexion.CrearComandoAsync(sqlMovimiento, cancellationToken);
-        cmdMov.Parameters.AddWithValue("@tipo", movimiento.Tipo);
-        cmdMov.Parameters.AddWithValue("@idMedicamento", movimiento.IdMedicamento);
-        cmdMov.Parameters.AddWithValue("@idUsuario", movimiento.IdUsuario);
-        cmdMov.Parameters.AddWithValue("@cantidadTotal", movimiento.CantidadTotal);
-        cmdMov.Parameters.AddWithValue("@motivo", (object?)movimiento.Motivo ?? DBNull.Value);
-        cmdMov.Parameters.AddWithValue("@fecha", movimiento.Fecha.Date);
-        cmdMov.Parameters.AddWithValue("@hora", movimiento.Fecha.TimeOfDay);
+        await using var comandoMovimiento = await conexion.CrearComandoAsync(sqlMovimiento, cancellationToken);
+        comandoMovimiento.Parameters.AddWithValue("@tipo", movimiento.Tipo);
+        comandoMovimiento.Parameters.AddWithValue("@idMedicamento", movimiento.IdMedicamento);
+        comandoMovimiento.Parameters.AddWithValue("@idUsuario", movimiento.IdUsuario);
+        comandoMovimiento.Parameters.AddWithValue("@cantidadTotal", movimiento.CantidadTotal);
+        comandoMovimiento.Parameters.AddWithValue("@motivo", (object?)movimiento.Motivo ?? DBNull.Value);
+        comandoMovimiento.Parameters.AddWithValue("@fecha", movimiento.Fecha);
 
-        var idMovimiento = Convert.ToInt32(await cmdMov.ExecuteScalarAsync(cancellationToken));
+        var idMovimiento = Convert.ToInt32(await comandoMovimiento.ExecuteScalarAsync(cancellationToken));
         movimiento.AsignarId(idMovimiento);
 
-        // HU-07 escenario 10: inserta el detalle asociado al lote
+        // Inserta cada detalle en detalle_movimiento dentro de la misma transacción
         const string sqlDetalle = """
             INSERT INTO detalle_movimiento (
                 id_movimiento,
+                id_medicamento,
                 id_lote,
                 cantidad
             )
             VALUES (
                 @idMovimiento,
+                @idMedicamento,
                 @idLote,
                 @cantidad
             );
@@ -61,11 +60,13 @@ public sealed class MovimientoRepository(ConexionMySql conexion) : IMovimientoRe
 
         foreach (var detalle in movimiento.Detalles)
         {
-            await using var cmdDet = await conexion.CrearComandoAsync(sqlDetalle, cancellationToken);
-            cmdDet.Parameters.AddWithValue("@idMovimiento", idMovimiento);
-            cmdDet.Parameters.AddWithValue("@idLote", detalle.IdLote);
-            cmdDet.Parameters.AddWithValue("@cantidad", detalle.Cantidad);
-            await cmdDet.ExecuteNonQueryAsync(cancellationToken);
+            await using var comandoDetalle = await conexion.CrearComandoAsync(sqlDetalle, cancellationToken);
+            comandoDetalle.Parameters.AddWithValue("@idMovimiento", detalle.IdMovimiento);
+            comandoDetalle.Parameters.AddWithValue("@idMedicamento", detalle.IdMedicamento);
+            comandoDetalle.Parameters.AddWithValue("@idLote", detalle.IdLote);
+            comandoDetalle.Parameters.AddWithValue("@cantidad", detalle.Cantidad);
+
+            await comandoDetalle.ExecuteNonQueryAsync(cancellationToken);
         }
 
         return idMovimiento;

@@ -31,9 +31,9 @@ public static class DependencyInjection
         services.AddScoped<ISesionRepository, SesionRepository>();
         services.AddScoped<IRolRepository, RolRepository>();
         services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();   // compartido: cambios administrativos
-        services.AddScoped<IMedicamentoRepository, MedicamentoRepository>(); // HU-07
-        services.AddScoped<ILoteRepository, LoteRepository>();               // HU-07
-        services.AddScoped<IMovimientoRepository, MovimientoRepository>();   // HU-07
+        services.AddScoped<IMedicamentoRepository, MedicamentoRepository>(); // HU-06
+        services.AddScoped<ILoteRepository, LoteRepository>();               // HU-06
+        services.AddScoped<IMovimientoRepository, MovimientoRepository>();   // HU-06
 
         // ---------- Seguridad ----------
         services.AddSingleton<IPasswordHasher, PasswordHasher>();

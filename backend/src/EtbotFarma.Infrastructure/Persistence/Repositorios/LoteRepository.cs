@@ -10,6 +10,7 @@ public sealed class LoteRepository(ConexionMySql conexion) : ILoteRepository
 {
     public async Task<int> AgregarAsync(Lote lote, CancellationToken cancellationToken)
     {
+        // HU-06 escenarios 1, 2 y 3: guarda el lote inicial del medicamento
         const string sql = """
             INSERT INTO lote (
                 id_medicamento,
@@ -61,12 +62,15 @@ public sealed class LoteRepository(ConexionMySql conexion) : ILoteRepository
         return resultado is not null;
     }
 
-    public async Task<IReadOnlyList<Lote>> ObtenerPorMedicamentoAsync(
-        int idMedicamento,
+    public async Task<IReadOnlyList<Lote>> ObtenerPorMedicamentosAsync(
+        IReadOnlyCollection<int> idsMedicamento,
         CancellationToken cancellationToken)
     {
-        // HU-07 escenario 11: obtiene lotes del medicamento para calcular stock total y semáforo
-        const string sql = """
+        if (idsMedicamento.Count == 0)
+            return [];
+
+        var parametros = idsMedicamento.Select((_, i) => $"@id{i}").ToList();
+        var sql = $"""
             SELECT
                 id_lote,
                 id_medicamento,
@@ -75,12 +79,16 @@ public sealed class LoteRepository(ConexionMySql conexion) : ILoteRepository
                 stock,
                 fecha_entrada
             FROM lote
-            WHERE id_medicamento = @idMedicamento
+            WHERE id_medicamento IN ({string.Join(", ", parametros)})
             ORDER BY fecha_caducidad ASC;
             """;
 
         await using var comando = await conexion.CrearComandoAsync(sql, cancellationToken);
-        comando.Parameters.AddWithValue("@idMedicamento", idMedicamento);
+        var indice = 0;
+        foreach (var id in idsMedicamento)
+        {
+            comando.Parameters.AddWithValue(parametros[indice++], id);
+        }
 
         var lotes = new List<Lote>();
         await using var lector = await comando.ExecuteReaderAsync(cancellationToken);

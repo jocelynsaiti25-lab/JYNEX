@@ -1,4 +1,5 @@
 using EtbotFarma.Domain.Common;
+using EtbotFarma.Domain.ValueObjects;
 
 namespace EtbotFarma.Domain.Entities;
 
@@ -63,6 +64,23 @@ public class Medicamento : Entity<int>
     {
         if (!Activo)
             throw new DomainException("No se puede registrar una entrada de lote para un medicamento inactivo.");
+    }
+
+    public ExistenciasMedicamento CalcularExistencias(IEnumerable<Lote> lotes, DateOnly hoy)
+    {
+        var lotesConStock = lotes.Where(l => l.Stock > 0).ToList();
+        var total = lotesConStock.Sum(l => l.Stock);
+        var estaAgotado = total == 0;
+        var enStockBajo = !estaAgotado && StockMinimo > 0 && total <= StockMinimo;
+        return new ExistenciasMedicamento(total, CalcularSemaforoGeneral(lotesConStock, hoy), estaAgotado, enStockBajo);
+    }
+
+    private static string CalcularSemaforoGeneral(IReadOnlyCollection<Lote> lotesConStock, DateOnly hoy)
+    {
+        if (lotesConStock.Count == 0) return "SinStock";
+
+        var peor = lotesConStock.Max(l => l.ObtenerSemaforo(hoy));
+        return peor.ToString();
     }
 
     /// <summary>Asigna el identificador generado por MySQL tras el INSERT.</summary>

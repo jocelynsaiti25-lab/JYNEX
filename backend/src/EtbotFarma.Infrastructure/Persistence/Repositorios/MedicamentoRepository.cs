@@ -15,6 +15,7 @@ public sealed class MedicamentoRepository(ConexionMySql conexion) : IMedicamento
         string concentracion,
         CancellationToken cancellationToken)
     {
+        // HU-06 escenarios 14 y 15: identidad única por combinación de 4 campos sin importar mayúsculas
         const string sql = """
             SELECT 1
             FROM medicamento
@@ -37,6 +38,7 @@ public sealed class MedicamentoRepository(ConexionMySql conexion) : IMedicamento
 
     public async Task<int> AgregarAsync(Medicamento medicamento, CancellationToken cancellationToken)
     {
+        // HU-06 escenarios 1, 2 y 16: inserta el medicamento y obtiene el id_medicamento generado
         const string sql = """
             INSERT INTO medicamento (
                 nombre_comercial,
@@ -134,19 +136,20 @@ public sealed class MedicamentoRepository(ConexionMySql conexion) : IMedicamento
             WHERE m.activo = TRUE
               AND (
                     @filtro = ''
-                    OR LOWER(m.nombre_comercial) LIKE @patron
-                    OR LOWER(m.nombre_sustancia) LIKE @patron
-                    OR LOWER(l.numero_lote) LIKE @patron
+                    OR LOWER(m.nombre_comercial) LIKE @patron ESCAPE '\\'
+                    OR LOWER(m.nombre_sustancia) LIKE @patron ESCAPE '\\'
+                    OR LOWER(l.numero_lote) LIKE @patron ESCAPE '\\'
                   )
             ORDER BY m.nombre_comercial ASC, m.concentracion ASC
             LIMIT 50;
             """;
 
         var filtroNormalizado = termino?.Trim().ToLowerInvariant() ?? string.Empty;
+        var filtroEscapado = filtroNormalizado.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
 
         await using var comando = await conexion.CrearComandoAsync(sql, cancellationToken);
         comando.Parameters.AddWithValue("@filtro", filtroNormalizado);
-        comando.Parameters.AddWithValue("@patron", $"%{filtroNormalizado}%");
+        comando.Parameters.AddWithValue("@patron", $"%{filtroEscapado}%");
 
         var resultado = new List<Medicamento>();
         await using var lector = await comando.ExecuteReaderAsync(cancellationToken);

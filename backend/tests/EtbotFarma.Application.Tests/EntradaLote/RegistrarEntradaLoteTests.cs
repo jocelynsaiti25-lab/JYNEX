@@ -4,6 +4,7 @@ using EtbotFarma.Application.EntradaLote.Commands;
 using EtbotFarma.Application.EntradaLote.Handlers;
 using EtbotFarma.Application.EntradaLote.Queries;
 using EtbotFarma.Application.EntradaLote.Validators;
+using EtbotFarma.Application.Tests.Falsos;
 using EtbotFarma.Domain.Common;
 using EtbotFarma.Domain.Entities;
 
@@ -15,12 +16,12 @@ public class RegistrarEntradaLoteTests
     public async Task Con_datos_validos_crea_lote_registra_bitacora_y_actualiza_existencias_y_estado_agotado()
     {
         // Escenarios 10 y 11: medicamento estaba agotado (0 existencias) y pasa a disponible
-        var repoMed = new FalsoMedicamentoRepository();
+        var repoMed = new MedicamentoRepositoryFalso();
         var med = Medicamento.Reconstruir(1, "Paracetamol", "Paracetamol", "Tabletas", "500 mg", false, 10, true, DateTime.UtcNow);
         repoMed.Medicamentos.Add(med);
 
-        var repoLotes = new FalsoLoteRepository();
-        var repoMov = new FalsoMovimientoRepository();
+        var repoLotes = new LoteRepositoryFalso();
+        var repoMov = new MovimientoRepositoryFalso();
         var uow = new FalsoUnitOfWork();
         var reloj = new FalsoDateTimeProvider(new DateTimeOffset(2026, 11, 25, 10, 0, 0, TimeSpan.Zero));
         var usuario = new FalsoUsuarioActual(7);
@@ -30,10 +31,10 @@ public class RegistrarEntradaLoteTests
 
         var dto = await handler.Handle(command, CancellationToken.None);
 
-        Assert.Single(repoLotes.LotesGuardados);
-        Assert.Single(repoMov.MovimientosGuardados);
-        Assert.Equal(Movimiento.TipoEntrada, repoMov.MovimientosGuardados[0].Tipo);
-        Assert.Equal(7, repoMov.MovimientosGuardados[0].IdUsuario);
+        Assert.Single(repoLotes.Lotes);
+        Assert.Single(repoMov.Movimientos);
+        Assert.Equal(Movimiento.TipoEntrada, repoMov.Movimientos[0].Tipo);
+        Assert.Equal(7, repoMov.Movimientos[0].IdUsuario);
         Assert.Equal(25, dto.ExistenciasTotalesActualizadas);
         Assert.False(dto.EstaAgotado);
         Assert.False(dto.EnStockBajo);
@@ -45,12 +46,12 @@ public class RegistrarEntradaLoteTests
     public async Task Con_medicamento_inactivo_lanza_excepcion_y_no_guarda_nada()
     {
         // Escenario 2
-        var repoMed = new FalsoMedicamentoRepository();
+        var repoMed = new MedicamentoRepositoryFalso();
         repoMed.Medicamentos.Add(
             Medicamento.Reconstruir(2, "Naproxeno", "Naproxeno", "Tabletas", "250 mg", false, 5, false, DateTime.UtcNow));
 
-        var repoLotes = new FalsoLoteRepository();
-        var repoMov = new FalsoMovimientoRepository();
+        var repoLotes = new LoteRepositoryFalso();
+        var repoMov = new MovimientoRepositoryFalso();
         var uow = new FalsoUnitOfWork();
         var reloj = new FalsoDateTimeProvider(new DateTimeOffset(2026, 11, 25, 10, 0, 0, TimeSpan.Zero));
 
@@ -59,8 +60,8 @@ public class RegistrarEntradaLoteTests
         await Assert.ThrowsAsync<DomainException>(() =>
             handler.Handle(new RegistrarEntradaLoteCommand(2, "LOT-99", "2027-08-01", "10"), CancellationToken.None));
 
-        Assert.Empty(repoLotes.LotesGuardados);
-        Assert.Empty(repoMov.MovimientosGuardados);
+        Assert.Empty(repoLotes.Lotes);
+        Assert.Empty(repoMov.Movimientos);
         Assert.False(uow.Confirmado);
     }
 
@@ -68,17 +69,17 @@ public class RegistrarEntradaLoteTests
     public async Task Con_numero_de_lote_duplicado_en_el_mismo_medicamento_lanza_excepcion()
     {
         // Escenarios 6 y 7
-        var repoMed = new FalsoMedicamentoRepository();
+        var repoMed = new MedicamentoRepositoryFalso();
         repoMed.Medicamentos.Add(
             Medicamento.Reconstruir(1, "Paracetamol", "Paracetamol", "Tabletas", "500 mg", false, 5, true, DateTime.UtcNow));
         repoMed.Medicamentos.Add(
             Medicamento.Reconstruir(2, "Ibuprofeno", "Ibuprofeno", "Cápsulas", "400 mg", false, 5, true, DateTime.UtcNow));
 
-        var repoLotes = new FalsoLoteRepository();
-        repoLotes.LotesGuardados.Add(
+        var repoLotes = new LoteRepositoryFalso();
+        repoLotes.Lotes.Add(
             Lote.Reconstruir(10, 1, "LOT-2026-A", new DateOnly(2027, 5, 1), 20, new DateOnly(2026, 11, 1)));
 
-        var repoMov = new FalsoMovimientoRepository();
+        var repoMov = new MovimientoRepositoryFalso();
         var uow = new FalsoUnitOfWork();
         var reloj = new FalsoDateTimeProvider(new DateTimeOffset(2026, 11, 25, 10, 0, 0, TimeSpan.Zero));
 
@@ -114,13 +115,13 @@ public class RegistrarEntradaLoteTests
     public async Task Buscar_medicamentos_activos_excluye_inactivos_y_calcula_agotados()
     {
         // Escenarios 1, 2 y 11
-        var repoMed = new FalsoMedicamentoRepository();
+        var repoMed = new MedicamentoRepositoryFalso();
         repoMed.Medicamentos.Add(
             Medicamento.Reconstruir(1, "Amoxicilina", "Amoxicilina", "Cápsulas", "500 mg", false, 10, true, DateTime.UtcNow));
         repoMed.Medicamentos.Add(
             Medicamento.Reconstruir(2, "Obsoleto", "Sustancia X", "Jarabe", "100 ml", false, 5, false, DateTime.UtcNow));
 
-        var repoLotes = new FalsoLoteRepository();
+        var repoLotes = new LoteRepositoryFalso();
         var reloj = new FalsoDateTimeProvider(new DateTimeOffset(2026, 11, 25, 10, 0, 0, TimeSpan.Zero));
         var handler = new BuscarMedicamentosActivosHandler(repoMed, repoLotes, new FalsoUsuarioActual(1), reloj);
 
@@ -129,46 +130,6 @@ public class RegistrarEntradaLoteTests
         Assert.Single(lista);
         Assert.Equal("Amoxicilina", lista[0].NombreComercial);
         Assert.True(lista[0].EstaAgotado);
-    }
-
-    private sealed class FalsoMedicamentoRepository : IMedicamentoRepository
-    {
-        public List<Medicamento> Medicamentos { get; } = [];
-        public Task<bool> ExisteDuplicadoAsync(string nc, string ns, string p, string c, CancellationToken ct) =>
-            Task.FromResult(false);
-        public Task<int> AgregarAsync(Medicamento m, CancellationToken ct) => Task.FromResult(1);
-        public Task<Medicamento?> ObtenerPorIdAsync(int idMedicamento, CancellationToken ct) =>
-            Task.FromResult(Medicamentos.FirstOrDefault(m => m.Id == idMedicamento));
-        public Task<IReadOnlyList<Medicamento>> BuscarActivosAsync(string? termino, CancellationToken ct) =>
-            Task.FromResult<IReadOnlyList<Medicamento>>(Medicamentos.Where(m => m.Activo).ToList());
-    }
-
-    private sealed class FalsoLoteRepository : ILoteRepository
-    {
-        public List<Lote> LotesGuardados { get; } = [];
-        public Task<int> AgregarAsync(Lote lote, CancellationToken ct)
-        {
-            var id = LotesGuardados.Count + 1;
-            lote.AsignarId(id);
-            LotesGuardados.Add(lote);
-            return Task.FromResult(id);
-        }
-        public Task<bool> ExisteNumeroLoteEnMedicamentoAsync(int idMedicamento, string numeroLote, CancellationToken ct) =>
-            Task.FromResult(LotesGuardados.Any(l =>
-                l.IdMedicamento == idMedicamento
-                && l.NumeroLote.Equals(numeroLote.Trim(), StringComparison.OrdinalIgnoreCase)));
-        public Task<IReadOnlyList<Lote>> ObtenerPorMedicamentoAsync(int idMedicamento, CancellationToken ct) =>
-            Task.FromResult<IReadOnlyList<Lote>>(LotesGuardados.Where(l => l.IdMedicamento == idMedicamento).ToList());
-    }
-
-    private sealed class FalsoMovimientoRepository : IMovimientoRepository
-    {
-        public List<Movimiento> MovimientosGuardados { get; } = [];
-        public Task<int> AgregarConDetallesAsync(Movimiento movimiento, CancellationToken ct)
-        {
-            MovimientosGuardados.Add(movimiento);
-            return Task.FromResult(1);
-        }
     }
 
     private sealed class FalsoUnitOfWork : IUnitOfWork

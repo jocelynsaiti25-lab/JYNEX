@@ -32,24 +32,8 @@ public class Movimiento : Entity<int>
         int idLote,
         int idUsuario,
         int cantidad,
-        DateTime fechaUtc)
-    {
-        if (cantidad <= 0)
-            throw new DomainException("Un movimiento de entrada debe tener una cantidad mayor a 0.");
-
-        var movimiento = new Movimiento
-        {
-            Tipo = TipoEntrada,
-            IdMedicamento = idMedicamento,
-            IdUsuario = idUsuario,
-            CantidadTotal = cantidad,
-            Motivo = "Alta inicial de medicamento",
-            Fecha = fechaUtc
-        };
-
-        movimiento._detalles.Add(DetalleMovimiento.Crear(idMedicamento, idLote, cantidad));
-        return movimiento;
-    }
+        DateTime fechaUtc) =>
+        CrearEntrada(idMedicamento, idLote, idUsuario, cantidad, "Alta inicial de medicamento", fechaUtc);
 
     /// <summary>
     /// Crea un movimiento de ENTRADA en bitácora al registrar la llegada de un nuevo lote.
@@ -60,6 +44,15 @@ public class Movimiento : Entity<int>
         int idLote,
         int idUsuario,
         int cantidad,
+        DateTime fechaUtc) =>
+        CrearEntrada(idMedicamento, idLote, idUsuario, cantidad, "Entrada de nuevo lote", fechaUtc);
+
+    private static Movimiento CrearEntrada(
+        int idMedicamento,
+        int idLote,
+        int idUsuario,
+        int cantidad,
+        string motivo,
         DateTime fechaUtc)
     {
         if (cantidad <= 0)
@@ -71,7 +64,7 @@ public class Movimiento : Entity<int>
             IdMedicamento = idMedicamento,
             IdUsuario = idUsuario,
             CantidadTotal = cantidad,
-            Motivo = "Entrada de nuevo lote",
+            Motivo = motivo,
             Fecha = fechaUtc
         };
 
