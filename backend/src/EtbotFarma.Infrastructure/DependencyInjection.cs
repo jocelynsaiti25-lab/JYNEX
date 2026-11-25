@@ -10,12 +10,18 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EtbotFarma.Infrastructure;
 
+/// <summary>
+/// Registra las implementaciones técnicas: cada interfaz de Application con su clase real.
+/// Se llama desde Program.cs con: builder.Services.AddInfrastructure(builder.Configuration);
+/// </summary>
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        // ---------- Base de datos (MySQL con SQL a mano, sin ORM) ----------
+        // Una conexión + transacción por petición. También es el IUnitOfWork (COMMIT).
         var cadenaConexion = configuration.GetConnectionString("EtbotFarma") ?? string.Empty;
         services.AddScoped(_ => new ConexionMySql(cadenaConexion));
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ConexionMySql>());
