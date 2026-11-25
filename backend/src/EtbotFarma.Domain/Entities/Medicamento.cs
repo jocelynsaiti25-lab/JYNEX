@@ -1,3 +1,5 @@
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using EtbotFarma.Domain.Common;
 using EtbotFarma.Domain.ValueObjects;
 
@@ -65,6 +67,67 @@ public class Medicamento : Entity<int>
         if (!Activo)
             throw new DomainException("No se puede registrar una entrada de lote para un medicamento inactivo.");
     }
+
+    /// <summary>
+    /// HU-09 escenarios 1 y 9: actualiza SOLO los datos descriptivos del catálogo.
+    /// Conserva el Id, el stock mínimo, el estado activo y la fecha de registro (nunca se tocan aquí).
+    /// </summary>
+    public void Editar(
+        string nombreComercial,
+        string nombreSustancia,
+        string presentacion,
+        string concentracion,
+        bool esControlado)
+    {
+        if (string.IsNullOrWhiteSpace(nombreComercial))
+            throw new DomainException("El nombre comercial es obligatorio.");
+
+        if (string.IsNullOrWhiteSpace(nombreSustancia))
+            throw new DomainException("La sustancia activa es obligatoria.");
+
+        if (string.IsNullOrWhiteSpace(presentacion))
+            throw new DomainException("La presentación es obligatoria.");
+
+        if (string.IsNullOrWhiteSpace(concentracion))
+            throw new DomainException("La concentración es obligatoria.");
+
+        NombreComercial = nombreComercial.Trim();
+        NombreSustancia = nombreSustancia.Trim();
+        Presentacion = presentacion.Trim();
+        Concentracion = concentracion.Trim();
+        EsControlado = esControlado;
+    }
+
+    /// <summary>
+    /// HU-09 escenario 9: compara contra los valores ACTUALES para saber si el formulario trae algún cambio real
+    /// (sin importar mayúsculas ni espacios) antes de aplicar Editar.
+    /// </summary>
+    public bool TieneCambiosDescriptivos(
+        string nombreComercial,
+        string nombreSustancia,
+        string presentacion,
+        string concentracion,
+        bool esControlado)
+    {
+        return !NombreComercial.Equals(nombreComercial.Trim(), StringComparison.Ordinal)
+            || !NombreSustancia.Equals(nombreSustancia.Trim(), StringComparison.Ordinal)
+            || !Presentacion.Equals(presentacion.Trim(), StringComparison.Ordinal)
+            || !Concentracion.Equals(concentracion.Trim(), StringComparison.Ordinal)
+            || EsControlado != esControlado;
+    }
+
+    /// <summary>HU-09 escenario 1: datos descriptivos para la auditoría (antes/después), sin stock ni lotes.</summary>
+    public string DatosParaAuditoria() => JsonSerializer.Serialize(new
+    {
+        nombreComercial = NombreComercial,
+        nombreSustancia = NombreSustancia,
+        presentacion = Presentacion,
+        concentracion = Concentracion,
+        esControlado = EsControlado
+    }, OpcionesJson);
+
+    /// <summary>Guarda los acentos legibles (sin escapes Unicode) para que se lea fácil en MySQL.</summary>
+    private static readonly JsonSerializerOptions OpcionesJson = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public ExistenciasMedicamento CalcularExistencias(IEnumerable<Lote> lotes, DateOnly hoy)
     {

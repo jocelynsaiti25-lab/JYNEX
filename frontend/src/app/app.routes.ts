@@ -93,6 +93,17 @@ export const routes: Routes = [
             (m) => m.ConsultaInventarioComponent
           ),
       },
+      {
+        // HU-09: edición de información descriptiva de medicamentos (solo Administrador)
+        path: 'medicamentos/:idMedicamento/editar',
+        title: 'Editar medicamento · Etbot Farma',
+        canActivate: [rolGuard(['Administrador'])],
+        canDeactivate: [cambiosSinGuardarGuard],
+        loadComponent: () =>
+          import('./features/medicamentos/editar-medicamento/editar-medicamento.component').then(
+            (m) => m.EditarMedicamentoComponent
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: 'inicio' },
