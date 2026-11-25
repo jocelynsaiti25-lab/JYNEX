@@ -18,7 +18,7 @@ Fuente: `Historias_Usuario.xlsx` (Google Drive del equipo). 16 historias ordenad
 | | HU-05 | Reasignación de contraseña | `ReasignacionContrasena` | Command | Terminada | Jocelyn |
 | 3. Catálogo | HU-06 | Registro de medicamentos | `RegistroMedicamentos` | Command | En progreso | Daniela |
 | | HU-07 | Registro de entrada de lote | `EntradaLote` | Command | En progreso | Daniela |
-| | HU-08 | Búsqueda de medicamentos | `BusquedaMedicamentos` | Query | Pendiente | |
+| | HU-08 | Búsqueda de medicamentos | `BusquedaMedicamentos` | Query | En progreso | Daniela |
 | | HU-09 | Edición de información de medicamentos | `EdicionMedicamentos` | Command | Pendiente | |
 | 4. Estado del inventario | HU-10 | Semáforo y filtros de caducidad | `SemaforoCaducidad` | Query | Pendiente | |
 | | HU-11 | Control de stock mínimo | `StockMinimo` | Command | Pendiente | |
