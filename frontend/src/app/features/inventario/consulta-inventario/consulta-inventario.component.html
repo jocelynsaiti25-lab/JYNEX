@@ -6,7 +6,7 @@
     </div>
   </header>
 
-  @if (errorCarga()) {
+  @if (errorCarga() && !agotadosActivo()) {
     <div class="alerta-error" role="alert">
       {{ errorCarga() }}
     </div>
@@ -30,7 +30,7 @@
     <div class="filtros-semaforo" role="group" aria-label="Filtrar por semáforo de caducidad">
       <button
         type="button"
-        [class.activo]="filtroSemaforo() === 'Todos'"
+        [class.activo]="!agotadosActivo() && filtroSemaforo() === 'Todos'"
         (click)="cambiarFiltroSemaforo('Todos')"
       >
         Todos
@@ -38,7 +38,7 @@
       <button
         type="button"
         class="filtro-rojo"
-        [class.activo]="filtroSemaforo() === 'Rojo'"
+        [class.activo]="!agotadosActivo() && filtroSemaforo() === 'Rojo'"
         (click)="cambiarFiltroSemaforo('Rojo')"
       >
         Próximos a caducar (Rojo)
@@ -46,7 +46,7 @@
       <button
         type="button"
         class="filtro-amarillo"
-        [class.activo]="filtroSemaforo() === 'Amarillo'"
+        [class.activo]="!agotadosActivo() && filtroSemaforo() === 'Amarillo'"
         (click)="cambiarFiltroSemaforo('Amarillo')"
       >
         Precaución (Amarillo)
@@ -54,17 +54,73 @@
       <button
         type="button"
         class="filtro-verde"
-        [class.activo]="filtroSemaforo() === 'Verde'"
+        [class.activo]="!agotadosActivo() && filtroSemaforo() === 'Verde'"
         (click)="cambiarFiltroSemaforo('Verde')"
       >
         Vigentes (Verde)
       </button>
     </div>
+
+    <div class="filtros-semaforo filtros-existencias" role="group" aria-label="Filtrar por existencias">
+      <button
+        type="button"
+        class="filtro-agotados"
+        [class.activo]="agotadosActivo()"
+        (click)="mostrarAgotados()"
+      >
+        Agotados
+      </button>
+    </div>
   </div>
+
+  @if (agotadosActivo() && errorAgotados()) {
+    <div class="alerta-error" role="alert">
+      {{ errorAgotados() }}
+      <button type="button" class="btn-limpiar" (click)="cargarAgotados()">Reintentar</button>
+    </div>
+  }
 
   <!-- Tabla de resultados (Escenarios 3, 4 y 6) -->
   <div class="tabla-card">
-    @if (cargando()) {
+    @if (agotadosActivo()) {
+      @if (cargandoAgotados()) {
+        <p class="estado-vacio">Cargando medicamentos agotados...</p>
+      } @else if (errorAgotados()) {
+        <p class="estado-vacio" role="status">No se pudo cargar la lista.</p>
+      } @else if (agotadosFiltrados().length === 0) {
+        <div class="estado-vacio" role="status">
+          <strong>{{ mensajeSinAgotados() }}</strong>
+        </div>
+      } @else {
+        <div class="tabla-responsive">
+          <table aria-label="Medicamentos agotados">
+            <thead>
+              <tr>
+                <th>Medicamento</th>
+                <th>Presentación</th>
+                <th>Concentración</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (medicamento of agotadosFiltrados(); track medicamento.idMedicamento) {
+                <tr>
+                  <td>
+                    <strong>{{ medicamento.nombreComercial }}</strong>
+                    <div class="subtexto">{{ medicamento.nombreSustancia }}</div>
+                  </td>
+                  <td>{{ medicamento.presentacion }}</td>
+                  <td>{{ medicamento.concentracion }}</td>
+                  <td>
+                    <span class="badge estado-agotado">{{ medicamento.etiqueta }}</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    } @else if (cargando()) {
       <p class="estado-vacio">Cargando inventario...</p>
     } @else if (resultadosFiltrados().length === 0) {
       <div class="estado-vacio" role="status">

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { ItemInventario } from '../models/inventario.model';
+import { MedicamentoAgotado } from '../models/medicamento-agotado.model';
 
 /** Servicio HTTP para búsqueda y consulta del inventario, incluido el semáforo de caducidad (HU-08, HU-10). */
 @Injectable({ providedIn: 'root' })
@@ -20,5 +21,13 @@ export class InventarioService {
       params = params.set('semaforo', semaforo);
     }
     return this.http.get<ItemInventario[]>(this.apiUrl, { params });
+  }
+
+  consultarAgotados(termino = ''): Observable<MedicamentoAgotado[]> {
+    let params = new HttpParams();
+    if (termino.trim()) {
+      params = params.set('termino', termino.trim());
+    }
+    return this.http.get<MedicamentoAgotado[]>(`${this.apiUrl}/agotados`, { params });
   }
 }
