@@ -74,6 +74,52 @@ public class ConsultarInventarioTests
             handler.Handle(new ConsultarInventarioQuery(null, null), CancellationToken.None));
     }
 
+    [Fact]
+    public async Task Lote_vencido_se_marca_como_caducado_y_se_clasifica_en_rojo()
+    {
+        // HU-10 escenario 5: lote vencido → Rojo + EstaCaducado = true
+        var hoy = new DateOnly(2026, 11, 25);
+        var repoMed = new MedicamentoRepositoryFalso();
+        repoMed.Medicamentos.Add(
+            Medicamento.Reconstruir(1, "Amoxilina Genérica", "Amoxicilina", "Cápsulas", "500 mg", false, 5, true, DateTime.UtcNow));
+
+        var repoLotes = new LoteRepositoryFalso();
+        repoLotes.Lotes.Add(Lote.Reconstruir(1, 1, "LOT-VENCIDO", hoy.AddDays(-10), 20, hoy.AddMonths(-6)));
+        repoLotes.Lotes.Add(Lote.Reconstruir(2, 1, "LOT-VIGENTE", hoy.AddMonths(2), 20, hoy.AddMonths(-1)));
+
+        var reloj = new FalsoDateTimeProvider(new DateTimeOffset(hoy, TimeOnly.MinValue, TimeSpan.Zero));
+        var handler = new ConsultarInventarioHandler(repoMed, repoLotes, new FalsoUsuarioActual(1), reloj);
+
+        var resultados = await handler.Handle(new ConsultarInventarioQuery(null, null), CancellationToken.None);
+
+        var loteVencido = resultados.Single(r => r.NumeroLote == "LOT-VENCIDO");
+        var loteVigente = resultados.Single(r => r.NumeroLote == "LOT-VIGENTE");
+
+        Assert.True(loteVencido.EstaCaducado);
+        Assert.Equal("Rojo", loteVencido.SemaforoCaducidad);
+        Assert.False(loteVigente.EstaCaducado);
+        Assert.Equal("Rojo", loteVigente.SemaforoCaducidad);
+    }
+
+    [Fact]
+    public async Task Medicamento_sin_lotes_no_se_marca_como_caducado()
+    {
+        // HU-10: la fila "Sin lote" no tiene caducidad que evaluar
+        var repoMed = new MedicamentoRepositoryFalso();
+        repoMed.Medicamentos.Add(
+            Medicamento.Reconstruir(1, "Vitamina C Genérica", "Ácido ascórbico", "Tabletas", "1 g", false, 5, true, DateTime.UtcNow));
+
+        var repoLotes = new LoteRepositoryFalso();
+        var reloj = new FalsoDateTimeProvider(new DateTimeOffset(2026, 11, 25, 10, 0, 0, TimeSpan.Zero));
+        var handler = new ConsultarInventarioHandler(repoMed, repoLotes, new FalsoUsuarioActual(1), reloj);
+
+        var resultados = await handler.Handle(new ConsultarInventarioQuery(null, null), CancellationToken.None);
+
+        var sinLote = Assert.Single(resultados);
+        Assert.Equal("Sin lote", sinLote.NumeroLote);
+        Assert.False(sinLote.EstaCaducado);
+    }
+
     private static ConsultarInventarioHandler CrearHandlerConDatosDePrueba(int? idUsuario = 1)
     {
         var hoy = new DateOnly(2026, 11, 25);
@@ -90,6 +136,89 @@ public class ConsultarInventarioTests
 
         var reloj = new FalsoDateTimeProvider(new DateTimeOffset(2026, 11, 25, 10, 0, 0, TimeSpan.Zero));
         return new ConsultarInventarioHandler(repoMed, repoLotes, new FalsoUsuarioActual(idUsuario), reloj);
+    }
+
+    private static ConsultarInventarioHandler CrearHandlerConLotes(DateTimeOffset ahora, params Lote[] lotes)
+    {
+        var repoMed = new MedicamentoRepositoryFalso();
+        repoMed.Medicamentos.Add(
+            Medicamento.Reconstruir(1, "Paracetamol Forte", "Paracetamol", "Tabletas", "500 mg", false, 5, true, DateTime.UtcNow));
+        var repoLotes = new LoteRepositoryFalso();
+        foreach (var lote in lotes)
+        {
+            repoLotes.Lotes.Add(lote);
+        }
+
+        return new ConsultarInventarioHandler(repoMed, repoLotes, new FalsoUsuarioActual(1), new FalsoDateTimeProvider(ahora));
+    }
+
+    [Fact]
+    public async Task Un_lote_que_caduca_hoy_se_marca_como_caducado()
+    {
+        var hoy = new DateOnly(2026, 11, 25);
+        var handler = CrearHandlerConLotes(
+            new DateTimeOffset(2026, 11, 25, 10, 0, 0, TimeSpan.Zero),
+            Lote.Reconstruir(1, 1, "L-HOY", hoy, 10, hoy.AddMonths(-6)));
+
+        var resultados = await handler.Handle(new ConsultarInventarioQuery(null, null), CancellationToken.None);
+
+        var fila = Assert.Single(resultados);
+        Assert.True(fila.EstaCaducado);
+        Assert.Equal("Rojo", fila.SemaforoCaducidad);
+    }
+
+    [Fact]
+    public async Task El_lote_pasa_de_vigente_a_caducado_al_cambiar_el_dia()
+    {
+        var hoy = new DateOnly(2026, 11, 25);
+        var lote = Lote.Reconstruir(1, 1, "L-CAMBIO", hoy, 10, hoy.AddMonths(-6));
+
+        var antes = await CrearHandlerConLotes(new DateTimeOffset(2026, 11, 24, 23, 59, 59, TimeSpan.Zero), lote)
+            .Handle(new ConsultarInventarioQuery(null, null), CancellationToken.None);
+        var despues = await CrearHandlerConLotes(new DateTimeOffset(2026, 11, 25, 0, 0, 0, TimeSpan.Zero), lote)
+            .Handle(new ConsultarInventarioQuery(null, null), CancellationToken.None);
+
+        Assert.False(Assert.Single(antes).EstaCaducado);
+        Assert.True(Assert.Single(despues).EstaCaducado);
+    }
+
+    [Fact]
+    public async Task El_filtro_rojo_incluye_caducados_y_proximos_y_el_verde_no_incluye_caducados()
+    {
+        var hoy = new DateOnly(2026, 11, 25);
+        var ahora = new DateTimeOffset(2026, 11, 25, 10, 0, 0, TimeSpan.Zero);
+        var lotes = new[]
+        {
+            Lote.Reconstruir(1, 1, "L-CADUCADO", hoy.AddDays(-10), 10, hoy.AddMonths(-6)),
+            Lote.Reconstruir(2, 1, "L-PROXIMO", hoy.AddMonths(2), 10, hoy.AddMonths(-1)),
+            Lote.Reconstruir(3, 1, "L-VERDE", hoy.AddMonths(24), 10, hoy.AddMonths(-1)),
+        };
+
+        var rojo = await CrearHandlerConLotes(ahora, lotes)
+            .Handle(new ConsultarInventarioQuery(null, "Rojo"), CancellationToken.None);
+        var verde = await CrearHandlerConLotes(ahora, lotes)
+            .Handle(new ConsultarInventarioQuery(null, "Verde"), CancellationToken.None);
+
+        Assert.Equal(new[] { "L-CADUCADO", "L-PROXIMO" }, rojo.Select(r => r.NumeroLote).ToArray());
+        Assert.Equal(1, rojo.Count(r => r.EstaCaducado));
+        Assert.Equal(new[] { "L-VERDE" }, verde.Select(r => r.NumeroLote).ToArray());
+        Assert.DoesNotContain(verde, r => r.EstaCaducado);
+    }
+
+    [Fact]
+    public async Task El_termino_y_el_filtro_se_combinan_con_lotes_caducados_y_vigentes()
+    {
+        var hoy = new DateOnly(2026, 11, 25);
+        var handler = CrearHandlerConLotes(
+            new DateTimeOffset(2026, 11, 25, 10, 0, 0, TimeSpan.Zero),
+            Lote.Reconstruir(1, 1, "L-CADUCADO", hoy.AddDays(-10), 10, hoy.AddMonths(-6)),
+            Lote.Reconstruir(2, 1, "L-VERDE", hoy.AddMonths(24), 10, hoy.AddMonths(-1)));
+
+        var combinado = await handler.Handle(new ConsultarInventarioQuery("caducado", "Rojo"), CancellationToken.None);
+        var sinCoincidencia = await handler.Handle(new ConsultarInventarioQuery("caducado", "Verde"), CancellationToken.None);
+
+        Assert.Equal("L-CADUCADO", Assert.Single(combinado).NumeroLote);
+        Assert.Empty(sinCoincidencia);
     }
 
     private sealed class FalsoUsuarioActual(int? idUsuario) : IUsuarioActual

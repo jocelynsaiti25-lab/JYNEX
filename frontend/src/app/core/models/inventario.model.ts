@@ -11,5 +11,6 @@ export interface ItemInventario {
   existencias: number;
   fechaCaducidad: string | null;
   semaforoCaducidad: 'Verde' | 'Amarillo' | 'Rojo' | 'SinStock';
+  estaCaducado: boolean;
   estadoDisponibilidad: 'Disponible' | 'Stock bajo' | 'Agotado';
 }
