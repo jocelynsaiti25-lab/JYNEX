@@ -59,6 +59,13 @@ export const MENU: OpcionMenu[] = [
     ruta: '/inventario/stock-minimo',
   },
   {
+    etiqueta: 'Medicamentos agotados',
+    descripcion: 'Consultar los medicamentos sin existencias vigentes.',
+    icono: 'remove_shopping_cart',
+    historias: ['HU-12'],
+    ruta: '/inventario/agotados',
+  },
+  {
     etiqueta: 'Salida de medicamentos',
     descripcion: 'Registrar salidas con propuesta automática de lotes (FEFO).',
     icono: 'outbox',

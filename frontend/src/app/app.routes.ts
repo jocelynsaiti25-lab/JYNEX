@@ -101,6 +101,15 @@ export const routes: Routes = [
           import('./features/inventario/stock-minimo/stock-minimo.component').then((m) => m.StockMinimoComponent),
       },
       {
+        // HU-12: consulta de medicamentos agotados (Administrador y Empleado por igual)
+        path: 'inventario/agotados',
+        title: 'Medicamentos agotados · Etbot Farma',
+        loadComponent: () =>
+          import('./features/inventario/medicamentos-agotados/medicamentos-agotados.component').then(
+            (m) => m.MedicamentosAgotadosComponent
+          ),
+      },
+      {
         // HU-09: edición de información descriptiva de medicamentos (solo Administrador)
         path: 'medicamentos/:idMedicamento/editar',
         title: 'Editar medicamento · Etbot Farma',

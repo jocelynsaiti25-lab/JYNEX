@@ -1,0 +1,49 @@
+<section class="pantalla">
+  <header class="pantalla__encabezado">
+    <div>
+      <h1 class="pantalla__titulo">Medicamentos agotados</h1>
+      <p class="pantalla__descripcion">
+        Medicamentos sin existencias vigentes, sin importar su semáforo de caducidad.
+      </p>
+    </div>
+  </header>
+
+  @if (errorCarga()) {
+    <app-alerta tipo="error">{{ errorCarga() }}</app-alerta>
+  }
+
+  @if (cargando()) {
+    <p class="estado-vacio">Cargando medicamentos...</p>
+  } @else if (medicamentos().length === 0) {
+    <div class="estado-vacio" role="status">
+      <strong>No hay medicamentos agotados</strong>
+      <p>Todos los medicamentos activos tienen existencias vigentes.</p>
+    </div>
+  } @else {
+    <div class="tabla-contenedor">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Medicamento / Sustancia</th>
+            <th>Presentación</th>
+            <th>Concentración</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (medicamento of medicamentos(); track medicamento.idMedicamento) {
+            <tr>
+              <td>
+                <strong>{{ medicamento.nombreComercial }}</strong>
+                <div>{{ medicamento.nombreSustancia }}</div>
+              </td>
+              <td>{{ medicamento.presentacion }}</td>
+              <td>{{ medicamento.concentracion }}</td>
+              <td><span class="etiqueta etiqueta--agotado">SIN EXISTENCIAS</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

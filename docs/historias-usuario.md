@@ -20,11 +20,11 @@ Fuente: `Historias_Usuario.xlsx` (Google Drive del equipo). 16 historias ordenad
 | | HU-07 | Registro de entrada de lote | `EntradaLote` | Command | En progreso | Daniela |
 | | HU-08 | Búsqueda de medicamentos | `BusquedaMedicamentos` | Query | En progreso | Daniela |
 | | HU-09 | Edición de información de medicamentos | `EdicionMedicamentos` | Command | Terminada | Jocelyn |
-| 4. Estado del inventario | HU-10 | Semáforo y filtros de caducidad | `SemaforoCaducidad` | Query | En progreso | |
-| | HU-11 | Control de stock mínimo | `StockMinimo` | Command | En progreso | |
-| | HU-12 | Consulta de medicamentos agotados | `MedicamentosAgotados` | Query | Pendiente | |
-| 5. Movimientos | HU-13 | Registro de salida (FEFO) | `SalidaMedicamentos` | Query + Command | Pendiente | |
-| | HU-14 | Baja de lotes en estado rojo | `BajaLotes` | Command | Pendiente | |
+| 4. Estado del inventario | HU-10 | Semáforo y filtros de caducidad | `SemaforoCaducidad` | Query | Terminada | |
+| | HU-11 | Control de stock mínimo | `StockMinimo` | Command | Terminada | |
+| | HU-12 | Consulta de medicamentos agotados | `MedicamentosAgotados` | Query | En progreso | |
+| 5. Movimientos | HU-13 | Registro de salida (FEFO) | `SalidaMedicamentos` | Query + Command | En progreso | |
+| | HU-14 | Baja de lotes en estado rojo | `BajaLotes` | Command | En progreso | |
 | 6. Bitácora | HU-15 | Bitácora de movimientos | `BitacoraMovimientos` | Query | Pendiente | |
 | | HU-16 | Exportación de bitácora a Excel | `ExportacionBitacora` | Query | Pendiente | |
 
