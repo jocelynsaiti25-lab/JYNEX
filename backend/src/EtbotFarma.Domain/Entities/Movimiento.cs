@@ -47,6 +47,41 @@ public class Movimiento : Entity<int>
         DateTime fechaUtc) =>
         CrearEntrada(idMedicamento, idLote, idUsuario, cantidad, "Entrada de nuevo lote", fechaUtc);
 
+    public const int LongitudMaximaMotivo = 200;
+
+    public static Movimiento CrearBaja(
+        int idMedicamento,
+        int idLote,
+        int idUsuario,
+        int cantidad,
+        string motivo,
+        DateTime fechaUtc)
+    {
+        var motivoNormalizado = motivo?.Trim() ?? string.Empty;
+
+        if (motivoNormalizado.Length == 0)
+            throw new DomainException("El motivo es obligatorio.");
+
+        if (motivoNormalizado.Length > LongitudMaximaMotivo)
+            throw new DomainException("El motivo no puede tener más de 200 caracteres.");
+
+        if (cantidad <= 0)
+            throw new DomainException("Una baja debe tener una cantidad mayor a 0.");
+
+        var movimiento = new Movimiento
+        {
+            Tipo = TipoBaja,
+            IdMedicamento = idMedicamento,
+            IdUsuario = idUsuario,
+            CantidadTotal = cantidad,
+            Motivo = motivoNormalizado,
+            Fecha = fechaUtc
+        };
+
+        movimiento._detalles.Add(DetalleMovimiento.Crear(idMedicamento, idLote, cantidad));
+        return movimiento;
+    }
+
     private static Movimiento CrearEntrada(
         int idMedicamento,
         int idLote,

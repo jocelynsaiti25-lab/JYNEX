@@ -24,4 +24,8 @@ public interface ILoteRepository
     /// HU-08 escenarios 3 y 4: obtiene todos los lotes ordenados por fecha de caducidad ascendente.
     /// </summary>
     Task<IReadOnlyList<Lote>> ObtenerTodosOrdenadosPorCaducidadAsync(CancellationToken cancellationToken);
+
+    Task<Lote?> ObtenerPorIdParaActualizarAsync(int idLote, CancellationToken cancellationToken);
+
+    Task<bool> DescontarStockAsync(int idLote, int cantidad, CancellationToken cancellationToken);
 }

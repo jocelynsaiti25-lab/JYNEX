@@ -107,6 +107,21 @@ public class Lote : Entity<int>
     /// </summary>
     public bool EstaCaducado(DateOnly fechaHoy) => FechaCaducidad <= fechaHoy;
 
+    public bool PuedeDarseDeBaja(DateOnly fechaHoy) =>
+        Stock > 0 && ObtenerSemaforo(fechaHoy) == SemaforoCaducidad.Rojo;
+
+    public int DarDeBaja(DateOnly fechaHoy, int cantidadConsultada)
+    {
+        if (!PuedeDarseDeBaja(fechaHoy) || Stock != cantidadConsultada)
+            throw new DomainException(MensajeNoElegible);
+
+        var cantidadRetirada = Stock;
+        Stock = 0;
+        return cantidadRetirada;
+    }
+
+    public const string MensajeNoElegible = "El lote ya no es elegible.";
+
     public static Lote Reconstruir(
         int id,
         int idMedicamento,
