@@ -38,6 +38,7 @@ public sealed class BusquedaMedicamentosController(ISender sender) : ControllerB
                 item.Existencias,
                 item.FechaCaducidad?.ToString("yyyy-MM-dd"),
                 item.SemaforoCaducidad,
+                item.EstaCaducado,
                 item.EstadoDisponibilidad))
             .ToList();
 

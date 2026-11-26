@@ -32,4 +32,19 @@ public interface IMedicamentoRepository
 
     /// <summary>HU-11 escenario 1: guarda el nuevo umbral de stock mínimo, sin tocar nada más del medicamento.</summary>
     Task ActualizarStockMinimoAsync(int idMedicamento, int stockMinimo, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// HU-09 escenarios 8 y 9: igual que ExisteDuplicadoAsync pero EXCLUYE al propio medicamento que se edita,
+    /// para permitir guardar cuando solo cambia "Medicamento controlado" o mayúsculas del mismo registro.
+    /// </summary>
+    Task<bool> ExisteDuplicadoAlEditarAsync(
+        int idMedicamento,
+        string nombreComercial,
+        string nombreSustancia,
+        string presentacion,
+        string concentracion,
+        CancellationToken cancellationToken);
+
+    /// <summary>HU-09 escenarios 1 y 9: guarda los datos descriptivos editados conservando el id_medicamento.</summary>
+    Task ActualizarAsync(Medicamento medicamento, CancellationToken cancellationToken);
 }

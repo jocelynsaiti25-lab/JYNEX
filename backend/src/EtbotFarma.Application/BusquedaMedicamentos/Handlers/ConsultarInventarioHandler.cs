@@ -9,7 +9,8 @@ using EtbotFarma.Domain.ValueObjects;
 namespace EtbotFarma.Application.BusquedaMedicamentos.Handlers;
 
 /// <summary>
-/// HU-08: Coordina la búsqueda de medicamentos y lotes en el inventario.
+/// HU-08 y HU-10: Coordina la búsqueda de medicamentos y lotes en el inventario, calculando
+/// para cada lote su semáforo de caducidad y si ya está caducado.
 /// Operación de solo lectura (sin IUnitOfWork ni modificación de datos).
 /// </summary>
 public sealed class ConsultarInventarioHandler(
@@ -62,6 +63,7 @@ public sealed class ConsultarInventarioHandler(
                         lote.Stock,
                         lote.FechaCaducidad,
                         lote.ObtenerSemaforo(hoy).ToString(),
+                        lote.EstaCaducado(hoy), // HU-10 escenario 5
                         estadoDisponibilidad));
                 }
             }
@@ -80,6 +82,7 @@ public sealed class ConsultarInventarioHandler(
                     0,
                     null,
                     "SinStock",
+                    false,
                     estadoDisponibilidad));
             }
         }

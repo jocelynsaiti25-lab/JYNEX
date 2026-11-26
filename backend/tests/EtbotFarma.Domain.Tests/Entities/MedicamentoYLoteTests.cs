@@ -78,4 +78,36 @@ public sealed class MedicamentoYLoteTests
         Assert.Equal(SemaforoCaducidad.Amarillo, loteAmarillo.ObtenerSemaforo(hoy));
         Assert.Equal(SemaforoCaducidad.Verde, loteVerde.ObtenerSemaforo(hoy));
     }
+
+    [Fact]
+    public void Semaforo_en_limites_exactos_de_tres_y_doce_meses_no_deja_fechas_sin_clasificar()
+    {
+        // HU-10 escenario 6: el límite exacto de 3 meses es Rojo y el de 12 meses es Amarillo
+        var hoy = new DateOnly(2026, 5, 10);
+
+        var loteLimiteRojo = Lote.Crear(1, "L-LIMITE-ROJO", hoy.AddMonths(3), 5, hoy);
+        var loteLimiteAmarillo = Lote.Crear(1, "L-LIMITE-AMARILLO", hoy.AddMonths(12), 5, hoy);
+
+        Assert.Equal(SemaforoCaducidad.Rojo, loteLimiteRojo.ObtenerSemaforo(hoy));
+        Assert.Equal(SemaforoCaducidad.Amarillo, loteLimiteAmarillo.ObtenerSemaforo(hoy));
+    }
+
+    [Fact]
+    public void Lote_vencido_esta_caducado_y_se_clasifica_en_rojo()
+    {
+        // HU-10 escenario 5: un lote vencido (hoy o antes) se marca como caducado y es Rojo
+        var hoy = new DateOnly(2026, 5, 10);
+
+        var loteVencidoAyer = Lote.Reconstruir(1, 1, "L-VENCIDO", hoy.AddDays(-1), 5, hoy.AddMonths(-6));
+        var loteVenceHoy = Lote.Reconstruir(2, 1, "L-VENCE-HOY", hoy, 5, hoy.AddMonths(-6));
+        var loteVigente = Lote.Reconstruir(3, 1, "L-VIGENTE", hoy.AddMonths(6), 5, hoy.AddMonths(-1));
+
+        Assert.True(loteVencidoAyer.EstaCaducado(hoy));
+        Assert.Equal(SemaforoCaducidad.Rojo, loteVencidoAyer.ObtenerSemaforo(hoy));
+
+        Assert.True(loteVenceHoy.EstaCaducado(hoy));
+        Assert.Equal(SemaforoCaducidad.Rojo, loteVenceHoy.ObtenerSemaforo(hoy));
+
+        Assert.False(loteVigente.EstaCaducado(hoy));
+    }
 }

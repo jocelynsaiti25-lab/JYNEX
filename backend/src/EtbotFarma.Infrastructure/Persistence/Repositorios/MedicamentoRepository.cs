@@ -225,4 +225,60 @@ public sealed class MedicamentoRepository(ConexionMySql conexion) : IMedicamento
 
         await comando.ExecuteNonQueryAsync(cancellationToken);
     }
+
+    public async Task<bool> ExisteDuplicadoAlEditarAsync(
+        int idMedicamento,
+        string nombreComercial,
+        string nombreSustancia,
+        string presentacion,
+        string concentracion,
+        CancellationToken cancellationToken)
+    {
+        // HU-09 escenarios 8 y 9: misma combinación de 4 campos que ExisteDuplicadoAsync,
+        // pero EXCLUYE al propio medicamento (permite guardar sin chocar con su propio registro)
+        const string sql = """
+            SELECT 1
+            FROM medicamento
+            WHERE id_medicamento <> @idMedicamento
+              AND LOWER(TRIM(nombre_comercial)) = LOWER(@nombreComercial)
+              AND LOWER(TRIM(nombre_sustancia)) = LOWER(@nombreSustancia)
+              AND LOWER(TRIM(presentacion)) = LOWER(@presentacion)
+              AND LOWER(TRIM(concentracion)) = LOWER(@concentracion)
+            LIMIT 1;
+            """;
+
+        await using var comando = await conexion.CrearComandoAsync(sql, cancellationToken);
+        comando.Parameters.AddWithValue("@idMedicamento", idMedicamento);
+        comando.Parameters.AddWithValue("@nombreComercial", nombreComercial.Trim());
+        comando.Parameters.AddWithValue("@nombreSustancia", nombreSustancia.Trim());
+        comando.Parameters.AddWithValue("@presentacion", presentacion.Trim());
+        comando.Parameters.AddWithValue("@concentracion", concentracion.Trim());
+
+        var resultado = await comando.ExecuteScalarAsync(cancellationToken);
+        return resultado is not null;
+    }
+
+    public async Task ActualizarAsync(Medicamento medicamento, CancellationToken cancellationToken)
+    {
+        // HU-09 escenarios 1 y 9: solo columnas descriptivas; nunca stock_minimo, activo ni lotes
+        const string sql = """
+            UPDATE medicamento
+            SET nombre_comercial = @nombreComercial,
+                nombre_sustancia = @nombreSustancia,
+                presentacion = @presentacion,
+                concentracion = @concentracion,
+                es_controlado = @esControlado
+            WHERE id_medicamento = @idMedicamento;
+            """;
+
+        await using var comando = await conexion.CrearComandoAsync(sql, cancellationToken);
+        comando.Parameters.AddWithValue("@nombreComercial", medicamento.NombreComercial);
+        comando.Parameters.AddWithValue("@nombreSustancia", medicamento.NombreSustancia);
+        comando.Parameters.AddWithValue("@presentacion", medicamento.Presentacion);
+        comando.Parameters.AddWithValue("@concentracion", medicamento.Concentracion);
+        comando.Parameters.AddWithValue("@esControlado", medicamento.EsControlado);
+        comando.Parameters.AddWithValue("@idMedicamento", medicamento.Id);
+
+        await comando.ExecuteNonQueryAsync(cancellationToken);
+    }
 }

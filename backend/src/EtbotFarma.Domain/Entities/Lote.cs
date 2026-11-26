@@ -100,8 +100,10 @@ public class Lote : Entity<int>
     }
 
     /// <summary>
-    /// Indica si el lote ya venció: su fecha de caducidad es igual o anterior a hoy (HU-10 escenario 5
-    /// y HU-11: las existencias "vigentes" excluyen los lotes caducados aunque tengan unidades).
+    /// Indica si el lote ya venció: su fecha de caducidad es igual o anterior a hoy.
+    /// Un lote caducado siempre se clasifica en Rojo (ObtenerSemaforo), pero además lleva esta
+    /// marca para que la capa de presentación muestre la etiqueta de alerta "CADUCADO" (HU-10 escenario 5)
+    /// y para que las existencias "vigentes" lo excluyan aunque todavía tenga unidades (HU-11).
     /// </summary>
     public bool EstaCaducado(DateOnly fechaHoy) => FechaCaducidad <= fechaHoy;
 

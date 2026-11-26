@@ -1,18 +1,33 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { ItemInventario } from '../../../core/models/inventario.model';
 import { InventarioService } from '../../../core/services/inventario.service';
+import { SesionService } from '../../../core/services/sesion.service';
+import { EstadoSemaforo, SemaforoComponent } from '../../../shared/components/semaforo/semaforo.component';
 
 export type FiltroSemaforo = 'Todos' | 'Rojo' | 'Amarillo' | 'Verde';
+
+const ETIQUETAS_FILTRO: Record<FiltroSemaforo, string> = {
+  Todos: 'Todos',
+  Rojo: 'Rojo',
+  Amarillo: 'Amarillo',
+  Verde: 'Verde',
+};
 
 @Component({
   selector: 'app-consulta-inventario',
   standalone: true,
+  imports: [RouterLink, SemaforoComponent],
   templateUrl: './consulta-inventario.component.html',
   styleUrl: './consulta-inventario.component.scss',
 })
 export class ConsultaInventarioComponent implements OnInit {
   private readonly inventarioService = inject(InventarioService);
+  private readonly sesion = inject(SesionService);
+
+  // HU-09 escenarios 2 y 3: el botón "Editar" solo lo ve el Administrador (la API también lo revisa)
+  readonly esAdministrador = computed(() => this.sesion.usuario()?.rol === 'Administrador');
 
   // Estado reactivo de datos y filtros (HU-08 escenarios 1, 5 y 7)
   readonly itemsInventario = signal<ItemInventario[]>([]);
@@ -46,8 +61,34 @@ export class ConsultaInventarioComponent implements OnInit {
     });
   });
 
+  /**
+   * HU-10 escenario 14: mensaje claro cuando el filtro de semáforo (combinado o no con la
+   * búsqueda) no encuentra ningún lote, sin generar errores en pantalla.
+   */
+  readonly mensajeSinResultados = computed(() => {
+    const semaforo = this.filtroSemaforo();
+    const termino = this.terminoBusqueda().trim();
+
+    if (semaforo === 'Todos') {
+      return termino
+        ? 'No hay medicamentos ni lotes que coincidan con la búsqueda.'
+        : 'No hay medicamentos registrados en el inventario.';
+    }
+
+    return termino
+      ? `No hay lotes en la categoría "${ETIQUETAS_FILTRO[semaforo]}" que coincidan con la búsqueda.`
+      : `No hay lotes registrados en la categoría "${ETIQUETAS_FILTRO[semaforo]}".`;
+  });
+
   ngOnInit(): void {
     this.cargarInventario();
+  }
+
+  /** HU-10 escenario 5: estado visual para <app-semaforo>, priorizando la marca de caducado. */
+  estadoSemaforo(item: ItemInventario): EstadoSemaforo | null {
+    if (item.semaforoCaducidad === 'SinStock') return null;
+    if (item.estaCaducado) return 'caducado';
+    return item.semaforoCaducidad.toLowerCase() as EstadoSemaforo;
   }
 
   cargarInventario(): void {
