@@ -93,6 +93,13 @@ export const routes: Routes = [
             (m) => m.ConsultaInventarioComponent
           ),
       },
+      {
+        // HU-11: control de stock mínimo (Administrador y Empleado por igual)
+        path: 'inventario/stock-minimo',
+        title: 'Stock mínimo · Etbot Farma',
+        loadComponent: () =>
+          import('./features/inventario/stock-minimo/stock-minimo.component').then((m) => m.StockMinimoComponent),
+      },
     ],
   },
   { path: '**', redirectTo: 'inicio' },

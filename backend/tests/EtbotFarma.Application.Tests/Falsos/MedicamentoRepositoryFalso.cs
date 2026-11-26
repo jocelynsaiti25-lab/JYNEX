@@ -26,4 +26,10 @@ public sealed class MedicamentoRepositoryFalso : IMedicamentoRepository
 
     public Task<IReadOnlyList<Medicamento>> ObtenerTodosActivosAsync(CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<Medicamento>>(Medicamentos.Where(m => m.Activo).ToList());
+
+    public Task ActualizarStockMinimoAsync(int idMedicamento, int stockMinimo, CancellationToken cancellationToken)
+    {
+        Medicamentos.First(m => m.Id == idMedicamento).ActualizarStockMinimo(stockMinimo);
+        return Task.CompletedTask;
+    }
 }

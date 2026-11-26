@@ -21,7 +21,7 @@ Fuente: `Historias_Usuario.xlsx` (Google Drive del equipo). 16 historias ordenad
 | | HU-08 | Búsqueda de medicamentos | `BusquedaMedicamentos` | Query | En progreso | Daniela |
 | | HU-09 | Edición de información de medicamentos | `EdicionMedicamentos` | Command | Pendiente | |
 | 4. Estado del inventario | HU-10 | Semáforo y filtros de caducidad | `SemaforoCaducidad` | Query | Pendiente | |
-| | HU-11 | Control de stock mínimo | `StockMinimo` | Command | Pendiente | |
+| | HU-11 | Control de stock mínimo | `StockMinimo` | Command | En progreso | |
 | | HU-12 | Consulta de medicamentos agotados | `MedicamentosAgotados` | Query | Pendiente | |
 | 5. Movimientos | HU-13 | Registro de salida (FEFO) | `SalidaMedicamentos` | Query + Command | Pendiente | |
 | | HU-14 | Baja de lotes en estado rojo | `BajaLotes` | Command | Pendiente | |

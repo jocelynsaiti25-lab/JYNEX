@@ -1,0 +1,100 @@
+<section class="pantalla">
+  <header class="pantalla__encabezado">
+    <div>
+      <h1 class="pantalla__titulo">Control de stock mínimo</h1>
+      <p class="pantalla__descripcion">
+        Define el umbral de stock mínimo de cada medicamento para detectar a tiempo el desabasto.
+      </p>
+    </div>
+  </header>
+
+  @if (mensajeExito()) {
+    <app-alerta tipo="exito" [cerrable]="true" (cerrar)="mensajeExito.set(null)">{{ mensajeExito() }}</app-alerta>
+  }
+  @if (errorGuardado()) {
+    <app-alerta tipo="error" [cerrable]="true" (cerrar)="errorGuardado.set(null)">{{ errorGuardado() }}</app-alerta>
+  }
+  @if (errorCarga()) {
+    <app-alerta tipo="error">{{ errorCarga() }}</app-alerta>
+  }
+
+  @if (cargando()) {
+    <p class="estado-vacio">Cargando medicamentos...</p>
+  } @else if (medicamentos().length === 0) {
+    <div class="estado-vacio" role="status">
+      <strong>No hay medicamentos registrados</strong>
+    </div>
+  } @else {
+    <div class="tabla-contenedor">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Medicamento / Sustancia</th>
+            <th class="numero">Existencias vigentes</th>
+            <th>Estado</th>
+            <th>Stock mínimo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (medicamento of medicamentos(); track medicamento.idMedicamento) {
+            <tr>
+              <td>
+                <strong>{{ medicamento.nombreComercial }}</strong>
+                <div>{{ medicamento.nombreSustancia }}</div>
+              </td>
+              <td class="numero">{{ medicamento.existenciasVigentes }}</td>
+              <td>
+                @if (medicamento.estaAgotado) {
+                  <span class="etiqueta etiqueta--agotado">AGOTADO</span>
+                } @else if (medicamento.enStockBajo) {
+                  <span class="etiqueta etiqueta--bajo">STOCK BAJO</span>
+                } @else {
+                  <span class="etiqueta etiqueta--neutra">Disponible</span>
+                }
+              </td>
+              <td>
+                <label class="solo-lector" [attr.for]="'stock-minimo-' + medicamento.idMedicamento">
+                  Stock mínimo de {{ medicamento.nombreComercial }}
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  class="campo__control campo__control--corto"
+                  [id]="'stock-minimo-' + medicamento.idMedicamento"
+                  [value]="valorEditado(medicamento)"
+                  (input)="actualizarValor(medicamento.idMedicamento, $any($event.target).value)"
+                />
+              </td>
+              <td>
+                @if (hayCambio(medicamento)) {
+                  <div class="acciones">
+                    <button type="button" class="boton boton--texto" (click)="revertir(medicamento)">Cancelar</button>
+                    <button type="button" class="boton boton--primario" (click)="pedirConfirmacion(medicamento)">
+                      Guardar
+                    </button>
+                  </div>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (pendiente(); as edicion) {
+    <app-confirmacion
+      [abierta]="true"
+      titulo="¿Guardar el nuevo stock mínimo?"
+      textoConfirmar="Guardar"
+      [procesando]="guardando()"
+      (confirmar)="confirmarCambio()"
+      (cancelar)="cancelarConfirmacion()"
+    >
+      <strong>{{ edicion.medicamento.nombreComercial }}</strong>:
+      {{ edicion.medicamento.stockMinimo }} → {{ edicion.nuevoValor }}
+    </app-confirmacion>
+  }
+</section>

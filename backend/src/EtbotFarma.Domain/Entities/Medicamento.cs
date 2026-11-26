@@ -66,13 +66,28 @@ public class Medicamento : Entity<int>
             throw new DomainException("No se puede registrar una entrada de lote para un medicamento inactivo.");
     }
 
+    /// <summary>
+    /// HU-11 escenario 1: define o edita el umbral de stock mínimo del medicamento.
+    /// </summary>
+    public void ActualizarStockMinimo(int nuevoStockMinimo)
+    {
+        if (nuevoStockMinimo < 0)
+            throw new DomainException("El stock mínimo debe ser un número entero de 0 o más.");
+
+        StockMinimo = nuevoStockMinimo;
+    }
+
+    /// <summary>
+    /// HU-11: solo cuenta como existencias las unidades disponibles y VIGENTES (con stock y sin caducar);
+    /// un lote caducado nunca cuenta, aunque todavía tenga unidades (Lote.EstaCaducado).
+    /// </summary>
     public ExistenciasMedicamento CalcularExistencias(IEnumerable<Lote> lotes, DateOnly hoy)
     {
-        var lotesConStock = lotes.Where(l => l.Stock > 0).ToList();
-        var total = lotesConStock.Sum(l => l.Stock);
+        var lotesVigentes = lotes.Where(l => l.Stock > 0 && !l.EstaCaducado(hoy)).ToList();
+        var total = lotesVigentes.Sum(l => l.Stock);
         var estaAgotado = total == 0;
         var enStockBajo = !estaAgotado && StockMinimo > 0 && total <= StockMinimo;
-        return new ExistenciasMedicamento(total, CalcularSemaforoGeneral(lotesConStock, hoy), estaAgotado, enStockBajo);
+        return new ExistenciasMedicamento(total, CalcularSemaforoGeneral(lotesVigentes, hoy), estaAgotado, enStockBajo);
     }
 
     private static string CalcularSemaforoGeneral(IReadOnlyCollection<Lote> lotesConStock, DateOnly hoy)

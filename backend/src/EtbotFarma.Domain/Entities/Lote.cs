@@ -99,6 +99,12 @@ public class Lote : Entity<int>
         return SemaforoCaducidad.Verde;
     }
 
+    /// <summary>
+    /// Indica si el lote ya venció: su fecha de caducidad es igual o anterior a hoy (HU-10 escenario 5
+    /// y HU-11: las existencias "vigentes" excluyen los lotes caducados aunque tengan unidades).
+    /// </summary>
+    public bool EstaCaducado(DateOnly fechaHoy) => FechaCaducidad <= fechaHoy;
+
     public static Lote Reconstruir(
         int id,
         int idMedicamento,

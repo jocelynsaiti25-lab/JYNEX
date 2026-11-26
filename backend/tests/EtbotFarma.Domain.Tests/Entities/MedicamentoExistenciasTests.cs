@@ -59,4 +59,31 @@ public class MedicamentoExistenciasTests
         Assert.Equal(esperado, resultado.EnStockBajo);
         Assert.False(resultado.EstaAgotado);
     }
+
+    [Fact]
+    public void Un_lote_caducado_con_unidades_no_cuenta_como_existencia_vigente()
+    {
+        // HU-11: "existencias vigentes" excluye lotes caducados aunque todavía tengan unidades
+        var loteCaducado = CrearLote(1, 20, Hoy.AddDays(-1));
+
+        var existencias = ConStockMinimo(10).CalcularExistencias([loteCaducado], Hoy);
+
+        Assert.Equal(0, existencias.Total);
+        Assert.Equal("SinStock", existencias.SemaforoGeneral);
+        Assert.True(existencias.EstaAgotado);
+    }
+
+    [Fact]
+    public void Un_lote_caducado_no_se_suma_aunque_haya_otro_lote_vigente()
+    {
+        var lotes = new[]
+        {
+            CrearLote(1, 20, Hoy.AddDays(-1)), // caducado: no cuenta
+            CrearLote(2, 5, Hoy.AddMonths(6)), // vigente
+        };
+
+        var existencias = ConStockMinimo(0).CalcularExistencias(lotes, Hoy);
+
+        Assert.Equal(5, existencias.Total);
+    }
 }
