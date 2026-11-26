@@ -83,6 +83,9 @@
               <th>Existencias</th>
               <th>Fecha de caducidad</th>
               <th>Estado</th>
+              @if (esAdministrador()) {
+                <th>Acciones</th>
+              }
             </tr>
           </thead>
           <tbody>
@@ -112,6 +115,11 @@
                     }
                   </div>
                 </td>
+                @if (esAdministrador()) {
+                  <td>
+                    <a class="btn-limpiar" [routerLink]="['/medicamentos', item.idMedicamento, 'editar']">Editar</a>
+                  </td>
+                }
               </tr>
             }
           </tbody>

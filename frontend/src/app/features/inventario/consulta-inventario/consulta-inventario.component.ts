@@ -1,7 +1,9 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { ItemInventario } from '../../../core/models/inventario.model';
 import { InventarioService } from '../../../core/services/inventario.service';
+import { SesionService } from '../../../core/services/sesion.service';
 import { EstadoSemaforo, SemaforoComponent } from '../../../shared/components/semaforo/semaforo.component';
 
 export type FiltroSemaforo = 'Todos' | 'Rojo' | 'Amarillo' | 'Verde';
@@ -16,12 +18,16 @@ const ETIQUETAS_FILTRO: Record<FiltroSemaforo, string> = {
 @Component({
   selector: 'app-consulta-inventario',
   standalone: true,
-  imports: [SemaforoComponent],
+  imports: [RouterLink, SemaforoComponent],
   templateUrl: './consulta-inventario.component.html',
   styleUrl: './consulta-inventario.component.scss',
 })
 export class ConsultaInventarioComponent implements OnInit {
   private readonly inventarioService = inject(InventarioService);
+  private readonly sesion = inject(SesionService);
+
+  // HU-09 escenarios 2 y 3: el botón "Editar" solo lo ve el Administrador (la API también lo revisa)
+  readonly esAdministrador = computed(() => this.sesion.usuario()?.rol === 'Administrador');
 
   // Estado reactivo de datos y filtros (HU-08 escenarios 1, 5 y 7)
   readonly itemsInventario = signal<ItemInventario[]>([]);
