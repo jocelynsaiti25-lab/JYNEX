@@ -17,6 +17,9 @@ public sealed class LoteRepositoryFalso : ILoteRepository
         return Task.FromResult(id);
     }
 
+    public Task<Lote?> ObtenerPorIdParaActualizarAsync(int idLote, CancellationToken cancellationToken)
+        => Task.FromResult(Lotes.FirstOrDefault(l => l.Id == idLote));
+
     public Task<bool> ExisteNumeroLoteEnMedicamentoAsync(
         int idMedicamento, string numeroLote, CancellationToken cancellationToken)
         => Task.FromResult(Lotes.Any(l =>
@@ -29,9 +32,6 @@ public sealed class LoteRepositoryFalso : ILoteRepository
 
     public Task<IReadOnlyList<Lote>> ObtenerTodosOrdenadosPorCaducidadAsync(CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<Lote>>(Lotes.OrderBy(l => l.FechaCaducidad).ToList());
-
-    public Task<Lote?> ObtenerPorIdParaActualizarAsync(int idLote, CancellationToken cancellationToken)
-        => Task.FromResult(Lotes.FirstOrDefault(l => l.Id == idLote));
 
     public Task<bool> DescontarStockAsync(int idLote, int cantidad, CancellationToken cancellationToken)
     {

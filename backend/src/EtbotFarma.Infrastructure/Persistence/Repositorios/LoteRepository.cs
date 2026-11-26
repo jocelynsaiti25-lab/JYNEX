@@ -40,6 +40,37 @@ public sealed class LoteRepository(ConexionMySql conexion) : ILoteRepository
         return Convert.ToInt32(idGenerado);
     }
 
+    public async Task<Lote?> ObtenerPorIdParaActualizarAsync(int idLote, CancellationToken cancellationToken)
+    {
+        const string sql = """
+            SELECT
+                id_lote,
+                id_medicamento,
+                numero_lote,
+                fecha_caducidad,
+                stock,
+                fecha_entrada
+            FROM lote
+            WHERE id_lote = @idLote
+            FOR UPDATE;
+            """;
+
+        await using var comando = await conexion.CrearComandoAsync(sql, cancellationToken);
+        comando.Parameters.AddWithValue("@idLote", idLote);
+
+        await using var lector = await comando.ExecuteReaderAsync(cancellationToken);
+        if (!await lector.ReadAsync(cancellationToken))
+            return null;
+
+        return Lote.Reconstruir(
+            lector.GetInt32("id_lote"),
+            lector.GetInt32("id_medicamento"),
+            lector.GetString("numero_lote"),
+            DateOnly.FromDateTime(lector.GetDateTime("fecha_caducidad")),
+            lector.GetInt32("stock"),
+            DateOnly.FromDateTime(lector.GetDateTime("fecha_entrada")));
+    }
+
     public async Task<bool> ExisteNumeroLoteEnMedicamentoAsync(
         int idMedicamento,
         string numeroLote,
@@ -137,37 +168,6 @@ public sealed class LoteRepository(ConexionMySql conexion) : ILoteRepository
         }
 
         return lotes;
-    }
-
-    public async Task<Lote?> ObtenerPorIdParaActualizarAsync(int idLote, CancellationToken cancellationToken)
-    {
-        const string sql = """
-            SELECT
-                id_lote,
-                id_medicamento,
-                numero_lote,
-                fecha_caducidad,
-                stock,
-                fecha_entrada
-            FROM lote
-            WHERE id_lote = @idLote
-            FOR UPDATE;
-            """;
-
-        await using var comando = await conexion.CrearComandoAsync(sql, cancellationToken);
-        comando.Parameters.AddWithValue("@idLote", idLote);
-
-        await using var lector = await comando.ExecuteReaderAsync(cancellationToken);
-        if (!await lector.ReadAsync(cancellationToken))
-            return null;
-
-        return Lote.Reconstruir(
-            lector.GetInt32("id_lote"),
-            lector.GetInt32("id_medicamento"),
-            lector.GetString("numero_lote"),
-            DateOnly.FromDateTime(lector.GetDateTime("fecha_caducidad")),
-            lector.GetInt32("stock"),
-            DateOnly.FromDateTime(lector.GetDateTime("fecha_entrada")));
     }
 
     public async Task<bool> DescontarStockAsync(int idLote, int cantidad, CancellationToken cancellationToken)

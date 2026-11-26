@@ -8,6 +8,8 @@ public interface ILoteRepository
     /// <summary>Inserta un lote en MySQL y devuelve su id_lote generado.</summary>
     Task<int> AgregarAsync(Lote lote, CancellationToken cancellationToken);
 
+    Task<Lote?> ObtenerPorIdParaActualizarAsync(int idLote, CancellationToken cancellationToken);
+
     /// <summary>
     /// HU-07 escenarios 6 y 7: verifica si el número de lote ya existe para ese medicamento específico.
     /// </summary>
@@ -24,8 +26,6 @@ public interface ILoteRepository
     /// HU-08 escenarios 3 y 4: obtiene todos los lotes ordenados por fecha de caducidad ascendente.
     /// </summary>
     Task<IReadOnlyList<Lote>> ObtenerTodosOrdenadosPorCaducidadAsync(CancellationToken cancellationToken);
-
-    Task<Lote?> ObtenerPorIdParaActualizarAsync(int idLote, CancellationToken cancellationToken);
 
     Task<bool> DescontarStockAsync(int idLote, int cantidad, CancellationToken cancellationToken);
 }
