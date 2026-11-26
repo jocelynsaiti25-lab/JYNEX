@@ -30,6 +30,9 @@ public interface IMedicamentoRepository
     /// <summary>HU-08: obtiene todos los medicamentos activos del catálogo para consulta de inventario.</summary>
     Task<IReadOnlyList<Medicamento>> ObtenerTodosActivosAsync(CancellationToken cancellationToken);
 
+    /// <summary>HU-11 escenario 1: guarda el nuevo umbral de stock mínimo, sin tocar nada más del medicamento.</summary>
+    Task ActualizarStockMinimoAsync(int idMedicamento, int stockMinimo, CancellationToken cancellationToken);
+
     /// <summary>
     /// HU-09 escenarios 8 y 9: igual que ExisteDuplicadoAsync pero EXCLUYE al propio medicamento que se edita,
     /// para permitir guardar cuando solo cambia "Medicamento controlado" o mayúsculas del mismo registro.

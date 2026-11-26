@@ -52,6 +52,13 @@ export const MENU: OpcionMenu[] = [
     ruta: '/inventario/entrada-lote',
   },
   {
+    etiqueta: 'Stock mínimo',
+    descripcion: 'Definir el umbral de stock mínimo y detectar desabasto.',
+    icono: 'production_quantity_limits',
+    historias: ['HU-11'],
+    ruta: '/inventario/stock-minimo',
+  },
+  {
     etiqueta: 'Salida de medicamentos',
     descripcion: 'Registrar salidas con propuesta automática de lotes (FEFO).',
     icono: 'outbox',

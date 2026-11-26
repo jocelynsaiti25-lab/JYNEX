@@ -210,6 +210,22 @@ public sealed class MedicamentoRepository(ConexionMySql conexion) : IMedicamento
         return lista;
     }
 
+    public async Task ActualizarStockMinimoAsync(int idMedicamento, int stockMinimo, CancellationToken cancellationToken)
+    {
+        // HU-11 escenario 1: solo la columna stock_minimo; nunca lotes, existencias ni auditoría
+        const string sql = """
+            UPDATE medicamento
+            SET stock_minimo = @stockMinimo
+            WHERE id_medicamento = @idMedicamento;
+            """;
+
+        await using var comando = await conexion.CrearComandoAsync(sql, cancellationToken);
+        comando.Parameters.AddWithValue("@stockMinimo", stockMinimo);
+        comando.Parameters.AddWithValue("@idMedicamento", idMedicamento);
+
+        await comando.ExecuteNonQueryAsync(cancellationToken);
+    }
+
     public async Task<bool> ExisteDuplicadoAlEditarAsync(
         int idMedicamento,
         string nombreComercial,

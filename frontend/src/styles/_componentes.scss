@@ -362,6 +362,19 @@ select.campo__control {
     background: var(--color-superficie-alterna);
     border-color: var(--color-borde);
   }
+
+  // HU-11/HU-12: alertas de stock bajo y agotado
+  &--bajo {
+    color: var(--color-aviso);
+    background: var(--color-aviso-fondo);
+    border-color: var(--color-aviso-borde);
+  }
+
+  &--agotado {
+    color: var(--color-error);
+    background: var(--color-error-fondo);
+    border-color: var(--color-error-borde);
+  }
 }
 
 // ---------------------------------------------------------------------
