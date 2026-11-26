@@ -1,11 +1,9 @@
-
 using EtbotFarma.Domain.Common;
 
 namespace EtbotFarma.Domain.Entities;
 
 /// <summary>
-/// Registro en la bitácora de inventario (ENTRADA, SALIDA o BAJA).
-/// Tabla: movimiento.
+/// Registro en la bitácora de inventario (ENTRADA, SALIDA o BAJA). Tabla: movimiento.
 /// </summary>
 public class Movimiento : Entity<int>
 {
@@ -26,7 +24,7 @@ public class Movimiento : Entity<int>
     private Movimiento() { }
 
     /// <summary>
-    /// Crea un movimiento de ENTRADA inicial.
+    /// Crea un movimiento de ENTRADA inicial al registrar un medicamento con unidades > 0.
     /// HU-06 escenarios 1, 2 y 3.
     /// </summary>
     public static Movimiento CrearEntradaInicial(
@@ -35,11 +33,10 @@ public class Movimiento : Entity<int>
         int idUsuario,
         int cantidad,
         DateTime fechaUtc) =>
-        CrearEntrada(idMedicamento, idLote, idUsuario, cantidad,
-            "Alta inicial de medicamento", fechaUtc);
+        CrearEntrada(idMedicamento, idLote, idUsuario, cantidad, "Alta inicial de medicamento", fechaUtc);
 
     /// <summary>
-    /// Crea un movimiento de ENTRADA al registrar un nuevo lote.
+    /// Crea un movimiento de ENTRADA en bitácora al registrar la llegada de un nuevo lote.
     /// HU-07 escenario 10.
     /// </summary>
     public static Movimiento CrearEntradaLote(
@@ -48,13 +45,42 @@ public class Movimiento : Entity<int>
         int idUsuario,
         int cantidad,
         DateTime fechaUtc) =>
-        CrearEntrada(idMedicamento, idLote, idUsuario, cantidad,
-            "Entrada de nuevo lote", fechaUtc);
+        CrearEntrada(idMedicamento, idLote, idUsuario, cantidad, "Entrada de nuevo lote", fechaUtc);
 
-    /// <summary>
-    /// Crea un movimiento de SALIDA con los lotes utilizados.
-    /// HU-13.
-    /// </summary>
+    private static Movimiento CrearEntrada(
+        int idMedicamento,
+        int idLote,
+        int idUsuario,
+        int cantidad,
+        string motivo,
+        DateTime fechaUtc)
+    {
+        if (cantidad <= 0)
+            throw new DomainException("Un movimiento de entrada debe tener una cantidad mayor a 0.");
+
+        var movimiento = new Movimiento
+        {
+            Tipo = TipoEntrada,
+            IdMedicamento = idMedicamento,
+            IdUsuario = idUsuario,
+            CantidadTotal = cantidad,
+            Motivo = motivo,
+            Fecha = fechaUtc
+        };
+
+        movimiento._detalles.Add(DetalleMovimiento.Crear(idMedicamento, idLote, cantidad));
+        return movimiento;
+    }
+
+    public void AsignarId(int id)
+    {
+        Id = id;
+        foreach (var detalle in _detalles)
+        {
+            detalle.AsignarIdMovimiento(id);
+        }
+    }
+
     public static Movimiento CrearSalida(
         int idMedicamento,
         int idUsuario,
@@ -85,51 +111,9 @@ public class Movimiento : Entity<int>
 
         foreach (var lote in lotes)
         {
-            movimiento._detalles.Add(
-                DetalleMovimiento.Crear(
-                    idMedicamento,
-                    lote.IdLote,
-                    lote.Cantidad));
+            movimiento._detalles.Add(DetalleMovimiento.Crear(idMedicamento, lote.IdLote, lote.Cantidad));
         }
 
         return movimiento;
-    }
-
-    private static Movimiento CrearEntrada(
-        int idMedicamento,
-        int idLote,
-        int idUsuario,
-        int cantidad,
-        string motivo,
-        DateTime fechaUtc)
-    {
-        if (cantidad <= 0)
-            throw new DomainException(
-                "Un movimiento de entrada debe tener una cantidad mayor a 0.");
-
-        var movimiento = new Movimiento
-        {
-            Tipo = TipoEntrada,
-            IdMedicamento = idMedicamento,
-            IdUsuario = idUsuario,
-            CantidadTotal = cantidad,
-            Motivo = motivo,
-            Fecha = fechaUtc
-        };
-
-        movimiento._detalles.Add(
-            DetalleMovimiento.Crear(idMedicamento, idLote, cantidad));
-
-        return movimiento;
-    }
-
-    public void AsignarId(int id)
-    {
-        Id = id;
-
-        foreach (var detalle in _detalles)
-        {
-            detalle.AsignarIdMovimiento(id);
-        }
     }
 }

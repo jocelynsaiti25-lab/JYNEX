@@ -1,4 +1,3 @@
-
 using EtbotFarma.Application.Common.Exceptions;
 using EtbotFarma.Application.Common.Interfaces;
 using EtbotFarma.Application.Common.Interfaces.Repositorios;
@@ -7,13 +6,10 @@ using EtbotFarma.Application.SalidaMedicamentos.Commands;
 using EtbotFarma.Application.SalidaMedicamentos.Dtos;
 using EtbotFarma.Domain.Common;
 using EtbotFarma.Domain.Entities;
+using EtbotFarma.Domain.ValueObjects;
 
 namespace EtbotFarma.Application.SalidaMedicamentos.Handlers;
 
-/// <summary>
-/// HU-13: registra la salida de medicamentos, descuenta los lotes
-/// siguiendo FEFO y registra el movimiento en una única transacción.
-/// </summary>
 public sealed class RegistrarSalidaMedicamentoHandler(
     IMedicamentoRepository medicamentos,
     ILoteRepository lotes,
@@ -27,109 +23,43 @@ public sealed class RegistrarSalidaMedicamentoHandler(
         RegistrarSalidaMedicamentoCommand command,
         CancellationToken cancellationToken)
     {
-        // 1. Verificar sesión activa.
         if (usuarioActual.IdUsuario is not int idUsuario)
             throw new NoAutenticadoException();
 
-        // 2. Validar cantidad solicitada.
-        if (command.Cantidad <= 0)
-        {
-            throw new ValidacionException(
-                ["La cantidad solicitada debe ser mayor que cero."]);
-        }
-
-        // 3. Verificar que el medicamento exista y esté activo.
-        var medicamento = await medicamentos.ObtenerPorIdAsync(
-            command.IdMedicamento,
-            cancellationToken);
-
+        var medicamento = await medicamentos.ObtenerPorIdAsync(command.IdMedicamento, cancellationToken);
         if (medicamento is null || !medicamento.Activo)
-            throw new NoEncontradoException(
-                "El medicamento no existe o está inactivo.");
+            throw new NoEncontradoException("El medicamento no existe o está inactivo.");
 
         var hoy = reloj.Hoy;
-        var ahoraUtc = reloj.UtcNow.UtcDateTime;
+        var lotesVigentes = await lotes.ObtenerVigentesParaSalidaAsync(medicamento.Id, hoy, cancellationToken);
+        var propuesta = PropuestaFefo.Calcular(lotesVigentes, command.Cantidad, hoy);
 
-        // 4. Obtener lotes vigentes bloqueados dentro de la transacción.
-        var lotesVigentes = await lotes.ObtenerVigentesParaSalidaAsync(
-            medicamento.Id,
-            hoy,
-            cancellationToken);
-
-        var cantidadDisponible = lotesVigentes.Sum(l => l.Stock);
-
-        // 5. Verificar existencias suficientes antes de descontar.
-        if (cantidadDisponible < command.Cantidad)
+        if (!propuesta.Alcanza)
         {
             throw new DomainException(
-                $"Existencias insuficientes. Disponibles: {cantidadDisponible}. Solicitadas: {command.Cantidad}.");
+                $"Existencias insuficientes. Disponibles: {propuesta.CantidadDisponible}. Solicitadas: {command.Cantidad}.");
         }
 
-        // 6. Distribuir la cantidad solicitada siguiendo FEFO.
-        var cantidadRestante = command.Cantidad;
-
-        var lotesUtilizados = new List<LoteSalidaDto>();
-        var lotesSeleccionados = new List<(int IdLote, int Cantidad)>();
-
-        foreach (var lote in lotesVigentes)
+        foreach (var asignado in propuesta.Lotes)
         {
-            if (cantidadRestante <= 0)
-                break;
-
-            var cantidadAUtilizar = Math.Min(
-                cantidadRestante,
-                lote.Stock);
-
-            lotesUtilizados.Add(new LoteSalidaDto(
-                lote.Id,
-                lote.NumeroLote,
-                lote.FechaCaducidad,
-                lote.Stock,
-                cantidadAUtilizar));
-
-            lotesSeleccionados.Add((
-                lote.Id,
-                cantidadAUtilizar));
-
-            cantidadRestante -= cantidadAUtilizar;
-        }
-
-        // 7. Descontar existencias sin permitir stock negativo.
-        foreach (var lote in lotesSeleccionados)
-        {
-            var descontado = await lotes.DescontarStockAsync(
-                lote.IdLote,
-                lote.Cantidad,
-                cancellationToken);
-
-            if (!descontado)
+            if (!await lotes.DescontarStockAsync(asignado.Lote.Id, asignado.Cantidad, cancellationToken))
             {
                 throw new DomainException(
-                    "No fue posible descontar las existencias del lote. La operación fue cancelada.");
+                    "Las existencias del lote cambiaron. La salida no se registró; vuelve a consultar la propuesta.");
             }
         }
 
-        // 8. Crear y registrar el movimiento SALIDA con sus detalles.
         var movimiento = Movimiento.CrearSalida(
             medicamento.Id,
             idUsuario,
-            lotesSeleccionados,
-            ahoraUtc);
+            propuesta.Lotes.Select(a => (a.Lote.Id, a.Cantidad)).ToList(),
+            reloj.UtcNow.UtcDateTime);
 
-        var idMovimiento = await movimientos.AgregarConDetallesAsync(
-            movimiento,
-            cancellationToken);
+        var idMovimiento = await movimientos.AgregarConDetallesAsync(movimiento, cancellationToken);
 
-        // 9. Recalcular existencias y semáforo.
-        var lotesActualizados = await lotes.ObtenerPorMedicamentosAsync(
-            [medicamento.Id],
-            cancellationToken);
+        var lotesActualizados = await lotes.ObtenerPorMedicamentosAsync([medicamento.Id], cancellationToken);
+        var existencias = medicamento.CalcularExistencias(lotesActualizados, hoy);
 
-        var existencias = medicamento.CalcularExistencias(
-            lotesActualizados,
-            hoy);
-
-        // 10. Confirmar toda la transacción.
         await unitOfWork.GuardarCambiosAsync(cancellationToken);
 
         return new SalidaMedicamentoRegistradoDto(
@@ -137,7 +67,14 @@ public sealed class RegistrarSalidaMedicamentoHandler(
             medicamento.Id,
             medicamento.NombreComercial,
             command.Cantidad,
-            lotesUtilizados,
+            propuesta.Lotes
+                .Select(a => new LoteSalidaDto(
+                    a.Lote.Id,
+                    a.Lote.NumeroLote,
+                    a.Lote.FechaCaducidad,
+                    a.Lote.Stock,
+                    a.Cantidad))
+                .ToList(),
             existencias.Total,
             existencias.SemaforoGeneral,
             existencias.EstaAgotado,

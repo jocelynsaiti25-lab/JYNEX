@@ -6,6 +6,8 @@ namespace EtbotFarma.Application.Tests.Falsos;
 public sealed class LoteRepositoryFalso : ILoteRepository
 {
     public List<Lote> Lotes { get; } = [];
+    public List<(int IdLote, int Cantidad)> Descuentos { get; } = [];
+    public bool SimularDescuentoSinFilas { get; init; }
 
     public Task<int> AgregarAsync(Lote lote, CancellationToken cancellationToken)
     {
@@ -21,10 +23,28 @@ public sealed class LoteRepositoryFalso : ILoteRepository
             l.IdMedicamento == idMedicamento
             && l.NumeroLote.Equals(numeroLote.Trim(), StringComparison.OrdinalIgnoreCase)));
 
+    public Task<IReadOnlyList<Lote>> ObtenerVigentesParaSalidaAsync(
+        int idMedicamento, DateOnly fechaHoy, CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyList<Lote>>(Lotes
+            .Where(l => l.IdMedicamento == idMedicamento && l.FechaCaducidad > fechaHoy && l.Stock > 0)
+            .OrderBy(l => l.FechaCaducidad)
+            .ThenBy(l => l.FechaEntrada)
+            .ThenBy(l => l.Id)
+            .ToList());
+
     public Task<IReadOnlyList<Lote>> ObtenerPorMedicamentosAsync(
         IReadOnlyCollection<int> idsMedicamento, CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<Lote>>(Lotes.Where(l => idsMedicamento.Contains(l.IdMedicamento)).ToList());
 
     public Task<IReadOnlyList<Lote>> ObtenerTodosOrdenadosPorCaducidadAsync(CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<Lote>>(Lotes.OrderBy(l => l.FechaCaducidad).ToList());
+
+    public Task<bool> DescontarStockAsync(int idLote, int cantidad, CancellationToken cancellationToken)
+    {
+        if (SimularDescuentoSinFilas)
+            return Task.FromResult(false);
+
+        Descuentos.Add((idLote, cantidad));
+        return Task.FromResult(true);
+    }
 }
