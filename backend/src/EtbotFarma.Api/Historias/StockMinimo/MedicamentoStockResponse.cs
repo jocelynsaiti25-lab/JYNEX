@@ -8,5 +8,7 @@ public sealed record MedicamentoStockResponse(
     string Concentracion,
     int StockMinimo,
     int ExistenciasVigentes,
+    int ExistenciasCaducadas,
+    bool TieneLotesCaducados,
     bool EnStockBajo,
     bool EstaAgotado);

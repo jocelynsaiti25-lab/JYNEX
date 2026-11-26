@@ -48,7 +48,7 @@ public sealed class RegistrarMedicamentoHandler(
 
         // 3. Crear entidades del Domain (aquí se validan caducidad, lote y cantidad)
         var ahoraUtc = reloj.UtcNow.UtcDateTime;
-        var hoy = DateOnly.FromDateTime(ahoraUtc);
+        var hoy = reloj.Hoy;
         var fechaCaducidad = DateOnly.ParseExact(command.FechaCaducidad.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture);
         var cantidadInicial = int.Parse(command.CantidadInicial.Trim(), CultureInfo.InvariantCulture);
 

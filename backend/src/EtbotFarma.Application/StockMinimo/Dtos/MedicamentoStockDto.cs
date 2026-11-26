@@ -12,5 +12,7 @@ public sealed record MedicamentoStockDto(
     string Concentracion,
     int StockMinimo,
     int ExistenciasVigentes,
+    int ExistenciasCaducadas,
+    bool TieneLotesCaducados,
     bool EnStockBajo,
     bool EstaAgotado);

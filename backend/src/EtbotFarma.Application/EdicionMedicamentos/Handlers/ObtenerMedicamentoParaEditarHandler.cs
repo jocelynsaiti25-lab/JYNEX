@@ -25,7 +25,7 @@ public sealed class ObtenerMedicamentoParaEditarHandler(
             ?? throw new NoEncontradoException("El medicamento no existe");
 
         // 2. Existencias actuales, solo para mostrarlas de referencia (bloqueadas en el formulario)
-        var hoy = DateOnly.FromDateTime(reloj.UtcNow.UtcDateTime);
+        var hoy = reloj.Hoy;
         var lotesDelMedicamento = await lotes.ObtenerPorMedicamentosAsync([medicamento.Id], cancellationToken);
         var existencias = medicamento.CalcularExistencias(lotesDelMedicamento, hoy);
 

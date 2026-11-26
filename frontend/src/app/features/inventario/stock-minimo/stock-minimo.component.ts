@@ -10,6 +10,37 @@ interface EdicionPendiente {
   nuevoValor: number;
 }
 
+interface ResultadoValidacion {
+  valor: number | null;
+  error: string | null;
+}
+
+const MAXIMO_STOCK_MINIMO = 2147483647;
+
+function validarStockMinimo(texto: string): ResultadoValidacion {
+  const limpio = texto.trim();
+
+  if (limpio === '') {
+    return { valor: null, error: 'El stock mínimo es obligatorio.' };
+  }
+  if (/^-\d+([.,]\d+)?$/.test(limpio)) {
+    return { valor: null, error: 'El stock mínimo no puede ser negativo.' };
+  }
+  if (/^\d+[.,]\d*$/.test(limpio)) {
+    return { valor: null, error: 'El stock mínimo debe ser un número entero, sin decimales.' };
+  }
+  if (!/^\d+$/.test(limpio)) {
+    return { valor: null, error: 'El stock mínimo debe ser un número entero.' };
+  }
+
+  const numero = Number(limpio);
+  if (numero > MAXIMO_STOCK_MINIMO) {
+    return { valor: null, error: `El stock mínimo no puede ser mayor a ${MAXIMO_STOCK_MINIMO}.` };
+  }
+
+  return { valor: numero, error: null };
+}
+
 /**
  * HU-11: control de stock mínimo del catálogo (Administrador y Empleado por igual).
  *   Escenario 1: define o edita el mínimo de cada medicamento (entero ≥ 0).
@@ -31,7 +62,7 @@ export class StockMinimoComponent implements OnInit {
   readonly errorCarga = signal<string | null>(null);
 
   /** Valores que el usuario está editando, antes de confirmarlos (por idMedicamento). */
-  readonly valoresEditados = signal<Record<number, number>>({});
+  readonly valoresEditados = signal<Record<number, string>>({});
 
   readonly pendiente = signal<EdicionPendiente | null>(null);
   readonly guardando = signal(false);
@@ -58,20 +89,21 @@ export class StockMinimoComponent implements OnInit {
     });
   }
 
-  valorEditado(medicamento: MedicamentoStock): number {
-    return this.valoresEditados()[medicamento.idMedicamento] ?? medicamento.stockMinimo;
+  valorEditado(medicamento: MedicamentoStock): string {
+    return this.valoresEditados()[medicamento.idMedicamento] ?? String(medicamento.stockMinimo);
   }
 
   actualizarValor(idMedicamento: number, valor: string): void {
-    const numero = Math.trunc(Number(valor));
-    this.valoresEditados.update((actual) => ({
-      ...actual,
-      [idMedicamento]: Number.isNaN(numero) ? 0 : Math.max(0, numero),
-    }));
+    this.valoresEditados.update((actual) => ({ ...actual, [idMedicamento]: valor }));
   }
 
   hayCambio(medicamento: MedicamentoStock): boolean {
-    return this.valorEditado(medicamento) !== medicamento.stockMinimo;
+    return this.valorEditado(medicamento).trim() !== String(medicamento.stockMinimo);
+  }
+
+  errorDeCampo(medicamento: MedicamentoStock): string | null {
+    if (!this.hayCambio(medicamento)) return null;
+    return validarStockMinimo(this.valorEditado(medicamento)).error;
   }
 
   revertir(medicamento: MedicamentoStock): void {
@@ -85,9 +117,12 @@ export class StockMinimoComponent implements OnInit {
   pedirConfirmacion(medicamento: MedicamentoStock): void {
     if (!this.hayCambio(medicamento)) return;
 
+    const validacion = validarStockMinimo(this.valorEditado(medicamento));
+    if (validacion.valor === null) return;
+
     this.mensajeExito.set(null);
     this.errorGuardado.set(null);
-    this.pendiente.set({ medicamento, nuevoValor: this.valorEditado(medicamento) });
+    this.pendiente.set({ medicamento, nuevoValor: validacion.valor });
   }
 
   cancelarConfirmacion(): void {

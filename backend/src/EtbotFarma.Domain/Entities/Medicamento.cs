@@ -140,17 +140,23 @@ public class Medicamento : Entity<int>
     /// <summary>Guarda los acentos legibles (sin escapes Unicode) para que se lea fácil en MySQL.</summary>
     private static readonly JsonSerializerOptions OpcionesJson = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
-    /// <summary>
-    /// HU-11: solo cuenta como existencias las unidades disponibles y VIGENTES (con stock y sin caducar);
-    /// un lote caducado nunca cuenta, aunque todavía tenga unidades (Lote.EstaCaducado).
-    /// </summary>
     public ExistenciasMedicamento CalcularExistencias(IEnumerable<Lote> lotes, DateOnly hoy)
     {
-        var lotesVigentes = lotes.Where(l => l.Stock > 0 && !l.EstaCaducado(hoy)).ToList();
-        var total = lotesVigentes.Sum(l => l.Stock);
+        var lotesConStock = lotes.Where(l => l.Stock > 0).ToList();
+        var total = lotesConStock.Sum(l => l.Stock);
         var estaAgotado = total == 0;
         var enStockBajo = !estaAgotado && StockMinimo > 0 && total <= StockMinimo;
-        return new ExistenciasMedicamento(total, CalcularSemaforoGeneral(lotesVigentes, hoy), estaAgotado, enStockBajo);
+        return new ExistenciasMedicamento(total, CalcularSemaforoGeneral(lotesConStock, hoy), estaAgotado, enStockBajo);
+    }
+
+    public ExistenciasVigentes CalcularExistenciasVigentes(IEnumerable<Lote> lotes, DateOnly hoy)
+    {
+        var lotesConStock = lotes.Where(l => l.Stock > 0).ToList();
+        var vigentes = lotesConStock.Where(l => !l.EstaCaducado(hoy)).Sum(l => l.Stock);
+        var caducadas = lotesConStock.Where(l => l.EstaCaducado(hoy)).Sum(l => l.Stock);
+        var estaAgotado = vigentes == 0;
+        var enStockBajo = !estaAgotado && StockMinimo > 0 && vigentes <= StockMinimo;
+        return new ExistenciasVigentes(vigentes, caducadas, estaAgotado, enStockBajo);
     }
 
     private static string CalcularSemaforoGeneral(IReadOnlyCollection<Lote> lotesConStock, DateOnly hoy)

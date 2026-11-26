@@ -7,6 +7,8 @@ export interface MedicamentoStock {
   concentracion: string;
   stockMinimo: number;
   existenciasVigentes: number;
+  existenciasCaducadas: number;
+  tieneLotesCaducados: boolean;
   enStockBajo: boolean;
   estaAgotado: boolean;
 }

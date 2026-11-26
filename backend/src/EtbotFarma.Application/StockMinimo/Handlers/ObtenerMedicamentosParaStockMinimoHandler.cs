@@ -9,7 +9,7 @@ namespace EtbotFarma.Application.StockMinimo.Handlers;
 
 /// <summary>
 /// HU-11 escenarios 1 al 4: coordina la lista de medicamentos con su stock mínimo y alertas.
-/// Operación de solo lectura; reutiliza Medicamento.CalcularExistencias (HU-06/HU-07), sin
+/// Operación de solo lectura; usa Medicamento.CalcularExistenciasVigentes del Domain, sin
 /// repetir la regla de stock bajo/agotado.
 /// </summary>
 public sealed class ObtenerMedicamentosParaStockMinimoHandler(
@@ -27,7 +27,7 @@ public sealed class ObtenerMedicamentosParaStockMinimoHandler(
             throw new NoAutenticadoException();
 
         // 2. Obtener medicamentos activos y sus lotes
-        var hoy = DateOnly.FromDateTime(reloj.UtcNow.UtcDateTime);
+        var hoy = reloj.Hoy;
         var listaMedicamentos = await medicamentos.ObtenerTodosActivosAsync(cancellationToken);
         var idsMedicamento = listaMedicamentos.Select(m => m.Id).ToList();
         var todosLosLotes = await lotes.ObtenerPorMedicamentosAsync(idsMedicamento, cancellationToken);
@@ -41,7 +41,7 @@ public sealed class ObtenerMedicamentosParaStockMinimoHandler(
             .Select(med =>
             {
                 lotesPorMedicamento.TryGetValue(med.Id, out var lotesMed);
-                var existencias = med.CalcularExistencias(lotesMed ?? [], hoy);
+                var existencias = med.CalcularExistenciasVigentes(lotesMed ?? [], hoy);
 
                 return new MedicamentoStockDto(
                     med.Id,
@@ -50,7 +50,9 @@ public sealed class ObtenerMedicamentosParaStockMinimoHandler(
                     med.Presentacion,
                     med.Concentracion,
                     med.StockMinimo,
-                    existencias.Total,
+                    existencias.Vigentes,
+                    existencias.Caducadas,
+                    existencias.TieneLotesCaducados,
                     existencias.EnStockBajo,
                     existencias.EstaAgotado);
             })

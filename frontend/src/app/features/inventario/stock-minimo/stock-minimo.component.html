@@ -52,26 +52,44 @@
                 } @else {
                   <span class="etiqueta etiqueta--neutra">Disponible</span>
                 }
+                @if (medicamento.tieneLotesCaducados) {
+                  <span class="etiqueta etiqueta--agotado">
+                    LOTES CADUCADOS ({{ medicamento.existenciasCaducadas }})
+                  </span>
+                }
               </td>
               <td>
+                @let errorCampo = errorDeCampo(medicamento);
                 <label class="solo-lector" [attr.for]="'stock-minimo-' + medicamento.idMedicamento">
                   Stock mínimo de {{ medicamento.nombreComercial }}
                 </label>
                 <input
-                  type="number"
-                  min="0"
-                  step="1"
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="off"
                   class="campo__control campo__control--corto"
                   [id]="'stock-minimo-' + medicamento.idMedicamento"
                   [value]="valorEditado(medicamento)"
+                  [attr.aria-invalid]="errorCampo ? 'true' : null"
+                  [attr.aria-describedby]="errorCampo ? 'error-stock-minimo-' + medicamento.idMedicamento : null"
                   (input)="actualizarValor(medicamento.idMedicamento, $any($event.target).value)"
                 />
+                @if (errorCampo) {
+                  <p class="campo__error" role="alert" [id]="'error-stock-minimo-' + medicamento.idMedicamento">
+                    {{ errorCampo }}
+                  </p>
+                }
               </td>
               <td>
                 @if (hayCambio(medicamento)) {
                   <div class="acciones">
                     <button type="button" class="boton boton--texto" (click)="revertir(medicamento)">Cancelar</button>
-                    <button type="button" class="boton boton--primario" (click)="pedirConfirmacion(medicamento)">
+                    <button
+                      type="button"
+                      class="boton boton--primario"
+                      [disabled]="errorDeCampo(medicamento) !== null"
+                      (click)="pedirConfirmacion(medicamento)"
+                    >
                       Guardar
                     </button>
                   </div>

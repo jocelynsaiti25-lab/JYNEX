@@ -30,6 +30,8 @@ public sealed class StockMinimoController(ISender sender) : ControllerBase
                 item.Concentracion,
                 item.StockMinimo,
                 item.ExistenciasVigentes,
+                item.ExistenciasCaducadas,
+                item.TieneLotesCaducados,
                 item.EnStockBajo,
                 item.EstaAgotado))
             .ToList();

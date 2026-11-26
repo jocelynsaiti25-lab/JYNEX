@@ -40,6 +40,8 @@ public static class DependencyInjection
         services.AddSingleton<ITokenSesionService, TokenSesionService>();
 
         // ---------- Otros servicios ----------
+        var configuracionReloj = configuration.GetSection("Reloj").Get<ConfiguracionReloj>() ?? new ConfiguracionReloj();
+        services.AddSingleton(configuracionReloj);
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
         // ---------- Configuración (appsettings.json, sección "Sesion") ----------

@@ -49,7 +49,7 @@ public sealed class RegistrarEntradaLoteHandler(
 
         // 4. Crear entidades del Domain (valida caducidad > hoy y cantidad > 0) (HU-07 escenarios 4 y 5)
         var ahoraUtc = reloj.UtcNow.UtcDateTime;
-        var hoy = DateOnly.FromDateTime(ahoraUtc);
+        var hoy = reloj.Hoy;
         var fechaCaducidad = DateOnly.ParseExact(command.FechaCaducidad.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture);
         var cantidad = int.Parse(command.Cantidad.Trim(), CultureInfo.InvariantCulture);
 

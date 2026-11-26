@@ -46,4 +46,23 @@ public class ActualizarStockMinimoValidatorTests
 
         resultado.ShouldHaveValidationErrorFor(c => c.IdMedicamento).WithErrorMessage("El medicamento no existe.");
     }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(1000)]
+    [InlineData(int.MaxValue)]
+    public void Enteros_positivos_son_validos(int valor)
+    {
+        _validator.TestValidate(new ActualizarStockMinimoCommand(1, valor)).ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(-1000)]
+    [InlineData(int.MinValue)]
+    public void Cualquier_negativo_marca_error(int valor)
+    {
+        _validator.TestValidate(new ActualizarStockMinimoCommand(1, valor))
+            .ShouldHaveValidationErrorFor(c => c.NuevoStockMinimo);
+    }
 }
