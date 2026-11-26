@@ -1,3 +1,4 @@
+
 using System.Text.RegularExpressions;
 using EtbotFarma.Domain.Common;
 using EtbotFarma.Domain.Enums;
@@ -5,11 +6,13 @@ using EtbotFarma.Domain.Enums;
 namespace EtbotFarma.Domain.Entities;
 
 /// <summary>
-/// Lote específico de un medicamento con su fecha de caducidad y existencias. Tabla: lote.
+/// Lote específico de un medicamento con su fecha de caducidad y existencias.
+/// Tabla: lote.
 /// </summary>
 public class Lote : Entity<int>
 {
-    private static readonly Regex PatronNumeroLote = new("^[a-zA-Z0-9-]+$", RegexOptions.Compiled);
+    private static readonly Regex PatronNumeroLote =
+        new("^[a-zA-Z0-9-]+$", RegexOptions.Compiled);
 
     public int IdMedicamento { get; private set; }
     public string NumeroLote { get; private set; } = string.Empty;
@@ -32,7 +35,6 @@ public class Lote : Entity<int>
     {
         var loteNormalizado = numeroLote?.Trim() ?? string.Empty;
 
-        // HU-06 escenario 13: solo letras, números y guiones, máximo 50 caracteres
         if (string.IsNullOrWhiteSpace(loteNormalizado)
             || loteNormalizado.Length > 50
             || !PatronNumeroLote.IsMatch(loteNormalizado))
@@ -40,13 +42,11 @@ public class Lote : Entity<int>
             throw new DomainException("El número de lote solo puede tener letras, números y guiones.");
         }
 
-        // HU-06 escenario 12: la cantidad debe ser 0 o mayor
         if (cantidadInicial < 0)
         {
             throw new DomainException("La cantidad debe ser un número entero de 0 o más.");
         }
 
-        // HU-06 escenario 10: no se permite registrar un lote caducado (hoy o anterior)
         if (fechaCaducidad <= fechaHoy)
         {
             throw new DomainException("No se puede registrar un lote caducado.");
@@ -63,8 +63,8 @@ public class Lote : Entity<int>
     }
 
     /// <summary>
-    /// Crea un nuevo lote para reabastecer un medicamento existente (HU-07 escenarios 3, 4 y 5).
-    /// A diferencia del alta inicial, la cantidad debe ser estrictamente mayor a 0.
+    /// Crea un nuevo lote para reabastecer un medicamento existente.
+    /// HU-07 escenarios 3, 4 y 5.
     /// </summary>
     public static Lote CrearEntrada(
         int idMedicamento,
@@ -82,11 +82,26 @@ public class Lote : Entity<int>
         return Crear(idMedicamento, numeroLote, fechaCaducidad, cantidad, fechaHoy);
     }
 
+    /// <summary>
+    /// Descuenta existencias del lote al registrar una salida.
+    /// HU-13.
+    /// </summary>
+    public void DescontarStock(int cantidad)
+    {
+        if (cantidad <= 0)
+            throw new DomainException("La cantidad a descontar debe ser mayor que cero.");
+
+        if (cantidad > Stock)
+            throw new DomainException("No hay existencias suficientes en el lote.");
+
+        Stock -= cantidad;
+    }
+
     public void AsignarId(int id) => Id = id;
 
     /// <summary>
-    /// Calcula el color del semáforo de caducidad en meses calendario (HU-06 escenarios 11 y 20).
-    /// Rojo: <= 3 meses · Amarillo: > 3 y <= 12 meses · Verde: > 12 meses.
+    /// Calcula el color del semáforo de caducidad en meses calendario.
+    /// HU-06.
     /// </summary>
     public SemaforoCaducidad ObtenerSemaforo(DateOnly fechaHoy)
     {
@@ -100,12 +115,10 @@ public class Lote : Entity<int>
     }
 
     /// <summary>
-    /// Indica si el lote ya venció: su fecha de caducidad es igual o anterior a hoy.
-    /// Un lote caducado siempre se clasifica en Rojo (ObtenerSemaforo), pero además lleva esta
-    /// marca para que la capa de presentación muestre la etiqueta de alerta "CADUCADO" (HU-10 escenario 5)
-    /// y para que las existencias "vigentes" lo excluyan aunque todavía tenga unidades (HU-11).
+    /// Indica si el lote ya venció.
     /// </summary>
-    public bool EstaCaducado(DateOnly fechaHoy) => FechaCaducidad <= fechaHoy;
+    public bool EstaCaducado(DateOnly fechaHoy) =>
+        FechaCaducidad <= fechaHoy;
 
     public static Lote Reconstruir(
         int id,

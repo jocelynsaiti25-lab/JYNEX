@@ -1,16 +1,17 @@
+
 using EtbotFarma.Domain.Entities;
 
 namespace EtbotFarma.Application.Common.Interfaces.Repositorios;
 
-/// <summary>Contrato de persistencia para los lotes de medicamentos.</summary>
+/// <summary>
+/// Contrato de persistencia para los lotes de medicamentos.
+/// </summary>
 public interface ILoteRepository
 {
-    /// <summary>Inserta un lote en MySQL y devuelve su id_lote generado.</summary>
-    Task<int> AgregarAsync(Lote lote, CancellationToken cancellationToken);
+    Task<int> AgregarAsync(
+        Lote lote,
+        CancellationToken cancellationToken);
 
-    /// <summary>
-    /// HU-07 escenarios 6 y 7: verifica si el número de lote ya existe para ese medicamento específico.
-    /// </summary>
     Task<bool> ExisteNumeroLoteEnMedicamentoAsync(
         int idMedicamento,
         string numeroLote,
@@ -20,8 +21,23 @@ public interface ILoteRepository
         IReadOnlyCollection<int> idsMedicamento,
         CancellationToken cancellationToken);
 
+    Task<IReadOnlyList<Lote>> ObtenerTodosOrdenadosPorCaducidadAsync(
+        CancellationToken cancellationToken);
+
     /// <summary>
-    /// HU-08 escenarios 3 y 4: obtiene todos los lotes ordenados por fecha de caducidad ascendente.
+    /// HU-13: obtiene los lotes vigentes con existencias,
+    /// bloqueándolos dentro de la transacción.
     /// </summary>
-    Task<IReadOnlyList<Lote>> ObtenerTodosOrdenadosPorCaducidadAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<Lote>> ObtenerVigentesParaSalidaAsync(
+        int idMedicamento,
+        DateOnly fechaHoy,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// HU-13: descuenta existencias sin permitir stock negativo.
+    /// </summary>
+    Task<bool> DescontarStockAsync(
+        int idLote,
+        int cantidad,
+        CancellationToken cancellationToken);
 }
