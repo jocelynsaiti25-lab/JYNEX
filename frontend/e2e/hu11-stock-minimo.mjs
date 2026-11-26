@@ -156,7 +156,7 @@ const navegador = await chromium.launch();
   revisar('Con 40 vigentes y mínimo 3 sigue Disponible', (await filaDe(pagina, NOMBRE).innerText()).includes('Disponible'));
 
   await guardarCambio(pagina, filaDe(pagina, NOMBRE), '40');
-  await pagina.getByText('STOCK BAJO').first().waitFor({ timeout: 5000 }).catch(() => {});
+  await filaDe(pagina, NOMBRE).getByText('STOCK BAJO').waitFor({ timeout: 8000 }).catch(() => {});
   revisar('Con vigentes iguales al mínimo aparece STOCK BAJO', (await filaDe(pagina, NOMBRE).innerText()).includes('STOCK BAJO'));
   revisar('El umbral 40 quedó guardado en MySQL', stockMinimoEnBase() === '40');
 
