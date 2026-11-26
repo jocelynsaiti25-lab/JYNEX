@@ -94,6 +94,15 @@ async function esperarFilas(pagina, esperadas, patron = SUFIJO) {
   return (await filas.count()) === esperadas;
 }
 
+async function cumple(condicion, tiempo = 4000) {
+  const limite = Date.now() + tiempo;
+  while (Date.now() < limite) {
+    if (await condicion()) return true;
+    await new Promise((resolver) => setTimeout(resolver, 100));
+  }
+  return condicion();
+}
+
 async function aparece(pagina, texto, tiempo = 4000) {
   try {
     await pagina.getByText(texto).first().waitFor({ timeout: tiempo });
@@ -157,7 +166,8 @@ const navegador = await chromium.launch();
 
   await filtro(pagina, FILTRO_AMARILLO).click();
   revisar('Cambiar de filtro sin perder el término: Amarillo muestra solo su lote',
-    (await esperarFilas(pagina, 1, NOMBRE)) && (await filaDe(pagina, LOTE_AMARILLO).count()) === 1);
+    await cumple(async () =>
+      (await filaDe(pagina, LOTE_AMARILLO).count()) === 1 && (await filaDe(pagina, LOTE_VERDE).count()) === 0));
 
   await buscador(pagina).fill(LOTE_CADUCADO);
   await filtro(pagina, FILTRO_ROJO).click();
@@ -175,8 +185,9 @@ const navegador = await chromium.launch();
   await esperarFilas(pagina, 2, NOMBRE);
   await pagina.getByRole('button', { name: 'Limpiar' }).click();
   revisar('Limpiar borra el término y conserva el filtro seleccionado',
-    (await buscador(pagina).inputValue()) === ''
-    && await filtro(pagina, FILTRO_ROJO).evaluate((e) => e.classList.contains('activo')));
+    await cumple(async () =>
+      (await buscador(pagina).inputValue()) === ''
+      && await filtro(pagina, FILTRO_ROJO).evaluate((e) => e.classList.contains('activo'))));
 
   await filtro(pagina, 'Todos').click();
   await buscador(pagina).fill(SUFIJO);
