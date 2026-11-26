@@ -6,7 +6,10 @@ namespace EtbotFarma.Application.Tests.Falsos;
 public sealed class MedicamentoRepositoryFalso : IMedicamentoRepository
 {
     public bool SimularDuplicado { get; init; }
+    public bool SimularDuplicadoAlEditar { get; init; }
+    public Exception? FalloAlActualizar { get; init; }
     public List<Medicamento> Medicamentos { get; } = [];
+    public List<Medicamento> Actualizados { get; } = [];
 
     public Task<bool> ExisteDuplicadoAsync(
         string nombreComercial, string nombreSustancia, string presentacion, string concentracion, CancellationToken cancellationToken)
@@ -26,4 +29,19 @@ public sealed class MedicamentoRepositoryFalso : IMedicamentoRepository
 
     public Task<IReadOnlyList<Medicamento>> ObtenerTodosActivosAsync(CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<Medicamento>>(Medicamentos.Where(m => m.Activo).ToList());
+
+    public Task<bool> ExisteDuplicadoAlEditarAsync(
+        int idMedicamento, string nombreComercial, string nombreSustancia, string presentacion, string concentracion, CancellationToken cancellationToken)
+        => Task.FromResult(SimularDuplicadoAlEditar);
+
+    public Task ActualizarAsync(Medicamento medicamento, CancellationToken cancellationToken)
+    {
+        if (FalloAlActualizar is not null)
+        {
+            throw FalloAlActualizar;
+        }
+
+        Actualizados.Add(medicamento);
+        return Task.CompletedTask;
+    }
 }

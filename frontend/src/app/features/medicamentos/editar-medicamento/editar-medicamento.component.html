@@ -1,0 +1,192 @@
+<div class="pantalla">
+  <header class="pantalla__encabezado">
+    <div>
+      <h1 class="pantalla__titulo">Editar medicamento</h1>
+      <p class="pantalla__descripcion">Corrige los datos descriptivos de un medicamento ya registrado en el catálogo.</p>
+    </div>
+    <a class="boton boton--secundario" routerLink="/inventario">
+      <span class="icono" aria-hidden="true">arrow_back</span>
+      Volver al inventario
+    </a>
+  </header>
+
+  @if (cargando()) {
+    <p class="estado-carga" role="status">
+      <span class="cargando" aria-hidden="true"></span>
+      Cargando el medicamento…
+    </p>
+  } @else if (errorCarga(); as mensaje) {
+    <!-- Dirección escrita a mano con un id que no existe -->
+    <app-alerta tipo="error">{{ mensaje }}</app-alerta>
+  } @else if (medicamento(); as medicamento) {
+    @if (mensajeExito()) {
+      <app-alerta tipo="exito" [cerrable]="true" (cerrar)="mensajeExito.set(null)">
+        {{ mensajeExito() }}
+      </app-alerta>
+    }
+
+    <!-- Escenarios 8 y 15: errores que responde el servidor -->
+    @if (errores().length) {
+      <app-alerta tipo="error" titulo="No se guardaron los cambios">
+        <ul class="lista-errores">
+          @for (error of errores(); track error) {
+            <li>{{ error }}</li>
+          }
+        </ul>
+      </app-alerta>
+    }
+
+    <!-- Escenario 10: existencias y semáforo solo de referencia, nunca editables aquí -->
+    <section class="tarjeta" aria-labelledby="titulo-referencia">
+      <h2 id="titulo-referencia" class="seccion__titulo">Existencias (solo de referencia)</h2>
+      <p class="campo__ayuda">
+        El stock, los lotes y las fechas de caducidad se administran desde Entrada de lote; aquí no se pueden editar.
+      </p>
+      <dl class="resumen">
+        <dt>Existencias totales</dt>
+        <dd>{{ medicamento.existenciasTotales }} unidades</dd>
+        <dt>Semáforo de caducidad</dt>
+        <dd>{{ medicamento.semaforoCaducidad }}</dd>
+      </dl>
+    </section>
+
+    <section class="tarjeta" aria-labelledby="titulo-datos">
+      <h2 id="titulo-datos" class="seccion__titulo">Datos descriptivos</h2>
+
+      <form class="formulario" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+        <div class="campo">
+          <label class="campo__etiqueta" for="nombreComercial">
+            Nombre comercial <span class="obligatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="nombreComercial"
+            class="campo__control"
+            type="text"
+            formControlName="nombreComercial"
+            maxlength="100"
+            [attr.aria-invalid]="campoInvalido('nombreComercial')"
+          />
+          @if (campoInvalido('nombreComercial')) {
+            <p class="campo__error"><span class="icono" aria-hidden="true">error</span>Este campo es obligatorio</p>
+          }
+        </div>
+
+        <div class="campo">
+          <label class="campo__etiqueta" for="nombreSustancia">
+            Sustancia activa <span class="obligatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="nombreSustancia"
+            class="campo__control"
+            type="text"
+            formControlName="nombreSustancia"
+            maxlength="100"
+            [attr.aria-invalid]="campoInvalido('nombreSustancia')"
+          />
+          @if (campoInvalido('nombreSustancia')) {
+            <p class="campo__error"><span class="icono" aria-hidden="true">error</span>Este campo es obligatorio</p>
+          }
+        </div>
+
+        <div class="campo">
+          <label class="campo__etiqueta" for="presentacion">
+            Presentación <span class="obligatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="presentacion"
+            class="campo__control"
+            type="text"
+            formControlName="presentacion"
+            maxlength="50"
+            [attr.aria-invalid]="campoInvalido('presentacion')"
+          />
+          @if (campoInvalido('presentacion')) {
+            <p class="campo__error"><span class="icono" aria-hidden="true">error</span>Este campo es obligatorio</p>
+          }
+        </div>
+
+        <div class="campo">
+          <label class="campo__etiqueta" for="concentracion">
+            Concentración <span class="obligatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="concentracion"
+            class="campo__control"
+            type="text"
+            formControlName="concentracion"
+            maxlength="50"
+            [attr.aria-invalid]="campoInvalido('concentracion')"
+          />
+          @if (campoInvalido('concentracion')) {
+            <p class="campo__error"><span class="icono" aria-hidden="true">error</span>Este campo es obligatorio</p>
+          }
+        </div>
+
+        <div class="campo campo--checkbox">
+          <label class="campo__etiqueta" for="esControlado">
+            <input id="esControlado" type="checkbox" formControlName="esControlado" />
+            Medicamento controlado
+          </label>
+        </div>
+
+        <div class="acciones">
+          <a class="boton boton--secundario" routerLink="/inventario">Cancelar</a>
+          <!-- Escenario 12: deshabilitado hasta que haya un cambio real; escenario 16: mientras se procesa -->
+          <button type="submit" class="boton boton--primario" [disabled]="guardando() || !hayCambiosSinGuardar()">
+            <span class="icono" aria-hidden="true">save</span>
+            Guardar
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Escenarios 5 y 6: resumen comparativo antes/después antes de aplicar los cambios -->
+    <app-confirmacion
+      [abierta]="confirmando()"
+      titulo="¿Guardar los cambios de este medicamento?"
+      textoConfirmar="Aceptar"
+      textoCancelar="Cancelar"
+      icono="edit"
+      [procesando]="guardando()"
+      (confirmar)="confirmarEdicion()"
+      (cancelar)="cancelarConfirmacion()"
+    >
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th scope="col">Campo</th>
+            <th scope="col">Antes</th>
+            <th scope="col">Después</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Nombre comercial</th>
+            <td>{{ medicamento.nombreComercial }}</td>
+            <td>{{ formulario.controls.nombreComercial.value }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Sustancia activa</th>
+            <td>{{ medicamento.nombreSustancia }}</td>
+            <td>{{ formulario.controls.nombreSustancia.value }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Presentación</th>
+            <td>{{ medicamento.presentacion }}</td>
+            <td>{{ formulario.controls.presentacion.value }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Concentración</th>
+            <td>{{ medicamento.concentracion }}</td>
+            <td>{{ formulario.controls.concentracion.value }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Medicamento controlado</th>
+            <td>{{ medicamento.esControlado ? 'Sí' : 'No' }}</td>
+            <td>{{ formulario.controls.esControlado.value ? 'Sí' : 'No' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </app-confirmacion>
+  }
+</div>
