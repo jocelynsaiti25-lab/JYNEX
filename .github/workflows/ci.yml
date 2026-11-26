@@ -213,6 +213,10 @@ jobs:
         if: success() || failure()   # se ejecutan aunque falle otra historia, para ver todos los resultados
         working-directory: frontend
         run: node e2e/hu10-semaforo-caducidad.mjs
+      - name: Pruebas de HU-12 en el navegador (medicamentos agotados)
+        if: success() || failure()
+        working-directory: frontend
+        run: node e2e/hu12-medicamentos-agotados.mjs
       - name: Pruebas de HU-09 en el navegador (edición de medicamentos)
         if: success() || failure()   # se ejecutan aunque falle otra historia, para ver todos los resultados
         working-directory: frontend

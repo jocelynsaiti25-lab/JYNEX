@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 
 import { ResultadoBaja } from '../../../core/models/baja-lote.model';
 import { ItemInventario } from '../../../core/models/inventario.model';
+import { MedicamentoAgotado } from '../../../core/models/medicamento-agotado.model';
 import { InventarioService } from '../../../core/services/inventario.service';
 import { SesionService } from '../../../core/services/sesion.service';
 import { AlertaComponent } from '../../../shared/components/alerta/alerta.component';
@@ -43,6 +44,28 @@ export class ConsultaInventarioComponent implements OnInit {
 
   readonly terminoBusqueda = signal('');
   readonly filtroSemaforo = signal<FiltroSemaforo>('Todos');
+
+  readonly agotadosActivo = signal(false);
+  readonly medicamentosAgotados = signal<MedicamentoAgotado[]>([]);
+  readonly cargandoAgotados = signal(false);
+  readonly errorAgotados = signal<string | null>(null);
+
+  readonly agotadosFiltrados = computed(() => {
+    const termino = this.terminoBusqueda().trim().toLowerCase();
+
+    return this.medicamentosAgotados().filter(
+      (medicamento) =>
+        !termino ||
+        medicamento.nombreComercial.toLowerCase().includes(termino) ||
+        medicamento.nombreSustancia.toLowerCase().includes(termino),
+    );
+  });
+
+  readonly mensajeSinAgotados = computed(() =>
+    this.terminoBusqueda().trim()
+      ? 'No hay medicamentos agotados que coincidan con la búsqueda.'
+      : 'No hay medicamentos agotados',
+  );
 
   /**
    * HU-08 escenarios 1, 2, 4, 5 y 7:
@@ -138,6 +161,29 @@ export class ConsultaInventarioComponent implements OnInit {
   }
 
   cambiarFiltroSemaforo(filtro: FiltroSemaforo): void {
+    this.agotadosActivo.set(false);
     this.filtroSemaforo.set(filtro);
+  }
+
+  mostrarAgotados(): void {
+    this.agotadosActivo.set(true);
+    this.cargarAgotados();
+  }
+
+  cargarAgotados(): void {
+    this.cargandoAgotados.set(true);
+    this.errorAgotados.set(null);
+
+    this.inventarioService.consultarAgotados().subscribe({
+      next: (datos) => {
+        this.medicamentosAgotados.set(datos);
+        this.cargandoAgotados.set(false);
+      },
+      error: () => {
+        this.medicamentosAgotados.set([]);
+        this.cargandoAgotados.set(false);
+        this.errorAgotados.set('No se pudo cargar la lista de medicamentos agotados.');
+      },
+    });
   }
 }
