@@ -69,6 +69,17 @@ public class Medicamento : Entity<int>
     }
 
     /// <summary>
+    /// HU-11 escenario 1: define o edita el umbral de stock mínimo del medicamento.
+    /// </summary>
+    public void ActualizarStockMinimo(int nuevoStockMinimo)
+    {
+        if (nuevoStockMinimo < 0)
+            throw new DomainException("El stock mínimo debe ser un número entero de 0 o más.");
+
+        StockMinimo = nuevoStockMinimo;
+    }
+
+    /// <summary>
     /// HU-09 escenarios 1 y 9: actualiza SOLO los datos descriptivos del catálogo.
     /// Conserva el Id, el stock mínimo, el estado activo y la fecha de registro (nunca se tocan aquí).
     /// </summary>
@@ -137,6 +148,16 @@ public class Medicamento : Entity<int>
         var estaAgotado = total == 0;
         var enStockBajo = !estaAgotado && StockMinimo > 0 && total <= StockMinimo;
         return new ExistenciasMedicamento(total, CalcularSemaforoGeneral(lotesConStock, hoy), estaAgotado, enStockBajo);
+    }
+
+    public ExistenciasVigentes CalcularExistenciasVigentes(IEnumerable<Lote> lotes, DateOnly hoy)
+    {
+        var lotesConStock = lotes.Where(l => l.Stock > 0).ToList();
+        var vigentes = lotesConStock.Where(l => !l.EstaCaducado(hoy)).Sum(l => l.Stock);
+        var caducadas = lotesConStock.Where(l => l.EstaCaducado(hoy)).Sum(l => l.Stock);
+        var estaAgotado = vigentes == 0;
+        var enStockBajo = !estaAgotado && StockMinimo > 0 && vigentes <= StockMinimo;
+        return new ExistenciasVigentes(vigentes, caducadas, estaAgotado, enStockBajo);
     }
 
     private static string CalcularSemaforoGeneral(IReadOnlyCollection<Lote> lotesConStock, DateOnly hoy)

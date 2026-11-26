@@ -217,6 +217,10 @@ jobs:
         if: success() || failure()   # se ejecutan aunque falle otra historia, para ver todos los resultados
         working-directory: frontend
         run: node e2e/hu09-edicion-medicamentos.mjs
+      - name: Pruebas de HU-11 en el navegador (control de stock mínimo)
+        if: success() || failure()   # se ejecutan aunque falle otra historia, para ver todos los resultados
+        working-directory: frontend
+        run: node e2e/hu11-stock-minimo.mjs
       - name: Guardar capturas de pantalla
         if: always()
         uses: actions/upload-artifact@v4
