@@ -149,6 +149,7 @@ const navegador = await chromium.launch();
 
   // Escenario 7: borrar un campo obligatorio no abre la confirmación
   await pagina.fill('#nombreComercial', '');
+  await pagina.waitForTimeout(300); // deja correr la detección de cambios de Angular antes de revisar el botón
   revisar('7a. Al vaciar un campo "Guardar" se habilita (hay un cambio)', !(await guardar().isDisabled()));
   await guardar().click();
   revisar('7b. Marca "Este campo es obligatorio"', await aparece(pagina, 'Este campo es obligatorio'));
