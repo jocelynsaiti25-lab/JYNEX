@@ -71,7 +71,7 @@ public class BajaLotesEndpointsTests(ApiConMySql api, ApiConBitacoraQueFalla api
         return json.GetProperty("idLote").GetInt32();
     }
 
-    private Task<HttpResponseMessage> DarDeBajaAsync(string? cookie, int idLote, int cantidadConsultada, string motivo) =>
+    private Task<HttpResponseMessage> DarDeBajaAsync(string? cookie, int idLote, int cantidadConsultada, string? motivo) =>
         EnviarAsync(HttpMethod.Post, $"/api/inventario/lotes/{idLote}/baja", new { cantidadConsultada, motivo }, cookie);
 
     private async Task<long> LeerAsync(string sql, int id)
@@ -199,22 +199,68 @@ public class BajaLotesEndpointsTests(ApiConMySql api, ApiConBitacoraQueFalla api
         Assert.Equal(0, await BajasAsync(idLote));
     }
 
-    [Theory]
-    [InlineData("", "El motivo es obligatorio.")]
-    [InlineData("     ", "El motivo es obligatorio.")]
-    [InlineData(null, "El motivo no puede tener más de 200 caracteres.")]
-    public async Task Un_motivo_vacio_o_demasiado_largo_responde_400_y_no_cambia_nada(string? motivo, string mensaje)
+    private async Task<int> PrepararLoteParaMotivoAsync(string admin, string numeroLote)
     {
-        var admin = await IniciarSesionAsync();
         var idMedicamento = await CrearMedicamentoAsync(admin);
-        var idLote = await AgregarLoteAsync(admin, idMedicamento, "L-MOT", 1, 10);
+        return await AgregarLoteAsync(admin, idMedicamento, numeroLote, 1, 10);
+    }
 
-        var respuesta = await DarDeBajaAsync(admin, idLote, 10, motivo ?? new string('m', 201));
-
+    private async Task AfirmarMotivoRechazadoAsync(HttpResponseMessage respuesta, int idLote, string mensaje)
+    {
         Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
-        Assert.Contains(mensaje, await respuesta.Content.ReadAsStringAsync());
+        var json = await respuesta.Content.ReadFromJsonAsync<JsonElement>();
+        var errores = json.GetProperty("errores").EnumerateArray().Select(e => e.GetString()).ToArray();
+        Assert.Contains(mensaje, errores);
         Assert.Equal(10, await StockAsync(idLote));
         Assert.Equal(0, await BajasAsync(idLote));
+    }
+
+    [Fact]
+    public async Task Un_motivo_null_responde_400_y_no_cambia_nada()
+    {
+        var admin = await IniciarSesionAsync();
+        var idLote = await PrepararLoteParaMotivoAsync(admin, "L-MOT-NULL");
+
+        var respuesta = await DarDeBajaAsync(admin, idLote, 10, null);
+
+        await AfirmarMotivoRechazadoAsync(respuesta, idLote, "El motivo es obligatorio.");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("     ")]
+    public async Task Un_motivo_vacio_o_solo_con_espacios_responde_400_y_no_cambia_nada(string motivo)
+    {
+        var admin = await IniciarSesionAsync();
+        var idLote = await PrepararLoteParaMotivoAsync(admin, "L-MOT-VACIO");
+
+        var respuesta = await DarDeBajaAsync(admin, idLote, 10, motivo);
+
+        await AfirmarMotivoRechazadoAsync(respuesta, idLote, "El motivo es obligatorio.");
+    }
+
+    [Fact]
+    public async Task Un_motivo_de_mas_de_200_caracteres_responde_400_y_no_cambia_nada()
+    {
+        var admin = await IniciarSesionAsync();
+        var idLote = await PrepararLoteParaMotivoAsync(admin, "L-MOT-LARGO");
+
+        var respuesta = await DarDeBajaAsync(admin, idLote, 10, new string('m', 201));
+
+        await AfirmarMotivoRechazadoAsync(respuesta, idLote, "El motivo no puede tener más de 200 caracteres.");
+    }
+
+    [Fact]
+    public async Task Un_motivo_valido_de_exactamente_200_caracteres_se_acepta()
+    {
+        var admin = await IniciarSesionAsync();
+        var idLote = await PrepararLoteParaMotivoAsync(admin, "L-MOT-200");
+
+        var respuesta = await DarDeBajaAsync(admin, idLote, 10, new string('m', 200));
+
+        Assert.Equal(HttpStatusCode.Created, respuesta.StatusCode);
+        Assert.Equal(0, await StockAsync(idLote));
+        Assert.Equal(1, await BajasAsync(idLote));
     }
 
     [Fact]

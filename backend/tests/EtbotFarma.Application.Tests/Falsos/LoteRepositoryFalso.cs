@@ -18,7 +18,7 @@ public sealed class LoteRepositoryFalso : ILoteRepository
     }
 
     public Task<Lote?> ObtenerPorIdParaActualizarAsync(int idLote, CancellationToken cancellationToken)
-        => Task.FromResult(Lotes.FirstOrDefault(l => l.Id == idLote));
+        => Task.FromResult(Lotes.FirstOrDefault(l => l.Id == idLote) is { } lote ? Copiar(lote) : null);
 
     public Task<bool> ExisteNumeroLoteEnMedicamentoAsync(
         int idMedicamento, string numeroLote, CancellationToken cancellationToken)
@@ -35,10 +35,18 @@ public sealed class LoteRepositoryFalso : ILoteRepository
 
     public Task<bool> DescontarStockAsync(int idLote, int cantidad, CancellationToken cancellationToken)
     {
-        if (SimularDescuentoSinFilas)
+        var indice = Lotes.FindIndex(l => l.Id == idLote);
+
+        if (SimularDescuentoSinFilas || cantidad <= 0 || indice < 0 || Lotes[indice].Stock < cantidad)
             return Task.FromResult(false);
 
+        var lote = Lotes[indice];
+        Lotes[indice] = Lote.Reconstruir(
+            lote.Id, lote.IdMedicamento, lote.NumeroLote, lote.FechaCaducidad, lote.Stock - cantidad, lote.FechaEntrada);
         Descuentos.Add((idLote, cantidad));
         return Task.FromResult(true);
     }
+
+    private static Lote Copiar(Lote lote) =>
+        Lote.Reconstruir(lote.Id, lote.IdMedicamento, lote.NumeroLote, lote.FechaCaducidad, lote.Stock, lote.FechaEntrada);
 }

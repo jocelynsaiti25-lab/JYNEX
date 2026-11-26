@@ -50,6 +50,7 @@ public class DarDeBajaLoteHandlerTests
         Assert.Equal("L-5", dto.NumeroLote);
         Assert.Contains("Paracetamol", dto.NombreMedicamento);
         Assert.Equal((5, 40), Assert.Single(lotes.Descuentos));
+        Assert.Equal(0, lotes.Lotes.Single(l => l.Id == 5).Stock);
 
         var movimiento = Assert.Single(_movimientos.Movimientos);
         Assert.Equal(Movimiento.TipoBaja, movimiento.Tipo);
@@ -79,7 +80,8 @@ public class DarDeBajaLoteHandlerTests
         await Crear(lotes).Handle(new DarDeBajaLoteCommand(5, 40, "Próximo a caducar"), CancellationToken.None);
 
         Assert.Equal((5, 40), Assert.Single(lotes.Descuentos));
-        Assert.Equal(30, verde.Stock);
+        Assert.Equal(0, lotes.Lotes.Single(l => l.Id == 5).Stock);
+        Assert.Equal(30, lotes.Lotes.Single(l => l.Id == 6).Stock);
     }
 
     [Fact]
@@ -136,7 +138,25 @@ public class DarDeBajaLoteHandlerTests
             Crear(lotes).Handle(new DarDeBajaLoteCommand(5, 40, "Caducado"), CancellationToken.None));
 
         Assert.Equal("El lote ya no es elegible.", ex.Message);
+        Assert.Empty(lotes.Descuentos);
+        Assert.Equal(40, lotes.Lotes.Single(l => l.Id == 5).Stock);
         Assert.Empty(_movimientos.Movimientos);
         Assert.Equal(0, _unitOfWork.VecesGuardado);
+    }
+
+    [Fact]
+    public async Task Un_lote_ya_dado_de_baja_no_se_puede_dar_de_baja_otra_vez()
+    {
+        var lotes = LotesCon(LoteDePrueba(5, Hoy.AddMonths(1), 40));
+        var handler = Crear(lotes);
+        await handler.Handle(new DarDeBajaLoteCommand(5, 40, "Caducado"), CancellationToken.None);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() =>
+            handler.Handle(new DarDeBajaLoteCommand(5, 40, "Caducado"), CancellationToken.None));
+
+        Assert.Equal("El lote ya no es elegible.", ex.Message);
+        Assert.Single(lotes.Descuentos);
+        Assert.Single(_movimientos.Movimientos);
+        Assert.Equal(0, lotes.Lotes.Single(l => l.Id == 5).Stock);
     }
 }
