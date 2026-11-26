@@ -7,6 +7,7 @@ public sealed class MedicamentoRepositoryFalso : IMedicamentoRepository
 {
     public bool SimularDuplicado { get; init; }
     public bool SimularDuplicadoAlEditar { get; init; }
+    public Exception? FalloAlActualizar { get; init; }
     public List<Medicamento> Medicamentos { get; } = [];
     public List<Medicamento> Actualizados { get; } = [];
 
@@ -35,6 +36,11 @@ public sealed class MedicamentoRepositoryFalso : IMedicamentoRepository
 
     public Task ActualizarAsync(Medicamento medicamento, CancellationToken cancellationToken)
     {
+        if (FalloAlActualizar is not null)
+        {
+            throw FalloAlActualizar;
+        }
+
         Actualizados.Add(medicamento);
         return Task.CompletedTask;
     }

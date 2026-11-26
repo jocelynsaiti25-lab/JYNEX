@@ -1,4 +1,5 @@
 using EtbotFarma.Application.Common.Exceptions;
+using EtbotFarma.Application.Common.Interfaces.Repositorios;
 using EtbotFarma.Application.EdicionMedicamentos.Commands;
 using EtbotFarma.Application.EdicionMedicamentos.Handlers;
 using EtbotFarma.Application.Tests.Falsos;
@@ -131,5 +132,47 @@ public class EditarMedicamentoHandlerTests
         await Assert.ThrowsAsync<NoAutenticadoException>(() => EditarAsync());
 
         Assert.Equal(0, _unitOfWork.VecesGuardado);
+    }
+
+    private sealed class AuditoriaQueFalla : IAuditoriaRepository
+    {
+        public Task AgregarAsync(Auditoria auditoria, CancellationToken cancellationToken)
+            => throw new InvalidOperationException("Falla simulada al guardar la auditoría");
+    }
+
+    [Fact]
+    public async Task Cuando_falla_la_auditoria_el_error_se_propaga_y_no_se_confirma_la_transaccion()
+    {
+        var handler = new EditarMedicamentoHandler(_medicamentos, new AuditoriaQueFalla(), _usuarioActual, _unitOfWork, new RelojFalso(Ahora));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => handler.Handle(new EditarMedicamentoCommand(1, "Tempra Forte", "Paracetamol", "Jarabe", "250 mg/5 ml", true), CancellationToken.None));
+
+        Assert.Equal(0, _unitOfWork.VecesGuardado);
+    }
+
+    [Fact]
+    public async Task Cuando_falla_la_actualizacion_el_error_se_propaga_sin_auditar_ni_confirmar()
+    {
+        var medicamentos = new MedicamentoRepositoryFalso { FalloAlActualizar = new InvalidOperationException("Falla simulada al actualizar") };
+        medicamentos.Medicamentos.Add(_tempra);
+        var handler = new EditarMedicamentoHandler(medicamentos, _auditorias, _usuarioActual, _unitOfWork, new RelojFalso(Ahora));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => handler.Handle(new EditarMedicamentoCommand(1, "Tempra Forte", "Paracetamol", "Jarabe", "250 mg/5 ml", true), CancellationToken.None));
+
+        Assert.Empty(_auditorias.Registros);
+        Assert.Equal(0, _unitOfWork.VecesGuardado);
+    }
+
+    [Fact]
+    public async Task Un_cambio_solo_de_capitalizacion_se_guarda_y_se_audita()
+    {
+        var resultado = await EditarAsync("TEMPRA", "PARACETAMOL", "TABLETAS", "500 MG", esControlado: false);
+
+        Assert.True(resultado.SeGuardaronCambios);
+        Assert.Equal("TEMPRA", _tempra.NombreComercial);
+        Assert.Single(_auditorias.Registros);
+        Assert.Equal(1, _unitOfWork.VecesGuardado);
     }
 }

@@ -100,7 +100,8 @@ public class Medicamento : Entity<int>
 
     /// <summary>
     /// HU-09 escenario 9: compara contra los valores ACTUALES para saber si el formulario trae algún cambio real
-    /// (sin importar mayúsculas ni espacios) antes de aplicar Editar.
+    /// antes de aplicar Editar. Ignora los espacios al inicio y al final, pero distingue mayúsculas y minúsculas:
+    /// cambiar solo la capitalización (por ejemplo "Tabletas" por "TABLETAS") cuenta como una modificación.
     /// </summary>
     public bool TieneCambiosDescriptivos(
         string nombreComercial,

@@ -75,4 +75,38 @@ public sealed class MedicamentoEdicionTests
         Assert.DoesNotContain("stockMinimo", json);
         Assert.DoesNotContain("fechaRegistro", json);
     }
+
+    [Theory]
+    [InlineData("TEMPRA", "Paracetamol", "Tabletas", "500 mg")]
+    [InlineData("Tempra", "PARACETAMOL", "Tabletas", "500 mg")]
+    [InlineData("Tempra", "Paracetamol", "TABLETAS", "500 mg")]
+    [InlineData("Tempra", "Paracetamol", "Tabletas", "500 MG")]
+    public void TieneCambiosDescriptivos_detecta_un_cambio_solo_de_capitalizacion(
+        string nombreComercial, string nombreSustancia, string presentacion, string concentracion)
+    {
+        var medicamento = CrearMedicamento();
+
+        Assert.True(medicamento.TieneCambiosDescriptivos(nombreComercial, nombreSustancia, presentacion, concentracion, false));
+    }
+
+    [Fact]
+    public void TieneCambiosDescriptivos_ignora_los_espacios_al_inicio_y_al_final()
+    {
+        var medicamento = CrearMedicamento();
+
+        Assert.False(medicamento.TieneCambiosDescriptivos("  Tempra ", "Paracetamol  ", " Tabletas", "500 mg ", false));
+    }
+
+    [Fact]
+    public void Editar_con_un_cambio_solo_de_capitalizacion_guarda_la_nueva_capitalizacion()
+    {
+        var medicamento = CrearMedicamento();
+
+        medicamento.Editar("TEMPRA", "PARACETAMOL", "TABLETAS", "500 MG", false);
+
+        Assert.Equal("TEMPRA", medicamento.NombreComercial);
+        Assert.Equal("PARACETAMOL", medicamento.NombreSustancia);
+        Assert.Equal("TABLETAS", medicamento.Presentacion);
+        Assert.Equal("500 MG", medicamento.Concentracion);
+    }
 }
