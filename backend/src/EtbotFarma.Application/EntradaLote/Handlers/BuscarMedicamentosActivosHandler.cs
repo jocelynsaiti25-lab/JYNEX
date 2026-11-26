@@ -23,7 +23,7 @@ public sealed class BuscarMedicamentosActivosHandler(
         if (usuarioActual.IdUsuario is null)
             throw new NoAutenticadoException();
 
-        var hoy = DateOnly.FromDateTime(reloj.UtcNow.UtcDateTime);
+        var hoy = reloj.Hoy;
         var lista = await medicamentos.BuscarActivosAsync(query.Termino, cancellationToken);
         var lotesDeTodos = await lotes.ObtenerPorMedicamentosAsync(lista.Select(m => m.Id).ToList(), cancellationToken);
         var lotesPorMedicamento = lotesDeTodos.ToLookup(l => l.IdMedicamento);

@@ -110,4 +110,56 @@ public sealed class MedicamentoYLoteTests
 
         Assert.False(loteVigente.EstaCaducado(hoy));
     }
+
+    [Theory]
+    [InlineData(-30, true)]
+    [InlineData(-1, true)]
+    [InlineData(0, true)]
+    [InlineData(1, false)]
+    [InlineData(30, false)]
+    public void Un_lote_esta_caducado_cuando_su_fecha_es_hoy_o_anterior(int diasDesdeHoy, bool esperado)
+    {
+        var hoy = new DateOnly(2026, 11, 25);
+        var lote = Lote.Reconstruir(1, 1, "L-LIMITE", hoy.AddDays(diasDesdeHoy), 5, hoy.AddMonths(-6));
+
+        Assert.Equal(esperado, lote.EstaCaducado(hoy));
+    }
+
+    [Fact]
+    public void El_mismo_lote_deja_de_estar_vigente_al_cambiar_el_dia_operativo()
+    {
+        var lote = Lote.Reconstruir(1, 1, "L-CAMBIO", new DateOnly(2026, 11, 25), 5, new DateOnly(2026, 1, 1));
+
+        Assert.False(lote.EstaCaducado(new DateOnly(2026, 11, 24)));
+        Assert.True(lote.EstaCaducado(new DateOnly(2026, 11, 25)));
+        Assert.True(lote.EstaCaducado(new DateOnly(2026, 11, 26)));
+    }
+
+    [Theory]
+    [InlineData(-400, SemaforoCaducidad.Rojo)]
+    [InlineData(-1, SemaforoCaducidad.Rojo)]
+    [InlineData(0, SemaforoCaducidad.Rojo)]
+    public void Un_lote_caducado_siempre_es_rojo(int diasDesdeHoy, SemaforoCaducidad esperado)
+    {
+        var hoy = new DateOnly(2026, 5, 10);
+        var lote = Lote.Reconstruir(1, 1, "L-CAD", hoy.AddDays(diasDesdeHoy), 5, hoy.AddMonths(-24));
+
+        Assert.True(lote.EstaCaducado(hoy));
+        Assert.Equal(esperado, lote.ObtenerSemaforo(hoy));
+    }
+
+    [Fact]
+    public void El_dia_siguiente_a_cada_limite_cambia_de_color_y_el_anterior_no()
+    {
+        var hoy = new DateOnly(2026, 5, 10);
+
+        Lote Con(DateOnly fecha) => Lote.Reconstruir(1, 1, "L-X", fecha, 5, hoy.AddMonths(-1));
+
+        Assert.Equal(SemaforoCaducidad.Rojo, Con(hoy.AddMonths(3).AddDays(-1)).ObtenerSemaforo(hoy));
+        Assert.Equal(SemaforoCaducidad.Rojo, Con(hoy.AddMonths(3)).ObtenerSemaforo(hoy));
+        Assert.Equal(SemaforoCaducidad.Amarillo, Con(hoy.AddMonths(3).AddDays(1)).ObtenerSemaforo(hoy));
+        Assert.Equal(SemaforoCaducidad.Amarillo, Con(hoy.AddMonths(12).AddDays(-1)).ObtenerSemaforo(hoy));
+        Assert.Equal(SemaforoCaducidad.Amarillo, Con(hoy.AddMonths(12)).ObtenerSemaforo(hoy));
+        Assert.Equal(SemaforoCaducidad.Verde, Con(hoy.AddMonths(12).AddDays(1)).ObtenerSemaforo(hoy));
+    }
 }

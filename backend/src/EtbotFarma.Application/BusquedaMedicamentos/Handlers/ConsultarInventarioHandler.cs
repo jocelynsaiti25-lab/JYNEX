@@ -28,7 +28,7 @@ public sealed class ConsultarInventarioHandler(
             throw new NoAutenticadoException();
 
         // 2. Obtener medicamentos activos y lotes ordenados por fecha de caducidad ascendente (HU-08 escenario 4)
-        var hoy = DateOnly.FromDateTime(reloj.UtcNow.UtcDateTime);
+        var hoy = reloj.Hoy;
         var listaMedicamentos = await medicamentos.ObtenerTodosActivosAsync(cancellationToken);
         var todosLosLotes = await lotes.ObtenerTodosOrdenadosPorCaducidadAsync(cancellationToken);
 

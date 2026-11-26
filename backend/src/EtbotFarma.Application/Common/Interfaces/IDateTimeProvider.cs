@@ -9,4 +9,6 @@ namespace EtbotFarma.Application.Common.Interfaces;
 public interface IDateTimeProvider
 {
     DateTimeOffset UtcNow { get; }
+
+    DateOnly Hoy => DateOnly.FromDateTime(UtcNow.UtcDateTime);
 }
