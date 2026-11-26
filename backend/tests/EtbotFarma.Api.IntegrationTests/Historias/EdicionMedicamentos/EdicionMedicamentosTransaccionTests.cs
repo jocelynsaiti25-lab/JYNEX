@@ -74,7 +74,7 @@ public class EdicionMedicamentosTransaccionTests(
     {
         Assert.Equal($"Transaccion {sufijo}", await ConsultarAsync("SELECT nombre_comercial FROM medicamento WHERE id_medicamento = @id;", id));
         Assert.Equal("Tabletas", await ConsultarAsync("SELECT presentacion FROM medicamento WHERE id_medicamento = @id;", id));
-        Assert.Equal("0", await ConsultarAsync("SELECT es_controlado FROM medicamento WHERE id_medicamento = @id;", id));
+        Assert.Equal("no", await ConsultarAsync("SELECT IF(es_controlado, 'si', 'no') FROM medicamento WHERE id_medicamento = @id;", id));
         Assert.Equal("0", await ConsultarAsync(
             "SELECT COUNT(*) FROM auditoria WHERE accion = 'EDITAR MEDICAMENTO' AND id_registro = @id;", id));
         Assert.Equal("30", await ConsultarAsync("SELECT stock FROM lote WHERE id_medicamento = @id;", id));
