@@ -26,3 +26,38 @@ export interface RegistrarMedicamentoResponse {
   seRegistroEntrada: boolean;
   mensaje: string;
 }
+
+/** Contrato de respuesta de GET /api/medicamentos/{id} (HU-09): precarga del formulario de edición. */
+export interface MedicamentoParaEditar {
+  idMedicamento: number;
+  nombreComercial: string;
+  nombreSustancia: string;
+  presentacion: string;
+  concentracion: string;
+  esControlado: boolean;
+  /** Solo de referencia (bloqueado): HU-09 escenario 10. */
+  existenciasTotales: number;
+  /** Solo de referencia (bloqueado): HU-09 escenario 10. */
+  semaforoCaducidad: 'Verde' | 'Amarillo' | 'Rojo' | 'SinStock';
+}
+
+/** Contrato de petición de PUT /api/medicamentos/{id} (HU-09). */
+export interface EditarMedicamentoRequest {
+  nombreComercial: string;
+  nombreSustancia: string;
+  presentacion: string;
+  concentracion: string;
+  esControlado: boolean;
+}
+
+/** Contrato de respuesta de PUT /api/medicamentos/{id} (HU-09). */
+export interface EditarMedicamentoResponse {
+  idMedicamento: number;
+  nombreComercial: string;
+  nombreSustancia: string;
+  presentacion: string;
+  concentracion: string;
+  esControlado: boolean;
+  seGuardaronCambios: boolean;
+  mensaje: string;
+}

@@ -209,6 +209,10 @@ jobs:
         if: success() || failure()   # se ejecutan aunque falle otra historia, para ver todos los resultados
         working-directory: frontend
         run: node e2e/hu08-busqueda-medicamentos.mjs
+      - name: Pruebas de HU-09 en el navegador (edición de medicamentos)
+        if: success() || failure()   # se ejecutan aunque falle otra historia, para ver todos los resultados
+        working-directory: frontend
+        run: node e2e/hu09-edicion-medicamentos.mjs
       - name: Guardar capturas de pantalla
         if: always()
         uses: actions/upload-artifact@v4
