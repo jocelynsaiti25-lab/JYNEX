@@ -72,8 +72,8 @@ public class EdicionMedicamentosTransaccionTests(
 
     private async Task AfirmarSinCambiosAsync(int id, string sufijo)
     {
-        Assert.Equal($"Transaccion {sufijo}", await ConsultarAsync("SELECT BINARY nombre_comercial FROM medicamento WHERE id_medicamento = @id;", id));
-        Assert.Equal("Tabletas", await ConsultarAsync("SELECT BINARY presentacion FROM medicamento WHERE id_medicamento = @id;", id));
+        Assert.Equal($"Transaccion {sufijo}", await ConsultarAsync("SELECT nombre_comercial FROM medicamento WHERE id_medicamento = @id;", id));
+        Assert.Equal("Tabletas", await ConsultarAsync("SELECT presentacion FROM medicamento WHERE id_medicamento = @id;", id));
         Assert.Equal("0", await ConsultarAsync("SELECT es_controlado FROM medicamento WHERE id_medicamento = @id;", id));
         Assert.Equal("0", await ConsultarAsync(
             "SELECT COUNT(*) FROM auditoria WHERE accion = 'EDITAR MEDICAMENTO' AND id_registro = @id;", id));
@@ -89,7 +89,7 @@ public class EdicionMedicamentosTransaccionTests(
         var respuesta = await EnviarAsync(api.CrearCliente(), HttpMethod.Put, $"/api/medicamentos/{id}", admin, Cambio(sufijo));
 
         Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
-        Assert.Equal($"Transaccion {sufijo} Forte", await ConsultarAsync("SELECT BINARY nombre_comercial FROM medicamento WHERE id_medicamento = @id;", id));
+        Assert.Equal($"Transaccion {sufijo} Forte", await ConsultarAsync("SELECT nombre_comercial FROM medicamento WHERE id_medicamento = @id;", id));
         Assert.Equal("1", await ConsultarAsync(
             "SELECT COUNT(*) FROM auditoria WHERE accion = 'EDITAR MEDICAMENTO' AND id_registro = @id;", id));
     }
@@ -136,7 +136,7 @@ public class EdicionMedicamentosTransaccionTests(
         Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
         var json = await respuesta.Content.ReadFromJsonAsync<JsonElement>();
         Assert.True(json.GetProperty("seGuardaronCambios").GetBoolean());
-        Assert.Equal("TABLETAS", await ConsultarAsync("SELECT BINARY presentacion FROM medicamento WHERE id_medicamento = @id;", id));
+        Assert.Equal("TABLETAS", await ConsultarAsync("SELECT presentacion FROM medicamento WHERE id_medicamento = @id;", id));
         Assert.Equal("1", await ConsultarAsync(
             "SELECT COUNT(*) FROM auditoria WHERE accion = 'EDITAR MEDICAMENTO' AND id_registro = @id;", id));
     }
