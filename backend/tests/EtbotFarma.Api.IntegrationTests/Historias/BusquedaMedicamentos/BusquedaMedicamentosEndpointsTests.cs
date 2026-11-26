@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using EtbotFarma.Infrastructure.Persistence;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EtbotFarma.Api.IntegrationTests.Historias.BusquedaMedicamentos;
 
@@ -140,6 +142,20 @@ public class BusquedaMedicamentosEndpointsTests(ApiConMySql api) : IClassFixture
     }
 
     [Fact]
+    public async Task Lote_vigente_no_viene_marcado_como_caducado()
+    {
+        // HU-10 escenario 5: un lote vigente no lleva la marca de caducado
+        var cookie = await IniciarSesionAsync();
+        var (id, nombre) = await CrearMedicamentoAsync(cookie, "10");
+        await AgregarLoteAsync(cookie, id, "L-ROJO", Fecha(2), "5");
+
+        var lista = await ConsultarAsync(cookie, $"termino={Uri.EscapeDataString(nombre)}");
+
+        Assert.False(lista[0].GetProperty("estaCaducado").GetBoolean());
+        Assert.False(lista[1].GetProperty("estaCaducado").GetBoolean());
+    }
+
+    [Fact]
     public async Task Sin_coincidencias_responde_200_con_lista_vacia()
     {
         var cookie = await IniciarSesionAsync();
@@ -147,5 +163,110 @@ public class BusquedaMedicamentosEndpointsTests(ApiConMySql api) : IClassFixture
         var lista = await ConsultarAsync(cookie, $"termino=NoExiste{Unico()}");
 
         Assert.Equal(0, lista.GetArrayLength());
+    }
+
+    private const string FechaYaCaducada = "2000-01-01";
+    private const string FechaMuyLejana = "2099-12-31";
+
+    private async Task FijarCaducidadAsync(int idMedicamento, string numeroLote, string fecha)
+    {
+        await using var scope = api.Services.CreateAsyncScope();
+        var conexion = scope.ServiceProvider.GetRequiredService<ConexionMySql>();
+        await using (var comando = await conexion.CrearComandoAsync(
+            "UPDATE lote SET fecha_caducidad = @fecha WHERE id_medicamento = @id AND numero_lote = @lote;", CancellationToken.None))
+        {
+            comando.Parameters.AddWithValue("@fecha", fecha);
+            comando.Parameters.AddWithValue("@id", idMedicamento);
+            comando.Parameters.AddWithValue("@lote", numeroLote);
+            await comando.ExecuteNonQueryAsync();
+        }
+        await conexion.GuardarCambiosAsync(CancellationToken.None);
+    }
+
+    private async Task<(string Cookie, string Nombre)> PrepararCaducadoYVigenteAsync()
+    {
+        var admin = await IniciarSesionAsync();
+        var (id, nombre) = await CrearMedicamentoAsync(admin, "10");
+        await AgregarLoteAsync(admin, id, "L-CADUCADO", Fecha(24), "5");
+        await FijarCaducidadAsync(id, "L-CADUCADO", FechaYaCaducada);
+        await FijarCaducidadAsync(id, "L-INICIAL", FechaMuyLejana);
+        return (admin, nombre);
+    }
+
+    [Fact]
+    public async Task Un_lote_caducado_viene_marcado_como_caducado_en_rojo_y_el_vigente_no()
+    {
+        var (cookie, nombre) = await PrepararCaducadoYVigenteAsync();
+
+        var lista = await ConsultarAsync(cookie, $"termino={Uri.EscapeDataString(nombre)}");
+
+        Assert.Equal(2, lista.GetArrayLength());
+        Assert.Equal("L-CADUCADO", lista[0].GetProperty("numeroLote").GetString());
+        Assert.Equal(FechaYaCaducada, lista[0].GetProperty("fechaCaducidad").GetString());
+        Assert.Equal(JsonValueKind.True, lista[0].GetProperty("estaCaducado").ValueKind);
+        Assert.Equal("Rojo", lista[0].GetProperty("semaforoCaducidad").GetString());
+        Assert.Equal("L-INICIAL", lista[1].GetProperty("numeroLote").GetString());
+        Assert.Equal(JsonValueKind.False, lista[1].GetProperty("estaCaducado").ValueKind);
+        Assert.Equal("Verde", lista[1].GetProperty("semaforoCaducidad").GetString());
+    }
+
+    [Fact]
+    public async Task El_filtro_rojo_trae_el_lote_caducado_y_el_verde_trae_solo_el_vigente()
+    {
+        var (cookie, nombre) = await PrepararCaducadoYVigenteAsync();
+
+        var rojos = await ConsultarAsync(cookie, $"termino={Uri.EscapeDataString(nombre)}&semaforo=Rojo");
+        var verdes = await ConsultarAsync(cookie, $"termino={Uri.EscapeDataString(nombre)}&semaforo=Verde");
+        var amarillos = await ConsultarAsync(cookie, $"termino={Uri.EscapeDataString(nombre)}&semaforo=Amarillo");
+
+        Assert.Equal(1, rojos.GetArrayLength());
+        Assert.Equal("L-CADUCADO", rojos[0].GetProperty("numeroLote").GetString());
+        Assert.True(rojos[0].GetProperty("estaCaducado").GetBoolean());
+        Assert.Equal(1, verdes.GetArrayLength());
+        Assert.Equal("L-INICIAL", verdes[0].GetProperty("numeroLote").GetString());
+        Assert.False(verdes[0].GetProperty("estaCaducado").GetBoolean());
+        Assert.Equal(0, amarillos.GetArrayLength());
+    }
+
+    [Fact]
+    public async Task El_termino_de_lote_y_el_filtro_se_combinan_sin_perder_la_marca_de_caducado()
+    {
+        var (cookie, nombre) = await PrepararCaducadoYVigenteAsync();
+
+        var combinado = await ConsultarAsync(cookie, "termino=L-CADUCADO&semaforo=Rojo");
+        var contradictorio = await ConsultarAsync(cookie, "termino=L-CADUCADO&semaforo=Verde");
+
+        Assert.Contains(combinado.EnumerateArray(), i =>
+            i.GetProperty("nombreComercial").GetString() == nombre && i.GetProperty("estaCaducado").GetBoolean());
+        Assert.DoesNotContain(contradictorio.EnumerateArray(), i =>
+            i.GetProperty("nombreComercial").GetString() == nombre);
+    }
+
+    [Fact]
+    public async Task Un_empleado_consulta_el_inventario_y_ve_el_lote_caducado()
+    {
+        var (admin, nombre) = await PrepararCaducadoYVigenteAsync();
+        var nombreUsuario = $"inv.{Unico()}";
+        const string contrasenia = "Farmacia#2026";
+        var alta = await EnviarAsync(HttpMethod.Post, "/api/usuarios", new
+        {
+            nombre = "Luis",
+            apellidos = "Pérez",
+            nombreUsuario,
+            correo = $"{nombreUsuario}@etbotfarma.com",
+            telefono = "5512345678",
+            contrasenia,
+            idRol = 2
+        }, admin);
+        Assert.Equal(HttpStatusCode.Created, alta.StatusCode);
+        var inicio = await api.CrearCliente().PostAsJsonAsync("/api/sesiones/iniciar", new { nombreUsuario, contrasenia });
+        Assert.Equal(HttpStatusCode.OK, inicio.StatusCode);
+        var empleado = inicio.Headers.GetValues("Set-Cookie").Single().Split(';')[0];
+
+        var lista = await ConsultarAsync(empleado, $"termino={Uri.EscapeDataString(nombre)}");
+
+        Assert.Equal(2, lista.GetArrayLength());
+        Assert.True(lista[0].GetProperty("estaCaducado").GetBoolean());
+        Assert.False(lista[1].GetProperty("estaCaducado").GetBoolean());
     }
 }
