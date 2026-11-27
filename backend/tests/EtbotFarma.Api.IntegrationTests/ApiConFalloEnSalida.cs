@@ -1,3 +1,4 @@
+using EtbotFarma.Application.BitacoraMovimientos.Dtos;
 using EtbotFarma.Application.Common.Interfaces.Repositorios;
 using EtbotFarma.Domain.Entities;
 using Microsoft.AspNetCore.Hosting;
@@ -15,5 +16,12 @@ public sealed class ApiConBitacoraDeSalidaQueFalla : ApiConFalloBase
     {
         public Task<int> AgregarConDetallesAsync(Movimiento movimiento, CancellationToken cancellationToken)
             => throw new FalloSimuladoException("Falla simulada al guardar el movimiento de salida");
+
+        public Task<(IReadOnlyList<MovimientoBitacoraDto> Movimientos, int Total)> ConsultarAsync(
+            FiltroBitacoraDto filtro, int pagina, int tamanoPagina, CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<MedicamentoBitacoraDto>> ListarMedicamentosAsync(CancellationToken cancellationToken)
+            => throw new NotSupportedException();
     }
 }
