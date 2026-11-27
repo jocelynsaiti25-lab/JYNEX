@@ -68,6 +68,8 @@ async function prepararDatos() {
   const salida = await api(cookie, 'POST', '/api/salidas-medicamento', { idMedicamento: idA, cantidad: '15' });
   if (salida.estado !== 201) throw new Error(`No se pudo registrar la salida: ${salida.estado}`);
 
+  consultar(`UPDATE lote SET fecha_caducidad = '2000-01-01' WHERE id_lote = ${lote.json.idLote}`);
+
   const baja = await api(cookie, 'POST', `/api/inventario/lotes/${lote.json.idLote}/baja`, {
     cantidadConsultada: 5, motivo: 'Caducado E2E',
   });

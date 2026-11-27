@@ -127,11 +127,25 @@ public class BitacoraMovimientosEndpointsTests(ApiConMySql api) : IClassFixture<
         return Convert.ToInt64(await comando.ExecuteScalarAsync());
     }
 
+    private async Task CaducarLoteAsync(int idLote)
+    {
+        await using var scope = api.Services.CreateAsyncScope();
+        var conexion = scope.ServiceProvider.GetRequiredService<ConexionMySql>();
+        await using (var comando = await conexion.CrearComandoAsync(
+            "UPDATE lote SET fecha_caducidad = '2000-01-01' WHERE id_lote = @id;", CancellationToken.None))
+        {
+            comando.Parameters.AddWithValue("@id", idLote);
+            await comando.ExecuteNonQueryAsync();
+        }
+        await conexion.GuardarCambiosAsync(CancellationToken.None);
+    }
+
     private async Task<int> PrepararMedicamentoConHistorialAsync(string cookie)
     {
         var idMedicamento = await CrearMedicamentoAsync(cookie, 10);
         var idLoteB = await AgregarLoteAsync(cookie, idMedicamento, "L-B", 10);
         await RegistrarSalidaAsync(cookie, idMedicamento, 15);
+        await CaducarLoteAsync(idLoteB);
         await DarDeBajaAsync(cookie, idLoteB, 5, "Caducado");
         return idMedicamento;
     }
@@ -382,6 +396,7 @@ public class BitacoraMovimientosEndpointsTests(ApiConMySql api) : IClassFixture<
         var (cookieEmpleado, idEmpleado) = await CrearEmpleadoYEntrarAsync(admin);
         var idMedicamento = await CrearMedicamentoAsync(admin, 10);
         var idLote = await AgregarLoteAsync(cookieEmpleado, idMedicamento, "L-CERO", 6);
+        await CaducarLoteAsync(idLote);
         await DarDeBajaAsync(admin, idLote, 6, "Retiro total");
 
         await using (var scope = api.Services.CreateAsyncScope())
