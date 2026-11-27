@@ -67,9 +67,11 @@ export const MENU: OpcionMenu[] = [
   },
   {
     etiqueta: 'Bitácora',
-    descripcion: 'Consultar movimientos y exportarlos a Excel.',
+    descripcion: 'Consultar el historial de movimientos de inventario.',
     icono: 'history',
-    historias: ['HU-15', 'HU-16'],
+    historias: ['HU-15'],
+    ruta: '/bitacora',
+    roles: ['Administrador'],
   },
   {
     etiqueta: 'Usuarios',

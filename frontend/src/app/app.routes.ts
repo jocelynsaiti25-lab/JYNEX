@@ -109,6 +109,16 @@ export const routes: Routes = [
           ),
       },
       {
+        // HU-15: bitácora de solo lectura, visible únicamente para Administrador.
+        path: 'bitacora',
+        title: 'Bitácora de movimientos · Etbot Farma',
+        canActivate: [rolGuard(['Administrador'])],
+        loadComponent: () =>
+          import('./features/bitacora-movimientos/bitacora-movimientos.component').then(
+            (m) => m.BitacoraMovimientosComponent,
+          ),
+      },
+      {
         // HU-09: edición de información descriptiva de medicamentos (solo Administrador)
         path: 'medicamentos/:idMedicamento/editar',
         title: 'Editar medicamento · Etbot Farma',

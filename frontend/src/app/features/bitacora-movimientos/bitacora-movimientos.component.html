@@ -1,0 +1,207 @@
+<section class="pantalla bitacora">
+  <header class="pantalla__encabezado">
+    <div>
+      <h1 class="pantalla__titulo">Bitácora de movimientos</h1>
+      <p class="pantalla__descripcion">
+        Consulta el historial de entradas, salidas y bajas de inventario. Los registros son de solo lectura.
+      </p>
+    </div>
+  </header>
+
+  @if (!errorFiltros() && errorCarga()) {
+    <app-alerta tipo="error">
+      No fue posible cargar la bitácora.
+      <button class="boton boton--texto" type="button" (click)="reintentar()">Intentar de nuevo</button>
+    </app-alerta>
+  }
+
+  @if (errorFiltros()) {
+    <app-alerta tipo="aviso">
+      {{ errorFiltros() }}
+    </app-alerta>
+  }
+
+  @if (!errorFiltros() && errorOpciones()) {
+    <app-alerta tipo="aviso" [cerrable]="true" (cerrar)="errorOpciones.set(false)">
+      No se pudieron cargar todas las opciones de filtro.
+      <button class="boton boton--texto" type="button" (click)="reintentarOpciones()">Recargar opciones</button>
+    </app-alerta>
+  }
+
+  <form class="tarjeta filtros" (submit)="$event.preventDefault(); aplicarFiltros()">
+    <div class="tarjeta__encabezado">
+      <h2>Filtros</h2>
+      <p>Combina uno o varios criterios para acotar la consulta.</p>
+    </div>
+
+    <div class="filtros__rejilla">
+      <div class="campo">
+        <label class="campo__etiqueta" for="bitacora-desde">Desde</label>
+        <input
+          id="bitacora-desde"
+          class="campo__control"
+          type="date"
+          [value]="desde()"
+          [attr.aria-invalid]="errorFiltros() ? 'true' : null"
+          (change)="actualizarDesde($any($event.target).value)"
+        />
+      </div>
+
+      <div class="campo">
+        <label class="campo__etiqueta" for="bitacora-hasta">Hasta</label>
+        <input
+          id="bitacora-hasta"
+          class="campo__control"
+          type="date"
+          [value]="hasta()"
+          [attr.aria-invalid]="errorFiltros() ? 'true' : null"
+          (change)="actualizarHasta($any($event.target).value)"
+        />
+      </div>
+
+      <div class="campo">
+        <label class="campo__etiqueta" for="bitacora-usuario">Usuario</label>
+        <select
+          id="bitacora-usuario"
+          class="campo__control"
+          [value]="idUsuario()"
+          [disabled]="cargandoOpciones()"
+          (change)="actualizarUsuario($any($event.target).value)"
+        >
+          <option value="">Todos los usuarios</option>
+          @for (usuario of usuarios(); track usuario.idUsuario) {
+            <option [value]="usuario.idUsuario">{{ usuario.nombreCompleto }} ({{ usuario.nombreUsuario }})</option>
+          }
+        </select>
+      </div>
+
+      <div class="campo">
+        <label class="campo__etiqueta" for="bitacora-medicamento">Medicamento</label>
+        <select
+          id="bitacora-medicamento"
+          class="campo__control"
+          [value]="idMedicamento()"
+          [disabled]="cargandoOpciones()"
+          (change)="actualizarMedicamento($any($event.target).value)"
+        >
+          <option value="">Todos los medicamentos</option>
+          @for (medicamento of medicamentos(); track medicamento.idMedicamento) {
+            <option [value]="medicamento.idMedicamento">
+              {{ medicamento.nombreComercial }} · {{ medicamento.nombreSustancia }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="campo">
+        <label class="campo__etiqueta" for="bitacora-tipo">Tipo de movimiento</label>
+        <select
+          id="bitacora-tipo"
+          class="campo__control"
+          [value]="tipo()"
+          (change)="actualizarTipo($any($event.target).value)"
+        >
+          <option value="">Todos los tipos</option>
+          <option value="ENTRADA">Entrada</option>
+          <option value="SALIDA">Salida</option>
+          <option value="BAJA">Baja</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="acciones">
+      <button class="boton boton--primario" type="submit" [disabled]="cargando()">
+        Aplicar filtros
+      </button>
+      <button class="boton boton--secundario" type="button" (click)="limpiarFiltros()" [disabled]="cargando()">
+        Limpiar filtros
+      </button>
+    </div>
+  </form>
+
+  @if (!errorFiltros()) {
+
+  <section class="tarjeta resultados" aria-label="Resultados de la bitácora" aria-live="polite">
+    <div class="resultados__encabezado">
+      <h2>Movimientos</h2>
+      @if (!cargando() && !errorCarga() && totalMovimientos() > 0) {
+        <span>{{ totalMovimientos() }} registros</span>
+      }
+    </div>
+
+    @if (cargando()) {
+      <p class="estado-vacio" role="status">Cargando movimientos…</p>
+    } @else if (errorCarga()) {
+      <p class="estado-vacio" role="status">No se muestran resultados porque la consulta falló.</p>
+    } @else if (movimientos().length === 0 && !errorFiltros()) {
+      <div class="estado-vacio" role="status">
+        <strong>{{ mensajeSinResultados() }}</strong>
+      </div>
+    } @else {
+      <div class="tabla-contenedor tabla-responsive">
+        <table class="tabla" aria-label="Movimientos de inventario">
+          <thead>
+            <tr>
+              <th scope="col">Fecha y hora</th>
+              <th scope="col">Usuario</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Medicamento</th>
+              <th scope="col">Lote y cantidad</th>
+              <th scope="col">Cantidad total</th>
+              <th scope="col">Motivo</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (movimiento of movimientos(); track movimiento.idMovimiento) {
+              <tr>
+                <td>{{ movimiento.fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ movimiento.usuario }}</td>
+                <td>
+                  <span class="etiqueta" [class]="'etiqueta etiqueta--' + movimiento.tipo.toLowerCase()">
+                    {{ movimiento.tipo }}
+                  </span>
+                </td>
+                <td>
+                  <strong>{{ movimiento.medicamento }}</strong>
+                  <span class="subtexto">ID {{ movimiento.idMedicamento }}</span>
+                </td>
+                <td>
+                  <ul class="detalles-lote" [attr.aria-label]="detallesAccesibles(movimiento)">
+                    @for (detalle of movimiento.detalles; track detalle.idLote) {
+                      <li><code>{{ detalle.numeroLote }}</code> · {{ detalle.cantidad }}</li>
+                    }
+                  </ul>
+                </td>
+                <td class="numero">{{ movimiento.cantidadTotal }}</td>
+                <td>{{ movimiento.motivo || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (totalPaginas() > 1) {
+        <nav class="paginacion" aria-label="Paginación de movimientos">
+          <button
+            class="boton boton--secundario"
+            type="button"
+            (click)="irAPagina(paginaActual() - 1)"
+            [disabled]="paginaActual() <= 1 || cargando()"
+          >
+            Anterior
+          </button>
+          <span aria-live="polite">Página {{ nombrePagina() }}</span>
+          <button
+            class="boton boton--secundario"
+            type="button"
+            (click)="irAPagina(paginaActual() + 1)"
+            [disabled]="paginaActual() >= totalPaginas() || cargando()"
+          >
+            Siguiente
+          </button>
+        </nav>
+      }
+    }
+  </section>
+  }
+</section>
