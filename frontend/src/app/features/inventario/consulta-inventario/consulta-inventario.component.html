@@ -12,6 +12,12 @@
     </div>
   }
 
+  @if (resultadoBaja(); as resultado) {
+    <app-alerta [tipo]="resultado.tipo" [cerrable]="true" (cerrar)="resultadoBaja.set(null)">
+      {{ resultado.mensaje }}
+    </app-alerta>
+  }
+
   <!-- Barra de búsqueda progresiva y filtro combinable de caducidad (Escenarios 1, 2, 5 y 7) -->
   <div class="filtros-card">
     <div class="buscador-wrapper">
@@ -139,9 +145,7 @@
               <th>Existencias</th>
               <th>Fecha de caducidad</th>
               <th>Estado</th>
-              @if (esAdministrador()) {
-                <th>Acciones</th>
-              }
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -171,11 +175,23 @@
                     }
                   </div>
                 </td>
-                @if (esAdministrador()) {
-                  <td>
-                    <a class="btn-limpiar" [routerLink]="['/medicamentos', item.idMedicamento, 'editar']">Editar</a>
-                  </td>
-                }
+                <td>
+                  <div class="acciones-fila">
+                    @if (esAdministrador()) {
+                      <a class="btn-limpiar" [routerLink]="['/medicamentos', item.idMedicamento, 'editar']">Editar</a>
+                    }
+                    @if (puedeDarseDeBaja(item)) {
+                      <button
+                        type="button"
+                        class="btn-baja"
+                        [attr.aria-label]="'Dar de baja el lote ' + item.numeroLote"
+                        (click)="iniciarBaja(item)"
+                      >
+                        Dar de baja
+                      </button>
+                    }
+                  </div>
+                </td>
               </tr>
             }
           </tbody>
@@ -183,4 +199,6 @@
       </div>
     }
   </div>
+
+  <app-baja-lote [lote]="loteEnBaja()" (terminada)="terminarBaja($event)" (cancelada)="cancelarBaja()" />
 </section>

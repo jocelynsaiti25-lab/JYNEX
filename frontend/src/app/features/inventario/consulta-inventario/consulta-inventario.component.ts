@@ -1,11 +1,14 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { ResultadoBaja } from '../../../core/models/baja-lote.model';
 import { ItemInventario } from '../../../core/models/inventario.model';
 import { MedicamentoAgotado } from '../../../core/models/medicamento-agotado.model';
 import { InventarioService } from '../../../core/services/inventario.service';
 import { SesionService } from '../../../core/services/sesion.service';
+import { AlertaComponent } from '../../../shared/components/alerta/alerta.component';
 import { EstadoSemaforo, SemaforoComponent } from '../../../shared/components/semaforo/semaforo.component';
+import { BajaLoteComponent, puedeDarseDeBaja } from '../../baja-lotes/baja-lote.component';
 
 export type FiltroSemaforo = 'Todos' | 'Rojo' | 'Amarillo' | 'Verde';
 
@@ -19,7 +22,7 @@ const ETIQUETAS_FILTRO: Record<FiltroSemaforo, string> = {
 @Component({
   selector: 'app-consulta-inventario',
   standalone: true,
-  imports: [RouterLink, SemaforoComponent],
+  imports: [RouterLink, SemaforoComponent, AlertaComponent, BajaLoteComponent],
   templateUrl: './consulta-inventario.component.html',
   styleUrl: './consulta-inventario.component.scss',
 })
@@ -34,6 +37,10 @@ export class ConsultaInventarioComponent implements OnInit {
   readonly itemsInventario = signal<ItemInventario[]>([]);
   readonly cargando = signal(false);
   readonly errorCarga = signal<string | null>(null);
+
+  readonly loteEnBaja = signal<ItemInventario | null>(null);
+  readonly resultadoBaja = signal<ResultadoBaja | null>(null);
+  readonly puedeDarseDeBaja = puedeDarseDeBaja;
 
   readonly terminoBusqueda = signal('');
   readonly filtroSemaforo = signal<FiltroSemaforo>('Todos');
@@ -128,6 +135,21 @@ export class ConsultaInventarioComponent implements OnInit {
         this.errorCarga.set('No se pudo cargar el inventario de medicamentos.');
       },
     });
+  }
+
+  iniciarBaja(item: ItemInventario): void {
+    this.resultadoBaja.set(null);
+    this.loteEnBaja.set(item);
+  }
+
+  terminarBaja(resultado: ResultadoBaja): void {
+    this.loteEnBaja.set(null);
+    this.resultadoBaja.set(resultado);
+    this.cargarInventario();
+  }
+
+  cancelarBaja(): void {
+    this.loteEnBaja.set(null);
   }
 
   actualizarBusqueda(valor: string): void {
