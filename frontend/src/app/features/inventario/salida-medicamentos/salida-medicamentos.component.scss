@@ -1,0 +1,36 @@
+.campo__control--corto {
+  width: 8rem;
+  min-height: 2.5rem;
+  padding: var(--espacio-2) var(--espacio-3);
+}
+
+.busqueda__fila {
+  display: flex;
+  gap: var(--espacio-3);
+  align-items: center;
+  margin-block: var(--espacio-2) var(--espacio-4);
+}
+
+.detalle__encabezado {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espacio-4);
+  align-items: flex-start;
+  margin-bottom: var(--espacio-4);
+}
+
+.detalle__titulo {
+  margin: 0;
+}
+
+.formulario-salida {
+  display: flex;
+  gap: var(--espacio-4);
+  align-items: flex-end;
+  margin-block: var(--espacio-4);
+}
+
+.propuesta {
+  margin: var(--espacio-2) 0 0;
+  padding-left: var(--espacio-5);
+}

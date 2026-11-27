@@ -106,6 +106,43 @@ public sealed class LoteRepository(ConexionMySql conexion) : ILoteRepository
         return lotes;
     }
 
+    public async Task<IReadOnlyList<Lote>> ObtenerPorMedicamentoParaActualizarAsync(
+        int idMedicamento,
+        CancellationToken cancellationToken)
+    {
+        const string sql = """
+            SELECT
+                id_lote,
+                id_medicamento,
+                numero_lote,
+                fecha_caducidad,
+                stock,
+                fecha_entrada
+            FROM lote
+            WHERE id_medicamento = @idMedicamento
+            ORDER BY fecha_caducidad ASC, id_lote ASC
+            FOR UPDATE;
+            """;
+
+        await using var comando = await conexion.CrearComandoAsync(sql, cancellationToken);
+        comando.Parameters.AddWithValue("@idMedicamento", idMedicamento);
+
+        var lotes = new List<Lote>();
+        await using var lector = await comando.ExecuteReaderAsync(cancellationToken);
+        while (await lector.ReadAsync(cancellationToken))
+        {
+            lotes.Add(Lote.Reconstruir(
+                lector.GetInt32("id_lote"),
+                lector.GetInt32("id_medicamento"),
+                lector.GetString("numero_lote"),
+                DateOnly.FromDateTime(lector.GetDateTime("fecha_caducidad")),
+                lector.GetInt32("stock"),
+                DateOnly.FromDateTime(lector.GetDateTime("fecha_entrada"))));
+        }
+
+        return lotes;
+    }
+
     public async Task<IReadOnlyList<Lote>> ObtenerTodosOrdenadosPorCaducidadAsync(CancellationToken cancellationToken)
     {
         // HU-08 escenario 4: ordenados por fecha_caducidad ascendente
@@ -137,5 +174,22 @@ public sealed class LoteRepository(ConexionMySql conexion) : ILoteRepository
         }
 
         return lotes;
+    }
+
+    public async Task<bool> DescontarStockAsync(int idLote, int cantidad, CancellationToken cancellationToken)
+    {
+        const string sql = """
+            UPDATE lote
+            SET stock = stock - @cantidad
+            WHERE id_lote = @idLote
+              AND stock >= @cantidad;
+            """;
+
+        await using var comando = await conexion.CrearComandoAsync(sql, cancellationToken);
+        comando.Parameters.AddWithValue("@idLote", idLote);
+        comando.Parameters.AddWithValue("@cantidad", cantidad);
+
+        var filasAfectadas = await comando.ExecuteNonQueryAsync(cancellationToken);
+        return filasAfectadas == 1;
     }
 }
