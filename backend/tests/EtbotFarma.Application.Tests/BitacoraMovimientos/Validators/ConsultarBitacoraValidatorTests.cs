@@ -35,11 +35,12 @@ public class ConsultarBitacoraValidatorTests
             .ShouldNotHaveAnyValidationErrors();
 
     [Fact]
-    public void Fecha_inicial_posterior_a_la_final_marca_rango_no_valido() =>
-        _validador
-            .TestValidate(Consulta(new DateOnly(2026, 5, 11), new DateOnly(2026, 5, 10)))
-            .ShouldHaveAnyValidationError()
-            .WithErrorMessage(ConsultarBitacoraValidator.MensajeRangoNoValido);
+    public void Fecha_inicial_posterior_a_la_final_marca_rango_no_valido()
+    {
+        var resultado = _validador.TestValidate(Consulta(new DateOnly(2026, 5, 11), new DateOnly(2026, 5, 10)));
+
+        Assert.Contains(resultado.Errors, e => e.ErrorMessage == ConsultarBitacoraValidator.MensajeRangoNoValido);
+    }
 
     [Theory]
     [InlineData(1999, 12, 31)]
