@@ -1,0 +1,63 @@
+@if (lote(); as lote) {
+  <app-confirmacion
+    [abierta]="paso() === 'motivo'"
+    titulo="Dar de baja el lote"
+    textoConfirmar="Continuar"
+    icono="delete_sweep"
+    (confirmar)="continuar()"
+    (cancelar)="cancelar()"
+  >
+    <p class="baja__lote">
+      <strong>{{ lote.nombreComercial }}</strong> · lote <code>{{ lote.numeroLote }}</code> ·
+      {{ lote.existencias }} unidades
+    </p>
+
+    <div class="campo">
+      <label class="campo__etiqueta" for="motivo-baja">
+        Motivo <span class="obligatorio" aria-hidden="true">*</span>
+      </label>
+      <textarea
+        id="motivo-baja"
+        class="campo__control baja__motivo"
+        rows="3"
+        placeholder="Por ejemplo: Próximo a caducar"
+        [value]="motivo()"
+        (input)="actualizarMotivo($any($event.target).value)"
+        [attr.aria-invalid]="errorMotivo() !== null"
+        aria-describedby="motivo-baja-ayuda"
+      ></textarea>
+      <p id="motivo-baja-ayuda" class="campo__ayuda">{{ motivo().trim().length }} / {{ longitudMaxima }} caracteres</p>
+      @if (errorMotivo(); as error) {
+        <p class="campo__error" role="alert"><span class="icono" aria-hidden="true">error</span>{{ error }}</p>
+      }
+    </div>
+  </app-confirmacion>
+
+  <app-confirmacion
+    [abierta]="paso() === 'confirmar'"
+    titulo="¿Dar de baja el lote?"
+    textoConfirmar="Confirmar"
+    tipo="peligro"
+    icono="warning"
+    [procesando]="enviando()"
+    (confirmar)="confirmar()"
+    (cancelar)="cancelar()"
+  >
+    <dl class="resumen">
+      <dt>Medicamento</dt>
+      <dd>{{ lote.nombreComercial }} {{ lote.concentracion }} {{ lote.presentacion }}</dd>
+      <dt>Lote</dt>
+      <dd>{{ lote.numeroLote }}</dd>
+      <dt>Caducidad</dt>
+      <dd>{{ lote.fechaCaducidad }}</dd>
+      <dt>Cantidad a retirar</dt>
+      <dd>{{ lote.existencias }} unidades</dd>
+      <dt>Motivo</dt>
+      <dd>{{ motivo().trim() }}</dd>
+    </dl>
+    <p class="baja__advertencia">
+      <span class="icono" aria-hidden="true">warning</span>
+      Esta operación retira las existencias del lote y no se puede deshacer.
+    </p>
+  </app-confirmacion>
+}

@@ -1,0 +1,212 @@
+<section class="contenedor-registro">
+  <header class="encabezado-pagina">
+    <h1>Registrar medicamento</h1>
+    <p>Da de alta un medicamento nuevo en el catálogo junto con su lote inicial.</p>
+  </header>
+
+ @if (mensajeExito()) {
+    <app-alerta tipo="exito">{{ mensajeExito() }}</app-alerta>
+  }
+
+  @if (mensajeError()) {
+    <app-alerta tipo="error">{{ mensajeError() }}</app-alerta>
+  }
+
+  <form [formGroup]="formulario" (ngSubmit)="solicitarConfirmacion()" novalidate class="tarjeta-formulario">
+    <fieldset class="grupo-campos">
+      <legend>Datos del medicamento</legend>
+
+      <div class="rejilla-campos">
+        <div class="campo">
+          <label for="nombreComercial">Nombre comercial *</label>
+          <input
+            id="nombreComercial"
+            type="text"
+            formControlName="nombreComercial"
+            maxlength="100"
+            placeholder="Ej. Tempra"
+            [class.invalido]="obtenerErrorCampo('nombreComercial')"
+          />
+          @if (obtenerErrorCampo('nombreComercial'); as error) {
+            <span class="mensaje-error">{{ error }}</span>
+          }
+        </div>
+
+        <div class="campo">
+          <label for="nombreSustancia">Sustancia activa *</label>
+          <input
+            id="nombreSustancia"
+            type="text"
+            formControlName="nombreSustancia"
+            maxlength="100"
+            placeholder="Ej. Paracetamol"
+            [class.invalido]="obtenerErrorCampo('nombreSustancia')"
+          />
+          @if (obtenerErrorCampo('nombreSustancia'); as error) {
+            <span class="mensaje-error">{{ error }}</span>
+          }
+        </div>
+
+        <div class="campo">
+          <label for="presentacion">Presentación *</label>
+          <input
+            id="presentacion"
+            type="text"
+            formControlName="presentacion"
+            maxlength="50"
+            placeholder="Ej. Tabletas, Jarabe, Solución"
+            [class.invalido]="obtenerErrorCampo('presentacion')"
+          />
+          @if (obtenerErrorCampo('presentacion'); as error) {
+            <span class="mensaje-error">{{ error }}</span>
+          }
+        </div>
+
+        <div class="campo">
+          <label for="concentracion">Concentración *</label>
+          <input
+            id="concentracion"
+            type="text"
+            formControlName="concentracion"
+            maxlength="50"
+            placeholder="Ej. 500 mg, 120 mg/5 ml"
+            [class.invalido]="obtenerErrorCampo('concentracion')"
+          />
+          @if (obtenerErrorCampo('concentracion'); as error) {
+            <span class="mensaje-error">{{ error }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="campo-checkbox">
+        <input id="esControlado" type="checkbox" formControlName="esControlado" />
+        <label for="esControlado">Medicamento controlado</label>
+      </div>
+    </fieldset>
+
+    <fieldset class="grupo-campos">
+      <legend>Lote inicial</legend>
+
+      <div class="rejilla-campos">
+        <div class="campo">
+          <label for="numeroLote">Número de lote *</label>
+          <input
+            id="numeroLote"
+            type="text"
+            formControlName="numeroLote"
+            maxlength="50"
+            placeholder="Ej. LOTE-2026-A1"
+            [class.invalido]="obtenerErrorCampo('numeroLote')"
+          />
+          @if (obtenerErrorCampo('numeroLote'); as error) {
+            <span class="mensaje-error">{{ error }}</span>
+          }
+        </div>
+
+        <div class="campo">
+          <label for="fechaCaducidad">Fecha de caducidad *</label>
+          <input
+            id="fechaCaducidad"
+            type="date"
+            formControlName="fechaCaducidad"
+            [class.invalido]="obtenerErrorCampo('fechaCaducidad')"
+          />
+          @if (obtenerErrorCampo('fechaCaducidad'); as error) {
+            <span class="mensaje-error">{{ error }}</span>
+          }
+        </div>
+
+        <div class="campo">
+          <label for="cantidadInicial">Cantidad inicial (unidades) *</label>
+          <input
+            id="cantidadInicial"
+            type="text"
+            inputmode="numeric"
+            formControlName="cantidadInicial"
+            placeholder="0 o más"
+            [class.invalido]="obtenerErrorCampo('cantidadInicial')"
+          />
+          @if (obtenerErrorCampo('cantidadInicial'); as error) {
+            <span class="mensaje-error">{{ error }}</span>
+          }
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="acciones-formulario">
+      <button type="submit" class="btn-primario" [disabled]="guardando()">
+        Guardar
+      </button>
+    </div>
+  </form>
+
+  <!-- HU-06 escenarios 4, 5, 11, 16 y 18: Modal de resumen y confirmación antes de guardar -->
+  @if (mostrarConfirmacion()) {
+    <div class="fondo-modal" role="dialog" aria-modal="true" aria-labelledby="titulo-confirmacion">
+      <div class="modal-confirmacion">
+        <h2 id="titulo-confirmacion">¿Confirmar alta del medicamento y lote con los datos mostrados?</h2>
+
+        @if (advertenciaCaducidadCorta()) {
+          <div class="aviso-semaforo-rojo" role="alert">
+            <strong>Aviso de caducidad próxima:</strong> Este lote caduca en 3 meses o menos y quedará en
+            <strong>Rojo</strong> en el semáforo de caducidad.
+          </div>
+        }
+
+        <dl class="lista-resumen">
+          <div>
+            <dt>Nombre comercial</dt>
+            <dd>{{ datosResumen().nombreComercial }}</dd>
+          </div>
+          <div>
+            <dt>Sustancia activa</dt>
+            <dd>{{ datosResumen().nombreSustancia }}</dd>
+          </div>
+          <div>
+            <dt>Presentación</dt>
+            <dd>{{ datosResumen().presentacion }}</dd>
+          </div>
+          <div>
+            <dt>Concentración</dt>
+            <dd>{{ datosResumen().concentracion }}</dd>
+          </div>
+          <div>
+            <dt>Tipo</dt>
+            <dd>{{ datosResumen().esControlado ? 'Medicamento controlado' : 'Estándar (no controlado)' }}</dd>
+          </div>
+          <div>
+            <dt>Número de lote</dt>
+            <dd>{{ datosResumen().numeroLote }}</dd>
+          </div>
+          <div>
+            <dt>Fecha de caducidad</dt>
+            <dd>{{ datosResumen().fechaCaducidad }}</dd>
+          </div>
+          <div>
+            <dt>Cantidad inicial</dt>
+            <dd>{{ datosResumen().cantidadInicial }} unidades</dd>
+          </div>
+        </dl>
+
+        <div class="acciones-modal">
+          <button
+            type="button"
+            class="btn-secundario"
+            (click)="cancelarConfirmacion()"
+            [disabled]="guardando()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn-primario"
+            (click)="confirmarRegistro()"
+            [disabled]="guardando()"
+          >
+            {{ guardando() ? 'Guardando...' : 'Aceptar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

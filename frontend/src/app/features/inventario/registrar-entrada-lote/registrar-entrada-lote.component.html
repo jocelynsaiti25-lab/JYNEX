@@ -1,0 +1,241 @@
+<section class="entrada-lote-page">
+  <header class="page-header">
+    <div>
+      <h1>Registro de entrada de lote</h1>
+      <p>Reabastece el inventario agregando un nuevo lote a un medicamento activo del catálogo.</p>
+    </div>
+  </header>
+
+  <!-- Alertas globales de error (400 / 422 / 500) -->
+  @if (errorServidor()) {
+    <div class="alerta alerta-error" role="alert">
+      <strong>No se pudo completar el registro:</strong> {{ errorServidor() }}
+    </div>
+  }
+
+  @if (erroresValidacion().length > 0) {
+    <div class="alerta alerta-error" role="alert">
+      <strong>Revisa los siguientes datos:</strong>
+      <ul>
+        @for (msg of erroresValidacion(); track msg) {
+          <li>{{ msg }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  <!-- Alerta de éxito tras registrar entrada (Escenarios 10 y 11) -->
+  @if (resultadoExitoso(); as res) {
+    <div class="alerta alerta-exito" role="status">
+      <strong>{{ res.mensaje }}</strong>
+      <p>
+        Lote <strong>{{ res.numeroLote }}</strong> (+{{ res.cantidadIngresada }} unidades) agregado a
+        <strong>{{ res.nombreMedicamento }}</strong>.
+        Existencias totales actualizadas: <strong>{{ res.existenciasTotalesActualizadas }}</strong>
+        (Semáforo inventario: <strong>{{ res.semaforoGeneralActualizado }}</strong>).
+      </p>
+    </div>
+  }
+
+  <div class="grid-contenido">
+    <!-- PASO 1: Buscador de medicamentos activos (Escenarios 1 y 2) -->
+    <div class="card">
+      <h2>1. Selecciona un medicamento activo</h2>
+
+      <div class="buscador-box">
+        <input
+          type="text"
+          [value]="terminoBusqueda()"
+          (input)="terminoBusqueda.set($any($event.target).value); buscarMedicamentos()"
+          placeholder="Buscar por nombre comercial, sustancia activa o lote..."
+        />
+      </div>
+
+      @if (cargandoCatalogo()) {
+        <p class="texto-ayuda">Buscando medicamentos activos...</p>
+      } @else if (medicamentosDisponibles().length === 0) {
+        <p class="texto-ayuda">No se encontraron medicamentos activos con ese criterio.</p>
+      } @else {
+        <ul class="lista-medicamentos">
+          @for (med of medicamentosDisponibles(); track med.idMedicamento) {
+            <li
+              [class.seleccionado]="medicamentoSeleccionado()?.idMedicamento === med.idMedicamento"
+              (click)="seleccionarMedicamento(med)"
+            >
+              <div class="med-info">
+                <strong>{{ med.nombreComercial }}</strong>
+                <span>{{ med.nombreSustancia }} · {{ med.concentracion }} · {{ med.presentacion }}</span>
+                <div class="badges">
+                  <span class="badge">Stock actual: {{ med.existenciasTotales }}</span>
+                  @if (med.estaAgotado) {
+                    <span class="badge badge-agotado">Agotado</span>
+                  } @else if (med.enStockBajo) {
+                    <span class="badge badge-bajo">Stock bajo</span>
+                  }
+                  @if (med.esControlado) {
+                    <span class="badge badge-controlado">Controlado</span>
+                  }
+                </div>
+              </div>
+              <button type="button" class="btn-secundario">
+                {{ medicamentoSeleccionado()?.idMedicamento === med.idMedicamento ? 'Seleccionado' : 'Elegir' }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <!-- PASO 2: Datos del nuevo lote (Escenarios 3, 4, 5, 6, 7 y 12) -->
+    <div class="card">
+      <h2>2. Datos del nuevo lote</h2>
+
+      @if (!medicamentoSeleccionado()) {
+        <p class="texto-ayuda">
+          Elige primero un medicamento activo de la lista para habilitar el registro de lote.
+        </p>
+      } @else {
+        <div class="medicamento-activo-banner">
+          <div>
+            <strong>{{ medicamentoSeleccionado()!.nombreComercial }}</strong>
+            <small>
+              {{ medicamentoSeleccionado()!.nombreSustancia }} ·
+              {{ medicamentoSeleccionado()!.concentracion }} ·
+              {{ medicamentoSeleccionado()!.presentacion }}
+            </small>
+          </div>
+          <button type="button" class="btn-link" (click)="limpiarSeleccion()">Cambiar</button>
+        </div>
+
+        <form [formGroup]="formulario" (ngSubmit)="solicitarConfirmacion()" novalidate>
+          <div class="campo">
+            <label for="numeroLote">Número de lote *</label>
+            <input
+              id="numeroLote"
+              type="text"
+              formControlName="numeroLote"
+              placeholder="Ej. LOT-2026-A"
+              maxlength="50"
+            />
+            @if (formulario.controls.numeroLote.touched && formulario.controls.numeroLote.invalid) {
+              <small class="error-campo">
+                @if (formulario.controls.numeroLote.errors?.['required']) {
+                  El número de lote es obligatorio.
+                } @else {
+                  Solo se permiten letras, números y guiones (máx. 50 caracteres).
+                }
+              </small>
+            }
+          </div>
+
+          <div class="campo">
+            <label for="fechaCaducidad">Fecha de caducidad *</label>
+            <input
+              id="fechaCaducidad"
+              type="date"
+              formControlName="fechaCaducidad"
+              [min]="fechaMinimaManana()"
+            />
+            @if (formulario.controls.fechaCaducidad.touched && formulario.controls.fechaCaducidad.invalid) {
+              <small class="error-campo">La fecha de caducidad es obligatoria.</small>
+            }
+
+            <!-- Semáforo preventivo (Escenarios 5 y 12) -->
+            @if (semaforoPreventivo() === 'Caducado') {
+              <small class="error-campo">
+                La fecha de caducidad no puede ser hoy ni una fecha vencida.
+              </small>
+            } @else if (semaforoPreventivo() === 'Rojo') {
+              <div class="aviso-semaforo semaforo-rojo">
+                Advertencia: Este lote vence en 3 meses o menos (Semáforo Rojo), pero aún puede registrarse.
+              </div>
+            } @else if (semaforoPreventivo() === 'Amarillo') {
+              <div class="aviso-semaforo semaforo-amarillo">
+                Semáforo Amarillo: Caducidad entre 4 y 12 meses.
+              </div>
+            } @else if (semaforoPreventivo() === 'Verde') {
+              <div class="aviso-semaforo semaforo-verde">
+                Semáforo Verde: Caducidad mayor a 12 meses.
+              </div>
+            }
+          </div>
+
+          <div class="campo">
+            <label for="cantidad">Cantidad a ingresar (unidades) *</label>
+            <input
+              id="cantidad"
+              type="number"
+              formControlName="cantidad"
+              min="1"
+              step="1"
+              placeholder="Ej. 50"
+            />
+            @if (formulario.controls.cantidad.touched && formulario.controls.cantidad.invalid) {
+              <small class="error-campo">
+                La cantidad es obligatoria y debe ser un número entero mayor que cero.
+              </small>
+            }
+          </div>
+
+          <div class="acciones">
+            <button type="submit" class="btn-primario" [disabled]="guardando()">
+              Revisar y confirmar entrada
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+
+  <!-- MODAL DE RESUMEN PREVIO ANTES DE GUARDAR (Escenarios 8, 9, 10 y 14) -->
+  @if (mostrandoResumen() && medicamentoSeleccionado(); as med) {
+    <div class="modal-backdrop" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <h3>Confirmar entrada de lote</h3>
+        <p>Verifica los datos antes de guardar en el inventario y la bitácora:</p>
+
+        <dl class="resumen-lista">
+          <div>
+            <dt>Medicamento:</dt>
+            <dd>{{ med.nombreComercial }} ({{ med.nombreSustancia }} {{ med.concentracion }} - {{ med.presentacion }})</dd>
+          </div>
+          <div>
+            <dt>Número de lote:</dt>
+            <dd>{{ formulario.controls.numeroLote.value.trim() }}</dd>
+          </div>
+          <div>
+            <dt>Fecha de caducidad:</dt>
+            <dd>{{ formulario.controls.fechaCaducidad.value }}</dd>
+          </div>
+          <div>
+            <dt>Cantidad a ingresar:</dt>
+            <dd>+{{ formulario.controls.cantidad.value }} unidades</dd>
+          </div>
+          <div>
+            <dt>Existencias resultantes:</dt>
+            <dd>{{ med.existenciasTotales + (+formulario.controls.cantidad.value) }} unidades</dd>
+          </div>
+        </dl>
+
+        <div class="modal-acciones">
+          <button
+            type="button"
+            class="btn-secundario"
+            [disabled]="guardando()"
+            (click)="cancelarConfirmacion()"
+          >
+            Cancelar y editar
+          </button>
+          <button
+            type="button"
+            class="btn-primario"
+            [disabled]="guardando()"
+            (click)="confirmarRegistro()"
+          >
+            {{ guardando() ? 'Guardando...' : 'Confirmar entrada' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

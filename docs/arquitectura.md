@@ -99,19 +99,19 @@ validators solo `AbstractValidator<T>` (de FluentValidation), handlers y command
 
 ## 7. Convenciones de nombres y carpetas
 
-Carpetas **por tipo** y dentro **una subcarpeta por historia** (nombre de la historia sin número):
+**Una carpeta por historia** (nombre de la historia sin número) y dentro **una subcarpeta por tipo**:
 
 | Pieza | Carpeta | Nombre | Ejemplo HU-01 |
 |-------|---------|--------|---------------|
-| Command | `Application/Commands/<Historia>/` | `<CasoDeUso>Command` | `IniciarSesionCommand` |
-| Query | `Application/Queries/<Historia>/` | `<CasoDeUso>Query` | `ObtenerSesionActualQuery` |
-| Validator | `Application/Validators/<Historia>/` | `<CasoDeUso>Validator` | `IniciarSesionValidator` |
-| Handler | `Application/Handlers/<Historia>/` | `<CasoDeUso>Handler` | `IniciarSesionHandler` |
-| DTO | `Application/Dtos/<Historia>/` | `<Algo>Dto` | `UsuarioSesionDto` |
+| Command | `Application/<Historia>/Commands/` | `<CasoDeUso>Command` | `IniciarSesionCommand` |
+| Query | `Application/<Historia>/Queries/` | `<CasoDeUso>Query` | `ObtenerSesionActualQuery` |
+| Validator | `Application/<Historia>/Validators/` | `<CasoDeUso>Validator` | `IniciarSesionValidator` |
+| Handler | `Application/<Historia>/Handlers/` | `<CasoDeUso>Handler` | `IniciarSesionHandler` |
+| DTO | `Application/<Historia>/Dtos/` | `<Algo>Dto` | `UsuarioSesionDto` |
 | Interfaz | `Application/Common/Interfaces/(Repositorios/)` | `I<Algo>` | `IUsuarioRepository` |
 | Repositorio | `Infrastructure/Persistence/Repositorios/` | `<Entidad>Repository` | `UsuarioRepository` |
-| Controller | `Api/Controllers/` | `<Historia>Controller` | `InicioSesionController` |
-| Contracts | `Api/Contracts/<Historia>/` | `<CasoDeUso>Request` / `Response` | `IniciarSesionRequest` |
+| Controller | `Api/Historias/<Historia>/` | `<Historia>Controller` | `InicioSesionController` |
+| Contracts | `Api/Historias/<Historia>/` (junto al controller) | `<CasoDeUso>Request` / `Response` | `IniciarSesionRequest` |
 
 La tabla con la carpeta de cada una de las 16 historias está en `backend/src/EtbotFarma.Application/README.md`.
 
@@ -119,11 +119,11 @@ La tabla con la carpeta de cada una de las 16 historias está en `backend/src/Et
 
 1. Leer la descripción y los criterios de aceptación. Decidir qué operaciones son **Command** (modifican) y cuáles **Query** (leen).
 2. **Domain**: crear o completar la entidad en `Domain/Entities/` con sus reglas como métodos.
-3. **Application**: por cada operación, en su carpeta de historia:
+3. **Application**: por cada operación, en `Application/<Historia>/<Tipo>/`:
    `XCommand` (o `XQuery`) + `XValidator` (si recibe datos) + `XHandler` + `XDto` (si devuelve datos).
    Si necesita la base de datos, crear `IXRepository` en `Common/Interfaces/Repositorios/`.
 4. **Infrastructure**: `XRepository(ConexionMySql conexion)` con SQL parametrizado (columnas reales de `database/etbotfarma_mysql_v2.sql`) y registro en `DependencyInjection.cs`.
-5. **Api**: `<Historia>Controller` con `ISender` por constructor + `Contracts/<Historia>/` (Request/Response).
+5. **Api**: carpeta `Historias/<Historia>/` con `<Historia>Controller` (`ISender` por constructor) y sus Request/Response.
 6. **Pruebas**: del validator (`TestValidate`), del handler (con los falsos de `Falsos/`, un archivo por clase) y de integración del endpoint cuando aplique.
 7. Crear solo los archivos que la historia necesita: nada de archivos vacíos.
 
@@ -201,7 +201,7 @@ Handler ──usa──> ISesionRepository / IUnitOfWork          (interfaces, A
 
 | Tema | Decisión | Motivo |
 |------|----------|--------|
-| Carpetas de Application | **Por tipo** (`Commands/`, `Queries/`, `Validators/`, `Handlers/`, `Dtos/`) y dentro **por historia** (`InicioSesion/`) | Decisión del equipo: se ve de inmediato qué tipo de archivo es cada uno. Se descartó `Features/<Historia>/` para no cambiar la estructura que ya usa todo el equipo |
+| Carpetas de Application y Api | **Por historia** (`InicioSesion/`) y dentro **por tipo** (`Commands/`, `Queries/`, `Validators/`, `Handlers/`, `Dtos/`); en Api, `Historias/<Historia>/` con el controller y sus contratos | Decisión del equipo: cada integrante trabaja en la carpeta de su historia (menos choques en Git) y dentro se ve de inmediato qué tipo de archivo es cada uno |
 | Validator para queries sin datos | No se crea (ej.: `ObtenerSesionActualQuery`) | No hay nada que validar; no se crean archivos vacíos |
 | Clase base `Entity<TId>` en Domain | Se conserva | Da a todas las entidades su `Id` en un solo lugar; es la única herencia del Domain y es abstracta (no se puede crear sola) |
 | Nombres de Infrastructure | `ConexionMySql`, `Persistence/Repositorios/` | En español, como el resto del proyecto |

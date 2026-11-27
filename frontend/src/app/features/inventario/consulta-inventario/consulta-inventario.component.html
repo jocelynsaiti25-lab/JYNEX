@@ -1,0 +1,204 @@
+<section class="inventario-page">
+  <header class="page-header">
+    <div>
+      <h1>Inventario de medicamentos</h1>
+      <p>Busca por nombre comercial, sustancia activa o número de lote y consulta sus existencias.</p>
+    </div>
+  </header>
+
+  @if (errorCarga() && !agotadosActivo()) {
+    <div class="alerta-error" role="alert">
+      {{ errorCarga() }}
+    </div>
+  }
+
+  @if (resultadoBaja(); as resultado) {
+    <app-alerta [tipo]="resultado.tipo" [cerrable]="true" (cerrar)="resultadoBaja.set(null)">
+      {{ resultado.mensaje }}
+    </app-alerta>
+  }
+
+  <!-- Barra de búsqueda progresiva y filtro combinable de caducidad (Escenarios 1, 2, 5 y 7) -->
+  <div class="filtros-card">
+    <div class="buscador-wrapper">
+      <input
+        type="text"
+        [value]="terminoBusqueda()"
+        (input)="actualizarBusqueda($any($event.target).value)"
+        placeholder="Buscar por nombre comercial, sustancia activa o número de lote..."
+        aria-label="Buscar medicamento"
+      />
+      @if (terminoBusqueda()) {
+        <button type="button" class="btn-limpiar" (click)="limpiarBusqueda()">Limpiar</button>
+      }
+    </div>
+
+    <div class="filtros-semaforo" role="group" aria-label="Filtrar por semáforo de caducidad">
+      <button
+        type="button"
+        [class.activo]="!agotadosActivo() && filtroSemaforo() === 'Todos'"
+        (click)="cambiarFiltroSemaforo('Todos')"
+      >
+        Todos
+      </button>
+      <button
+        type="button"
+        class="filtro-rojo"
+        [class.activo]="!agotadosActivo() && filtroSemaforo() === 'Rojo'"
+        (click)="cambiarFiltroSemaforo('Rojo')"
+      >
+        Próximos a caducar (Rojo)
+      </button>
+      <button
+        type="button"
+        class="filtro-amarillo"
+        [class.activo]="!agotadosActivo() && filtroSemaforo() === 'Amarillo'"
+        (click)="cambiarFiltroSemaforo('Amarillo')"
+      >
+        Precaución (Amarillo)
+      </button>
+      <button
+        type="button"
+        class="filtro-verde"
+        [class.activo]="!agotadosActivo() && filtroSemaforo() === 'Verde'"
+        (click)="cambiarFiltroSemaforo('Verde')"
+      >
+        Vigentes (Verde)
+      </button>
+    </div>
+
+    <div class="filtros-semaforo filtros-existencias" role="group" aria-label="Filtrar por existencias">
+      <button
+        type="button"
+        class="filtro-agotados"
+        [class.activo]="agotadosActivo()"
+        (click)="mostrarAgotados()"
+      >
+        Agotados
+      </button>
+    </div>
+  </div>
+
+  @if (agotadosActivo() && errorAgotados()) {
+    <div class="alerta-error" role="alert">
+      {{ errorAgotados() }}
+      <button type="button" class="btn-limpiar" (click)="cargarAgotados()">Reintentar</button>
+    </div>
+  }
+
+  <!-- Tabla de resultados (Escenarios 3, 4 y 6) -->
+  <div class="tabla-card">
+    @if (agotadosActivo()) {
+      @if (cargandoAgotados()) {
+        <p class="estado-vacio">Cargando medicamentos agotados...</p>
+      } @else if (errorAgotados()) {
+        <p class="estado-vacio" role="status">No se pudo cargar la lista.</p>
+      } @else if (agotadosFiltrados().length === 0) {
+        <div class="estado-vacio" role="status">
+          <strong>{{ mensajeSinAgotados() }}</strong>
+        </div>
+      } @else {
+        <div class="tabla-responsive">
+          <table aria-label="Medicamentos agotados">
+            <thead>
+              <tr>
+                <th>Medicamento</th>
+                <th>Presentación</th>
+                <th>Concentración</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (medicamento of agotadosFiltrados(); track medicamento.idMedicamento) {
+                <tr>
+                  <td>
+                    <strong>{{ medicamento.nombreComercial }}</strong>
+                    <div class="subtexto">{{ medicamento.nombreSustancia }}</div>
+                  </td>
+                  <td>{{ medicamento.presentacion }}</td>
+                  <td>{{ medicamento.concentracion }}</td>
+                  <td>
+                    <span class="badge estado-agotado">{{ medicamento.etiqueta }}</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    } @else if (cargando()) {
+      <p class="estado-vacio">Cargando inventario...</p>
+    } @else if (resultadosFiltrados().length === 0) {
+      <div class="estado-vacio" role="status">
+        <strong>No se encontraron coincidencias</strong>
+        <p>{{ mensajeSinResultados() }}</p>
+      </div>
+    } @else {
+      <div class="tabla-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Medicamento / Sustancia</th>
+              <th>Presentación</th>
+              <th>Concentración</th>
+              <th>Lote</th>
+              <th>Existencias</th>
+              <th>Fecha de caducidad</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of resultadosFiltrados(); track (item.idLote ?? 'med-' + item.idMedicamento)) {
+              <tr>
+                <td>
+                  <strong>{{ item.nombreComercial }}</strong>
+                  <div class="subtexto">{{ item.nombreSustancia }}</div>
+                </td>
+                <td>{{ item.presentacion }}</td>
+                <td>{{ item.concentracion }}</td>
+                <td><code>{{ item.numeroLote }}</code></td>
+                <td><strong>{{ item.existencias }}</strong></td>
+                <td>{{ item.fechaCaducidad ?? '—' }}</td>
+                <td>
+                  <div class="badges-estado">
+                    @if (estadoSemaforo(item); as estado) {
+                      <app-semaforo [estado]="estado" />
+                    }
+
+                    @if (item.estadoDisponibilidad === 'Agotado') {
+                      <span class="badge estado-agotado">Agotado</span>
+                    } @else if (item.estadoDisponibilidad === 'Stock bajo') {
+                      <span class="badge estado-bajo">Stock bajo</span>
+                    } @else {
+                      <span class="badge estado-ok">Disponible</span>
+                    }
+                  </div>
+                </td>
+                <td>
+                  <div class="acciones-fila">
+                    @if (esAdministrador()) {
+                      <a class="btn-limpiar" [routerLink]="['/medicamentos', item.idMedicamento, 'editar']">Editar</a>
+                    }
+                    @if (puedeDarseDeBaja(item)) {
+                      <button
+                        type="button"
+                        class="btn-baja"
+                        [attr.aria-label]="'Dar de baja el lote ' + item.numeroLote"
+                        (click)="iniciarBaja(item)"
+                      >
+                        Dar de baja
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <app-baja-lote [lote]="loteEnBaja()" (terminada)="terminarBaja($event)" (cancelada)="cancelarBaja()" />
+</section>

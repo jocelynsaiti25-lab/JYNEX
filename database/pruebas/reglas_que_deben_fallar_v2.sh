@@ -62,10 +62,17 @@ debe_fallar "El mismo lote dos veces en un movimiento" \
 
 # ---------- Usuarios, roles y sesiones ----------
 debe_fallar "Nombre de usuario repetido" \
-  "INSERT INTO usuario (nombre, apellidos, nombre_usuario, contrasenia_hash, telefono, id_rol, fecha_registro) VALUES ('Otro', 'Otro', 'ana.admin', 'x', '5512345678', 2, UTC_TIMESTAMP())"
+  "INSERT INTO usuario (nombre, apellidos, nombre_usuario, correo, contrasenia_hash, telefono, id_rol, fecha_registro) VALUES ('Otro', 'Otro', 'ana.admin', 'otro1@etbotfarma.com', 'x', '5512345678', 2, UTC_TIMESTAMP())"
+
+# HU-03: el correo identifica a la persona, no se puede repetir
+debe_fallar "Correo repetido" \
+  "INSERT INTO usuario (nombre, apellidos, nombre_usuario, correo, contrasenia_hash, telefono, id_rol, fecha_registro) VALUES ('Otro', 'Otro', 'otro.usuario', 'ana.lopez@etbotfarma.com', 'x', '5512345678', 2, UTC_TIMESTAMP())"
+
+debe_fallar "Usuario sin correo" \
+  "INSERT INTO usuario (nombre, apellidos, nombre_usuario, correo, contrasenia_hash, telefono, id_rol, fecha_registro) VALUES ('Otro', 'Otro', 'sin.correo', NULL, 'x', '5512345678', 2, UTC_TIMESTAMP())"
 
 debe_fallar "Rol que no existe" \
-  "INSERT INTO usuario (nombre, apellidos, nombre_usuario, contrasenia_hash, telefono, id_rol, fecha_registro) VALUES ('Otro', 'Otro', 'otro', 'x', '5512345678', 9, UTC_TIMESTAMP())"
+  "INSERT INTO usuario (nombre, apellidos, nombre_usuario, correo, contrasenia_hash, telefono, id_rol, fecha_registro) VALUES ('Otro', 'Otro', 'otro', 'otro2@etbotfarma.com', 'x', '5512345678', 9, UTC_TIMESTAMP())"
 
 debe_fallar "Borrar un rol que tiene usuarios" \
   "DELETE FROM rol WHERE id_rol = 2"

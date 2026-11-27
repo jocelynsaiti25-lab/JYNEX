@@ -10,7 +10,7 @@ public class SesionTests
     private static readonly TimeSpan Veinte = TimeSpan.FromMinutes(20);
 
     private static Usuario CrearUsuario()
-        => Usuario.Crear("Ana", "López", "ana", "hash", "5512345678", Rol.Reconstruir(Rol.Empleado, "Empleado"), Inicio);
+        => Usuario.Crear("Ana", "López", "ana", "ana@etbotfarma.com", "hash", "5512345678", Rol.Reconstruir(Rol.Empleado, "Empleado"), Inicio);
 
     [Fact]
     public void Sesion_nueva_esta_vigente()

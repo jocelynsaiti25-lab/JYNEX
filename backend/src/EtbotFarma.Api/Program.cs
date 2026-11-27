@@ -66,6 +66,8 @@ public class Program
             app.UseHttpsRedirection();
         }
 
+        app.UseMiddleware<SinCacheMiddleware>();   // HU-02: el navegador no guarda respuestas en caché
+
         app.UseAuthentication();
         app.UseAuthorization();
 

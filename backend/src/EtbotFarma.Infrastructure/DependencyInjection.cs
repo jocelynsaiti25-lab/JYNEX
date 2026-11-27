@@ -29,12 +29,19 @@ public static class DependencyInjection
         // ---------- Repositorios ----------
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddScoped<ISesionRepository, SesionRepository>();
+        services.AddScoped<IRolRepository, RolRepository>();
+        services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();   // compartido: cambios administrativos
+        services.AddScoped<IMedicamentoRepository, MedicamentoRepository>(); // HU-06
+        services.AddScoped<ILoteRepository, LoteRepository>();               // HU-06
+        services.AddScoped<IMovimientoRepository, MovimientoRepository>();   // HU-06
 
         // ---------- Seguridad ----------
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<ITokenSesionService, TokenSesionService>();
 
         // ---------- Otros servicios ----------
+        var configuracionReloj = configuration.GetSection("Reloj").Get<ConfiguracionReloj>() ?? new ConfiguracionReloj();
+        services.AddSingleton(configuracionReloj);
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
         // ---------- Configuración (appsettings.json, sección "Sesion") ----------

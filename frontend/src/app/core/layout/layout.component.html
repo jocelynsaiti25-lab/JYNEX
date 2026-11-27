@@ -60,7 +60,12 @@
   </nav>
 
   <div class="barra-lateral__pie">
-    <!-- HU-02: aquí va el botón "Cerrar sesión" (con <app-confirmacion>) -->
+    <!-- HU-02 escenario 2: visible para todos los roles y en todas las pantallas.
+         Escenario 12: se desactiva mientras se procesa (no se envían peticiones repetidas). -->
+    <button type="button" class="cerrar-sesion" [disabled]="cerrando()" (click)="cerrarSesion()">
+      <span class="icono" aria-hidden="true">logout</span>
+      {{ cerrando() ? 'Cerrando sesión…' : 'Cerrar sesión' }}
+    </button>
     <p class="version">ETBOT FARMA WEB</p>
   </div>
 </aside>

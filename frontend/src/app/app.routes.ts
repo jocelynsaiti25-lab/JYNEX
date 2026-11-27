@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 
+import { cambiosSinGuardarGuard } from './core/guards/cambios-sin-guardar.guard';
+import { rolGuard } from './core/guards/rol.guard';
 import { sesionGuard, invitadoGuard } from './core/guards/sesion.guard';
 
 /**
@@ -18,6 +20,14 @@ export const routes: Routes = [
       import('./features/inicio-sesion/iniciar-sesion.component').then((m) => m.IniciarSesionComponent),
   },
   {
+    // HU-02: pantalla de paso para cerrar sesión. Va FUERA del LayoutComponent y sin sesionGuard:
+    // si la sesión ya expiró (escenario 10) también debe poder cerrarse sin error.
+    path: 'cerrar-sesion',
+    title: 'Cerrando sesión · Etbot Farma',
+    loadComponent: () =>
+      import('./features/cierre-sesion/cerrar-sesion.component').then((m) => m.CerrarSesionComponent),
+  },
+  {
     path: '',
     // Se revisa la sesión en CADA cambio de pantalla protegida
     canActivateChild: [sesionGuard],
@@ -28,6 +38,96 @@ export const routes: Routes = [
         path: 'inicio',
         title: 'Inicio · Etbot Farma',
         loadComponent: () => import('./features/inicio/inicio.component').then((m) => m.InicioComponent),
+      },
+      {
+        // HU-03: solo el Administrador (criterio 1); avisa si sale con datos sin guardar (escenario 16)
+        path: 'usuarios/crear',
+        title: 'Crear usuario · Etbot Farma',
+        canActivate: [rolGuard(['Administrador'])],
+        canDeactivate: [cambiosSinGuardarGuard],
+        loadComponent: () =>
+          import('./features/creacion-usuarios/crear-usuario.component').then((m) => m.CrearUsuarioComponent),
+      },
+      {
+        // HU-04: solo el Administrador; un Empleado que escribe la dirección regresa al inicio (escenario 2)
+        path: 'usuarios',
+        title: 'Usuarios · Etbot Farma',
+        canActivate: [rolGuard(['Administrador'])],
+        loadComponent: () =>
+          import('./features/consulta-usuarios/consulta-usuarios.component').then((m) => m.ConsultaUsuariosComponent),
+      },
+      {
+        // HU-05: la cuenta se elige en la lista de HU-04; solo el Administrador (escenario 5)
+        path: 'usuarios/:idUsuario/contrasenia',
+        title: 'Reasignar contraseña · Etbot Farma',
+        canActivate: [rolGuard(['Administrador'])],
+        loadComponent: () =>
+          import('./features/reasignacion-contrasena/reasignar-contrasena.component').then((m) => m.ReasignarContrasenaComponent),
+      },
+      {
+        // HU-06: acceso para Administrador y Empleado; avisa si sale con datos sin guardar
+        path: 'medicamentos/registrar',
+        canDeactivate: [cambiosSinGuardarGuard],
+        title: 'Registrar medicamento · Etbot Farma',
+        loadComponent: () =>
+          import('./features/medicamentos/registrar-medicamento/registrar-medicamento.component').then(
+            (m) => m.RegistrarMedicamentoComponent
+          ),
+      },
+      {
+        // HU-07: Registro de entrada de lote (Administrador y Empleado; avisa si sale sin guardar)
+        path: 'inventario/entrada-lote',
+        title: 'Entrada de lote · Etbot Farma',
+        canDeactivate: [cambiosSinGuardarGuard],
+        loadComponent: () =>
+          import('./features/inventario/registrar-entrada-lote/registrar-entrada-lote.component').then(
+            (m) => m.RegistrarEntradaLoteComponent
+          ),
+      },
+      {
+        // HU-08: Búsqueda y consulta de medicamentos en inventario (Administrador y Empleado)
+        path: 'inventario',
+        title: 'Inventario · Etbot Farma',
+        loadComponent: () =>
+          import('./features/inventario/consulta-inventario/consulta-inventario.component').then(
+            (m) => m.ConsultaInventarioComponent
+          ),
+      },
+      {
+        // HU-11: control de stock mínimo (Administrador y Empleado por igual)
+        path: 'inventario/stock-minimo',
+        title: 'Stock mínimo · Etbot Farma',
+        loadComponent: () =>
+          import('./features/inventario/stock-minimo/stock-minimo.component').then((m) => m.StockMinimoComponent),
+      },
+      {
+        path: 'inventario/salida',
+        title: 'Salida de medicamentos · Etbot Farma',
+        loadComponent: () =>
+          import('./features/inventario/salida-medicamentos/salida-medicamentos.component').then(
+            (m) => m.SalidaMedicamentosComponent,
+          ),
+      },
+      {
+        // HU-15: bitácora de solo lectura, visible únicamente para Administrador.
+        path: 'bitacora',
+        title: 'Bitácora de movimientos · Etbot Farma',
+        canActivate: [rolGuard(['Administrador'])],
+        loadComponent: () =>
+          import('./features/bitacora-movimientos/bitacora-movimientos.component').then(
+            (m) => m.BitacoraMovimientosComponent,
+          ),
+      },
+      {
+        // HU-09: edición de información descriptiva de medicamentos (solo Administrador)
+        path: 'medicamentos/:idMedicamento/editar',
+        title: 'Editar medicamento · Etbot Farma',
+        canActivate: [rolGuard(['Administrador'])],
+        canDeactivate: [cambiosSinGuardarGuard],
+        loadComponent: () =>
+          import('./features/medicamentos/editar-medicamento/editar-medicamento.component').then(
+            (m) => m.EditarMedicamentoComponent
+          ),
       },
     ],
   },

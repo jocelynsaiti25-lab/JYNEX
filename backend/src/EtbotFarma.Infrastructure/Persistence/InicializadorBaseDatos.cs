@@ -54,8 +54,8 @@ public static class InicializadorBaseDatos
         var reloj = proveedor.GetRequiredService<IDateTimeProvider>();   // fecha actual en UTC (regla del equipo)
 
         const string sql = """
-            INSERT INTO usuario (nombre, apellidos, nombre_usuario, contrasenia_hash, telefono, id_rol, activo, fecha_registro)
-            VALUES (@nombre, @apellidos, @nombreUsuario, @contraseniaHash, @telefono, @idRol, TRUE, @fechaRegistro);
+            INSERT INTO usuario (nombre, apellidos, nombre_usuario, correo, contrasenia_hash, telefono, id_rol, activo, fecha_registro)
+            VALUES (@nombre, @apellidos, @nombreUsuario, @correo, @contraseniaHash, @telefono, @idRol, TRUE, @fechaRegistro);
             """;
 
         await using (var insertar = await conexion.CrearComandoAsync(sql, CancellationToken.None))
@@ -63,6 +63,7 @@ public static class InicializadorBaseDatos
             insertar.Parameters.AddWithValue("@nombre", admin["Nombre"] ?? "Administrador");
             insertar.Parameters.AddWithValue("@apellidos", admin["Apellidos"] ?? "del Sistema");
             insertar.Parameters.AddWithValue("@nombreUsuario", nombreUsuario);
+            insertar.Parameters.AddWithValue("@correo", Usuario.NormalizarCorreo(admin["Correo"] ?? "admin@etbotfarma.local"));
             insertar.Parameters.AddWithValue("@contraseniaHash", passwordHasher.GenerarHash(contrasenia));
             insertar.Parameters.AddWithValue("@telefono", admin["Telefono"] ?? "0000000000");
             insertar.Parameters.AddWithValue("@idRol", Rol.Administrador);   // = 1, igual que en etbotfarma_mysql_v2.sql

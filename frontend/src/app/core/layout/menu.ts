@@ -36,6 +36,7 @@ export const MENU: OpcionMenu[] = [
     descripcion: 'Buscar medicamentos, semáforo de caducidad, stock mínimo, agotados y baja de lotes.',
     icono: 'inventory_2',
     historias: ['HU-08', 'HU-09', 'HU-10', 'HU-11', 'HU-12', 'HU-14'],
+    ruta: '/inventario',
   },
   {
     etiqueta: 'Registrar medicamento',
@@ -48,25 +49,45 @@ export const MENU: OpcionMenu[] = [
     descripcion: 'Registrar un lote nuevo de un medicamento existente.',
     icono: 'move_to_inbox',
     historias: ['HU-07'],
+    ruta: '/inventario/entrada-lote',
+  },
+  {
+    etiqueta: 'Stock mínimo',
+    descripcion: 'Definir el umbral de stock mínimo y detectar desabasto.',
+    icono: 'production_quantity_limits',
+    historias: ['HU-11'],
+    ruta: '/inventario/stock-minimo',
   },
   {
     etiqueta: 'Salida de medicamentos',
     descripcion: 'Registrar salidas con propuesta automática de lotes (FEFO).',
     icono: 'outbox',
     historias: ['HU-13'],
+    ruta: '/inventario/salida',
   },
   {
     etiqueta: 'Bitácora',
-    descripcion: 'Consultar movimientos y exportarlos a Excel.',
+    descripcion: 'Consultar el historial de movimientos de inventario.',
     icono: 'history',
-    historias: ['HU-15', 'HU-16'],
+    historias: ['HU-15'],
+    ruta: '/bitacora',
+    roles: ['Administrador'],
   },
   {
     etiqueta: 'Usuarios',
     descripcion: 'Crear y consultar usuarios, y reasignar contraseñas.',
     icono: 'manage_accounts',
     historias: ['HU-03', 'HU-04', 'HU-05'],
+    // HU-04 escenario 1: abre la lista de usuarios; desde ahí se llega a "Crear usuario" (HU-03).
+    ruta: '/usuarios',
     roles: ['Administrador'],
+  },
+  {
+    etiqueta: 'Registrar medicamento',
+    descripcion: 'Dar de alta un medicamento nuevo con su primer lote.',
+    icono: 'medication',
+    historias: ['HU-06'],
+    ruta: '/medicamentos/registrar',
   },
 ];
 

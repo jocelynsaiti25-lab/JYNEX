@@ -10,12 +10,17 @@ se pueden probar sin base de datos, sin cookies y con una fecha fija.
 |---|---|
 | `IUsuarioRepository` | `UsuarioRepositoryFalso.cs` |
 | `ISesionRepository` | `SesionRepositoryFalso.cs` |
+| `IRolRepository` | `RolRepositoryFalso.cs` |
+| `IAuditoriaRepository` | `AuditoriaRepositoryFalso.cs` |
 | `IPasswordHasher` | `PasswordHasherFalso.cs` |
 | `ITokenSesionService` | `TokenSesionServiceFalso.cs` |
 | `IUnitOfWork` | `UnitOfWorkFalso.cs` |
 | `IDateTimeProvider` | `RelojFalso.cs` |
 | `ICookieSesionService` | `CookieSesionServiceFalso.cs` |
 | `IUsuarioActual` | `UsuarioActualFalso.cs` |
+| `IMedicamentoRepository` | `MedicamentoRepositoryFalso.cs` |
+| `ILoteRepository` | `LoteRepositoryFalso.cs` |
+| `IMovimientoRepository` | `MovimientoRepositoryFalso.cs` |
 
 ## Cómo agregar el falso de tu historia
 

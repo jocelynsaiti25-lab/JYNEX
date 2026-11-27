@@ -10,17 +10,24 @@ USE etbotfarma;
 -- =====================================================================
 -- 1. Registro de usuarios (HU-03)
 -- =====================================================================
-INSERT INTO usuario (nombre, apellidos, nombre_usuario, contrasenia_hash, telefono, id_rol, fecha_registro)
-VALUES ('Ana', 'López Pérez', 'ana.admin', 'AQAAAAIAAYagAAAAE-hash-de-prueba', '5512345678', 1, UTC_TIMESTAMP());
+INSERT INTO usuario (nombre, apellidos, nombre_usuario, correo, contrasenia_hash, telefono, id_rol, fecha_registro)
+VALUES ('Ana', 'López Pérez', 'ana.admin', 'ana.lopez@etbotfarma.com', 'AQAAAAIAAYagAAAAE-hash-de-prueba', '5512345678', 1, UTC_TIMESTAMP());
 SET @admin = LAST_INSERT_ID();
 
-INSERT INTO usuario (nombre, apellidos, nombre_usuario, contrasenia_hash, telefono, id_rol, fecha_registro)
-VALUES ('Luis', 'Martínez', 'luis.empleado', 'AQAAAAIAAYagAAAAE-otro-hash', '5587654321', 2, UTC_TIMESTAMP());
+INSERT INTO usuario (nombre, apellidos, nombre_usuario, correo, contrasenia_hash, telefono, id_rol, fecha_registro)
+VALUES ('Luis', 'Martínez', 'luis.empleado', 'luis.martinez@etbotfarma.com', 'AQAAAAIAAYagAAAAE-otro-hash', '5587654321', 2, UTC_TIMESTAMP());
 SET @empleado = LAST_INSERT_ID();
+
+-- HU-03: dos personas con el MISMO nombre y el mismo teléfono se permiten (cambian su usuario y su correo)
+INSERT INTO usuario (nombre, apellidos, nombre_usuario, correo, contrasenia_hash, telefono, id_rol, fecha_registro)
+VALUES ('Luis', 'Martínez', 'luis.martinez2', 'luis.m.otro@etbotfarma.com', 'AQAAAAIAAYagAAAAE-tercer-hash', '5587654321', 2, UTC_TIMESTAMP());
+SET @homonimo = LAST_INSERT_ID();
 
 SELECT '1. Roles iniciales: 2', IF((SELECT COUNT(*) FROM rol) = 2, 'OK', 'FALLA');
 SELECT '1. Usuarios registrados con su rol', IF((SELECT COUNT(*) FROM usuario u INNER JOIN rol r ON r.id_rol = u.id_rol
     WHERE u.id_usuario IN (@admin, @empleado)) = 2, 'OK', 'FALLA');
+SELECT '1. Personas con el mismo nombre y teléfono se registran (HU-03)', IF((SELECT COUNT(*) FROM usuario
+    WHERE nombre = 'Luis' AND apellidos = 'Martínez' AND telefono = '5587654321') = 2, 'OK', 'FALLA');
 
 -- Sesión: se guarda el hash del token y la fecha de expiración (HU-01)
 INSERT INTO sesion (id_usuario, token_hash, fecha_inicio, ultima_actividad, fecha_expiracion)
