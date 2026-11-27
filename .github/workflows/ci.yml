@@ -237,6 +237,10 @@ jobs:
         if: success() || failure()
         working-directory: frontend
         run: node e2e/hu15-bitacora-movimientos.mjs
+      - name: Pruebas de HU-16 en el navegador (exportación de la bitácora)
+        if: success() || failure()
+        working-directory: frontend
+        run: node e2e/hu16-exportacion-bitacora.mjs
       - name: Guardar capturas de pantalla
         if: always()
         uses: actions/upload-artifact@v4
