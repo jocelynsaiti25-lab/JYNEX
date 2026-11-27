@@ -258,7 +258,7 @@ public class BajaLotesEndpointsTests(ApiConMySql api, ApiConBitacoraQueFalla api
 
         var respuesta = await DarDeBajaAsync(admin, idLote, 10, new string('m', 200));
 
-        Assert.Equal(HttpStatusCode.Created, respuesta.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
         Assert.Equal(0, await StockAsync(idLote));
         Assert.Equal(1, await BajasAsync(idLote));
     }
