@@ -107,6 +107,34 @@ public class RegistrarSalidaMedicamentoHandlerTests
     }
 
     [Fact]
+    public async Task Medicamento_inactivo_no_permite_salida_ni_cambia_el_inventario()
+    {
+        _medicamentos.Medicamentos.Add(
+            Medicamento.Reconstruir(2, "Inactivo", "Sustancia", "Tabletas", "500 mg", false, 0, false, DateTime.UtcNow));
+        _lotes.Lotes.Add(Lote.Reconstruir(9, 2, "L-9", Hoy.AddMonths(6), 10, Hoy.AddMonths(-1)));
+
+        await Assert.ThrowsAsync<DomainException>(() =>
+            CrearHandler().Handle(new RegistrarSalidaMedicamentoCommand(2, "1"), CancellationToken.None));
+
+        Assert.Empty(_lotes.Descuentos);
+        Assert.Equal(10, _lotes.Lotes.Single(l => l.Id == 9).Stock);
+        Assert.Empty(_movimientos.Movimientos);
+        Assert.Equal(0, _unidadDeTrabajo.VecesGuardado);
+    }
+
+    [Fact]
+    public async Task Con_misma_caducidad_la_salida_toma_primero_el_lote_de_menor_id()
+    {
+        Preparar((8, Hoy.AddMonths(4), 10), (5, Hoy.AddMonths(4), 10));
+
+        await CrearHandler().Handle(new RegistrarSalidaMedicamentoCommand(1, "12"), CancellationToken.None);
+
+        Assert.Equal(new[] { (5, 10), (8, 2) }, _lotes.Descuentos);
+        Assert.Equal(0, _lotes.Lotes.Single(l => l.Id == 5).Stock);
+        Assert.Equal(8, _lotes.Lotes.Single(l => l.Id == 8).Stock);
+    }
+
+    [Fact]
     public async Task Medicamento_inexistente_responde_no_encontrado()
     {
         await Assert.ThrowsAsync<NoEncontradoException>(() =>

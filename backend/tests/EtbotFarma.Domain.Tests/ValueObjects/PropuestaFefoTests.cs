@@ -46,18 +46,20 @@ public class PropuestaFefoTests
     }
 
     [Fact]
-    public void Con_misma_caducidad_desempata_por_fecha_de_entrada()
+    public void Con_misma_caducidad_desempata_por_id_ascendente_sin_usar_la_fecha_de_entrada()
     {
         var caducidad = Hoy.AddMonths(5);
         var lotes = new[]
         {
-            LoteDe(1, caducidad, 10, Hoy.AddMonths(-1)),
-            LoteDe(2, caducidad, 10, Hoy.AddMonths(-3))
+            LoteDe(8, caducidad, 10, Hoy.AddMonths(-6)),
+            LoteDe(5, caducidad, 10, Hoy.AddMonths(-1)),
+            LoteDe(2, Hoy.AddMonths(6), 10, Hoy.AddMonths(-9)),
+            LoteDe(1, Hoy.AddMonths(7), 10, Hoy.AddMonths(-9))
         };
 
-        var propuesta = PropuestaFefo.Calcular(lotes, 5, Hoy);
+        var propuesta = PropuestaFefo.Calcular(lotes, 40, Hoy);
 
-        Assert.Equal(2, Assert.Single(propuesta.Asignaciones).IdLote);
+        Assert.Equal(new[] { 5, 8, 2, 1 }, propuesta.Asignaciones.Select(a => a.IdLote));
     }
 
     [Fact]

@@ -30,6 +30,14 @@ public sealed class LoteRepositoryFalso : ILoteRepository
         IReadOnlyCollection<int> idsMedicamento, CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<Lote>>(Lotes.Where(l => idsMedicamento.Contains(l.IdMedicamento)).ToList());
 
+    public Task<IReadOnlyList<Lote>> ObtenerPorMedicamentoParaActualizarAsync(
+        int idMedicamento, CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyList<Lote>>(
+            Lotes.Where(l => l.IdMedicamento == idMedicamento)
+                .OrderBy(l => l.FechaCaducidad)
+                .ThenBy(l => l.Id)
+                .ToList());
+
     public Task<IReadOnlyList<Lote>> ObtenerTodosOrdenadosPorCaducidadAsync(CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<Lote>>(Lotes.OrderBy(l => l.FechaCaducidad).ToList());
 

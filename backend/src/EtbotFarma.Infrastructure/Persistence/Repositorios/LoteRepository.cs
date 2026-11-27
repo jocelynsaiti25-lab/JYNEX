@@ -120,7 +120,7 @@ public sealed class LoteRepository(ConexionMySql conexion) : ILoteRepository
                 fecha_entrada
             FROM lote
             WHERE id_medicamento = @idMedicamento
-            ORDER BY fecha_caducidad ASC, fecha_entrada ASC, id_lote ASC
+            ORDER BY fecha_caducidad ASC, id_lote ASC
             FOR UPDATE;
             """;
 

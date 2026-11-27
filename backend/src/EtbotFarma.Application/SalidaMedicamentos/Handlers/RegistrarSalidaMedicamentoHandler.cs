@@ -29,6 +29,9 @@ public sealed class RegistrarSalidaMedicamentoHandler(
         var medicamento = await medicamentos.ObtenerPorIdAsync(command.IdMedicamento, cancellationToken)
             ?? throw new NoEncontradoException("El medicamento no existe");
 
+        if (!medicamento.Activo)
+            throw new DomainException("No se puede registrar una salida de un medicamento inactivo.");
+
         var cantidad = int.Parse(command.Cantidad.Trim(), CultureInfo.InvariantCulture);
         var lotesBloqueados = await lotes.ObtenerPorMedicamentoParaActualizarAsync(medicamento.Id, cancellationToken);
         var propuesta = PropuestaFefo.Calcular(lotesBloqueados, cantidad, reloj.Hoy);

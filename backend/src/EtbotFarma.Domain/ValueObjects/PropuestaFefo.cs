@@ -14,7 +14,6 @@ public sealed record PropuestaFefo(
         lotes
             .Where(lote => lote.Stock > 0 && !lote.EstaCaducado(hoy))
             .OrderBy(lote => lote.FechaCaducidad)
-            .ThenBy(lote => lote.FechaEntrada)
             .ThenBy(lote => lote.Id)
             .ToList();
 

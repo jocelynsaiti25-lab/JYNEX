@@ -5,6 +5,7 @@ using EtbotFarma.Application.Common.Interfaces.Repositorios;
 using EtbotFarma.Application.Common.Messaging;
 using EtbotFarma.Application.SalidaMedicamentos.Dtos;
 using EtbotFarma.Application.SalidaMedicamentos.Queries;
+using EtbotFarma.Domain.Common;
 using EtbotFarma.Domain.ValueObjects;
 
 namespace EtbotFarma.Application.SalidaMedicamentos.Handlers;
@@ -24,6 +25,9 @@ public sealed class ProponerSalidaMedicamentoHandler(
 
         var medicamento = await medicamentos.ObtenerPorIdAsync(query.IdMedicamento, cancellationToken)
             ?? throw new NoEncontradoException("El medicamento no existe");
+
+        if (!medicamento.Activo)
+            throw new DomainException("No se puede registrar una salida de un medicamento inactivo.");
 
         var cantidad = int.Parse(query.Cantidad.Trim(), CultureInfo.InvariantCulture);
         var lotesMedicamento = await lotes.ObtenerPorMedicamentosAsync([medicamento.Id], cancellationToken);
