@@ -1,0 +1,156 @@
+<div class="pantalla">
+  <header class="pantalla__encabezado">
+    <div>
+      <h1 class="pantalla__titulo">Bitácora de movimientos</h1>
+      <p class="pantalla__descripcion">Entradas, salidas y bajas del inventario: quién las hizo, cuándo y de qué lotes.</p>
+    </div>
+    <button type="button" class="boton boton--secundario" (click)="actualizar()" [disabled]="cargando()">
+      <span class="icono" aria-hidden="true">refresh</span>
+      Actualizar
+    </button>
+  </header>
+
+  <form class="filtros" [formGroup]="filtros" (ngSubmit)="aplicarFiltros()" role="search" aria-label="Filtros de la bitácora">
+    <div class="campo">
+      <label class="campo__etiqueta" for="filtro-desde">Fecha inicial</label>
+      <input id="filtro-desde" class="campo__control" type="date" formControlName="desde" />
+    </div>
+
+    <div class="campo">
+      <label class="campo__etiqueta" for="filtro-hasta">Fecha final</label>
+      <input id="filtro-hasta" class="campo__control" type="date" formControlName="hasta" />
+    </div>
+
+    <div class="campo">
+      <label class="campo__etiqueta" for="filtro-usuario">Usuario</label>
+      <select id="filtro-usuario" class="campo__control" formControlName="idUsuario">
+        <option [ngValue]="null">Todos</option>
+        @for (usuario of usuarios(); track usuario.idUsuario) {
+          <option [ngValue]="usuario.idUsuario">{{ usuario.nombreCompleto }} ({{ usuario.nombreUsuario }})</option>
+        }
+      </select>
+    </div>
+
+    <div class="campo">
+      <label class="campo__etiqueta" for="filtro-medicamento">Medicamento</label>
+      <select id="filtro-medicamento" class="campo__control" formControlName="idMedicamento">
+        <option [ngValue]="null">Todos</option>
+        @for (medicamento of medicamentos(); track medicamento.idMedicamento) {
+          <option [ngValue]="medicamento.idMedicamento">{{ nombreMedicamento(medicamento) }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="campo">
+      <label class="campo__etiqueta" for="filtro-tipo">Tipo de movimiento</label>
+      <select id="filtro-tipo" class="campo__control" formControlName="tipo">
+        <option value="">Todos</option>
+        @for (tipo of tipos; track tipo) {
+          <option [value]="tipo">{{ tipo }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filtros__acciones">
+      <button type="submit" class="boton boton--primario" [disabled]="cargando()">
+        <span class="icono" aria-hidden="true">filter_alt</span>
+        Aplicar filtros
+      </button>
+      <button type="button" class="boton boton--secundario" (click)="limpiarFiltros()" [disabled]="cargando()">
+        <span class="icono" aria-hidden="true">filter_alt_off</span>
+        Limpiar filtros
+      </button>
+    </div>
+  </form>
+
+  @if (errorRango(); as mensaje) {
+    <app-alerta tipo="aviso" titulo="Revisa las fechas">{{ mensaje }}</app-alerta>
+  }
+
+  @if (cargando()) {
+    <p class="estado-carga" role="status">
+      <span class="cargando" aria-hidden="true"></span>
+      Cargando la bitácora…
+    </p>
+  } @else if (error()) {
+    <app-alerta tipo="error" titulo="No se pudo cargar la bitácora">
+      Revisa tu conexión e inténtalo de nuevo. Tus filtros se conservan.
+      <button type="button" class="boton boton--secundario reintentar" (click)="intentarDeNuevo()">
+        <span class="icono" aria-hidden="true">refresh</span>
+        Intentar de nuevo
+      </button>
+    </app-alerta>
+  } @else if (resultado(); as pagina) {
+    @if (pagina.movimientos.length === 0) {
+      <div class="estado-vacio" role="status">
+        <span class="icono" aria-hidden="true">history</span>
+        <p>{{ conFiltros() ? 'No hay movimientos que coincidan con los filtros.' : 'Todavía no hay movimientos registrados.' }}</p>
+      </div>
+    } @else {
+      <div class="tabla-contenedor">
+        <table class="tabla">
+          <caption>
+            {{ pagina.total }} {{ pagina.total === 1 ? 'movimiento' : 'movimientos' }}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Fecha y hora</th>
+              <th scope="col">Usuario</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Medicamento</th>
+              <th scope="col">Lotes</th>
+              <th scope="col">Cantidad</th>
+              <th scope="col">Motivo</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (movimiento of pagina.movimientos; track movimiento.idMovimiento) {
+              <tr>
+                <td>{{ movimiento.fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ movimiento.usuario }}</td>
+                <td>
+                  <span class="etiqueta" [class.etiqueta--neutra]="movimiento.tipo === 'ENTRADA'">{{ movimiento.tipo }}</span>
+                </td>
+                <td>
+                  {{ movimiento.medicamento }}
+                  <span class="detalle">{{ descripcionMedicamento(movimiento) }}</span>
+                </td>
+                <td>
+                  <ul class="lotes">
+                    @for (lote of movimiento.lotes; track lote.idLote) {
+                      <li>{{ lote.numeroLote }}: {{ lote.cantidad }}</li>
+                    }
+                  </ul>
+                </td>
+                <td>{{ movimiento.cantidadTotal }}</td>
+                <td>{{ movimiento.motivo ?? '' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <nav class="paginacion" aria-label="Paginación de la bitácora">
+        <button
+          type="button"
+          class="boton boton--secundario"
+          (click)="irAPagina(pagina.pagina - 1)"
+          [disabled]="pagina.pagina <= 1"
+        >
+          <span class="icono" aria-hidden="true">chevron_left</span>
+          Anterior
+        </button>
+        <span class="paginacion__estado" aria-live="polite">Página {{ pagina.pagina }} de {{ pagina.totalPaginas }}</span>
+        <button
+          type="button"
+          class="boton boton--secundario"
+          (click)="irAPagina(pagina.pagina + 1)"
+          [disabled]="pagina.pagina >= pagina.totalPaginas"
+        >
+          Siguiente
+          <span class="icono" aria-hidden="true">chevron_right</span>
+        </button>
+      </nav>
+    }
+  }
+</div>

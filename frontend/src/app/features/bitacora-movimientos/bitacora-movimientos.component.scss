@@ -1,0 +1,59 @@
+@use 'quiebres' as *;
+
+.filtros {
+  display: grid;
+  gap: var(--espacio-4);
+  grid-template-columns: 1fr;
+  margin-bottom: var(--espacio-4);
+
+  @include tableta {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.filtros__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+  align-items: flex-end;
+
+  @include tableta {
+    grid-column: 1 / -1;
+  }
+}
+
+.estado-carga {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  padding: var(--espacio-6) 0;
+  color: var(--color-texto-secundario);
+}
+
+.reintentar {
+  margin-top: var(--espacio-3);
+}
+
+.detalle {
+  display: block;
+  color: var(--color-texto-secundario);
+  font-size: 0.875rem;
+}
+
+.lotes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  margin-top: var(--espacio-4);
+}
+
+.paginacion__estado {
+  color: var(--color-texto-secundario);
+}
