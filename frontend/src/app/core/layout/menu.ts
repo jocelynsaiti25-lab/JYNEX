@@ -63,6 +63,7 @@ export const MENU: OpcionMenu[] = [
     descripcion: 'Registrar salidas con propuesta automática de lotes (FEFO).',
     icono: 'outbox',
     historias: ['HU-13'],
+    ruta: '/inventario/salida',
   },
   {
     etiqueta: 'Bitácora',

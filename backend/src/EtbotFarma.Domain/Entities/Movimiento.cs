@@ -1,4 +1,5 @@
 using EtbotFarma.Domain.Common;
+using EtbotFarma.Domain.ValueObjects;
 
 namespace EtbotFarma.Domain.Entities;
 
@@ -104,6 +105,33 @@ public class Movimiento : Entity<int>
         };
 
         movimiento._detalles.Add(DetalleMovimiento.Crear(idMedicamento, idLote, cantidad));
+        return movimiento;
+    }
+
+    public static Movimiento CrearSalida(
+        int idMedicamento,
+        int idUsuario,
+        IReadOnlyCollection<AsignacionLote> asignaciones,
+        DateTime fechaUtc)
+    {
+        if (asignaciones.Count == 0 || asignaciones.Any(a => a.Cantidad <= 0))
+            throw new DomainException("Una salida debe tener al menos un lote y cada cantidad debe ser mayor a 0.");
+
+        var movimiento = new Movimiento
+        {
+            Tipo = TipoSalida,
+            IdMedicamento = idMedicamento,
+            IdUsuario = idUsuario,
+            CantidadTotal = asignaciones.Sum(a => a.Cantidad),
+            Motivo = "Salida de medicamento (FEFO)",
+            Fecha = fechaUtc
+        };
+
+        foreach (var asignacion in asignaciones)
+        {
+            movimiento._detalles.Add(DetalleMovimiento.Crear(idMedicamento, asignacion.IdLote, asignacion.Cantidad));
+        }
+
         return movimiento;
     }
 

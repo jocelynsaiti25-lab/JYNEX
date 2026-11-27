@@ -1,0 +1,182 @@
+<section class="pantalla">
+  <header class="pantalla__encabezado">
+    <div>
+      <h1 class="pantalla__titulo">Salida de medicamentos</h1>
+      <p class="pantalla__descripcion">
+        Busca un medicamento, indica la cantidad y revisa la propuesta automática de lotes (FEFO) antes de confirmar.
+      </p>
+    </div>
+  </header>
+
+  @if (salidaRegistrada(); as salida) {
+    <app-alerta tipo="exito" [cerrable]="true" (cerrar)="salidaRegistrada.set(null)">
+      {{ salida.mensaje }}: {{ salida.cantidadTotal }} unidades de {{ salida.medicamento }}
+    </app-alerta>
+  }
+  @if (erroresRegistro().length > 0) {
+    <app-alerta tipo="error" [cerrable]="true" (cerrar)="erroresRegistro.set([])">
+      @for (mensaje of erroresRegistro(); track mensaje) {
+        <div>{{ mensaje }}</div>
+      }
+    </app-alerta>
+  }
+  @if (errorBusqueda()) {
+    <app-alerta tipo="error">{{ errorBusqueda() }}</app-alerta>
+  }
+
+  @if (!seleccionado()) {
+    <form class="busqueda" (submit)="$event.preventDefault(); buscar()">
+      <label class="campo__etiqueta" for="termino-salida">Buscar medicamento</label>
+      <div class="busqueda__fila">
+        <input
+          id="termino-salida"
+          type="search"
+          autocomplete="off"
+          class="campo__control"
+          placeholder="Nombre comercial o sustancia"
+          [value]="termino()"
+          (input)="actualizarTermino($any($event.target).value)"
+        />
+        <button type="submit" class="boton boton--primario" [disabled]="buscando()">Buscar</button>
+      </div>
+    </form>
+
+    @if (buscando()) {
+      <p class="estado-vacio">Cargando medicamentos...</p>
+    } @else if (resultados().length === 0) {
+      <div class="estado-vacio" role="status">
+        <strong>No se encontraron medicamentos</strong>
+      </div>
+    } @else {
+      <div class="tabla-contenedor">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th>Medicamento / Sustancia</th>
+              <th>Presentación</th>
+              <th class="numero">Existencias vigentes</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (medicamento of resultados(); track medicamento.idMedicamento) {
+              <tr>
+                <td>
+                  <strong>{{ medicamento.nombreComercial }}</strong>
+                  <div>{{ medicamento.nombreSustancia }}</div>
+                </td>
+                <td>{{ medicamento.presentacion }} {{ medicamento.concentracion }}</td>
+                <td class="numero">
+                  {{ medicamento.existenciasVigentes }}
+                  @if (medicamento.estaAgotado) {
+                    <span class="etiqueta etiqueta--agotado">SIN EXISTENCIAS</span>
+                  }
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="boton boton--secundario"
+                    [disabled]="medicamento.estaAgotado"
+                    (click)="seleccionar(medicamento)"
+                  >
+                    Registrar salida
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  } @else {
+    @let medicamento = seleccionado()!;
+    <div class="detalle">
+      <div class="detalle__encabezado">
+        <div>
+          <h2 class="detalle__titulo">{{ medicamento.nombreComercial }}</h2>
+          <p>{{ medicamento.nombreSustancia }} · {{ medicamento.presentacion }} {{ medicamento.concentracion }}</p>
+          <p><strong>{{ medicamento.existenciasVigentes }}</strong> unidades vigentes disponibles</p>
+        </div>
+        <button type="button" class="boton boton--texto" [disabled]="registrando()" (click)="quitarSeleccion()">
+          Cambiar medicamento
+        </button>
+      </div>
+
+      <div class="tabla-contenedor">
+        <table class="tabla">
+          <caption class="solo-lector">Lotes vigentes en orden de caducidad</caption>
+          <thead>
+            <tr>
+              <th>Lote</th>
+              <th>Caducidad</th>
+              <th>Semáforo</th>
+              <th class="numero">Existencias</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (lote of medicamento.lotes; track lote.idLote) {
+              <tr>
+                <td>{{ lote.numeroLote }}</td>
+                <td>{{ lote.fechaCaducidad }}</td>
+                <td><app-semaforo [estado]="estadoSemaforo(lote.semaforo)" /></td>
+                <td class="numero">{{ lote.existencias }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <form class="formulario-salida" novalidate (submit)="$event.preventDefault(); calcularPropuesta()">
+        <div class="campo">
+          <label class="campo__etiqueta" for="cantidad-salida">Cantidad a sacar</label>
+          <input
+            id="cantidad-salida"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            class="campo__control campo__control--corto"
+            [value]="cantidad()"
+            [attr.aria-invalid]="errorCantidad() ? 'true' : null"
+            [attr.aria-describedby]="errorCantidad() ? 'error-cantidad-salida' : null"
+            (input)="actualizarCantidad($any($event.target).value)"
+          />
+          @if (errorCantidad()) {
+            <p class="campo__error" role="alert" id="error-cantidad-salida">{{ errorCantidad() }}</p>
+          }
+        </div>
+        <button type="submit" class="boton boton--primario" [disabled]="calculando() || registrando()">
+          Ver propuesta de lotes
+        </button>
+      </form>
+
+      @if (erroresPropuesta().length > 0) {
+        <app-alerta tipo="error">
+          @for (mensaje of erroresPropuesta(); track mensaje) {
+            <div>{{ mensaje }}</div>
+          }
+        </app-alerta>
+      }
+    </div>
+  }
+
+  @if (propuesta(); as sugerida) {
+    <app-confirmacion
+      [abierta]="true"
+      titulo="¿Confirmar la salida?"
+      textoConfirmar="Confirmar salida"
+      [procesando]="registrando()"
+      (confirmar)="confirmarSalida()"
+      (cancelar)="cancelarPropuesta()"
+    >
+      <p>
+        <strong>{{ sugerida.medicamento }}</strong>: {{ sugerida.cantidadTotal }} unidades de las
+        {{ sugerida.existenciasVigentes }} disponibles.
+      </p>
+      <ul class="propuesta">
+        @for (lote of sugerida.lotes; track lote.idLote) {
+          <li>Lote {{ lote.numeroLote }} (caduca {{ lote.fechaCaducidad }}): {{ lote.cantidad }}</li>
+        }
+      </ul>
+    </app-confirmacion>
+  }
+</section>
