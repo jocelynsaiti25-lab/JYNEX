@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -11,7 +11,24 @@ export class BitacoraMovimientosService {
   private readonly url = `${environment.apiUrl}/bitacora`;
 
   consultar(filtro: FiltroBitacora, pagina: number, tamanoPagina: number): Observable<PaginaBitacora> {
-    let params = new HttpParams().set('pagina', pagina).set('tamanoPagina', tamanoPagina);
+    const params = this.parametros(filtro).set('pagina', pagina).set('tamanoPagina', tamanoPagina);
+    return this.http.get<PaginaBitacora>(`${this.url}/movimientos`, { params });
+  }
+
+  exportar(filtro: FiltroBitacora): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${this.url}/movimientos/exportacion`, {
+      params: this.parametros(filtro),
+      observe: 'response',
+      responseType: 'blob',
+    });
+  }
+
+  medicamentos(): Observable<MedicamentoBitacora[]> {
+    return this.http.get<MedicamentoBitacora[]>(`${this.url}/medicamentos`);
+  }
+
+  private parametros(filtro: FiltroBitacora): HttpParams {
+    let params = new HttpParams();
 
     if (filtro.desde) {
       params = params.set('desde', filtro.desde);
@@ -29,10 +46,6 @@ export class BitacoraMovimientosService {
       params = params.set('tipo', filtro.tipo);
     }
 
-    return this.http.get<PaginaBitacora>(`${this.url}/movimientos`, { params });
-  }
-
-  medicamentos(): Observable<MedicamentoBitacora[]> {
-    return this.http.get<MedicamentoBitacora[]>(`${this.url}/medicamentos`);
+    return params;
   }
 }

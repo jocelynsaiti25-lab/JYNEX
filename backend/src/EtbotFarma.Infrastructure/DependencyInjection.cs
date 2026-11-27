@@ -43,6 +43,7 @@ public static class DependencyInjection
         var configuracionReloj = configuration.GetSection("Reloj").Get<ConfiguracionReloj>() ?? new ConfiguracionReloj();
         services.AddSingleton(configuracionReloj);
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+        services.AddSingleton<IGeneradorExcelBitacora, GeneradorExcelBitacora>();
 
         // ---------- Configuración (appsettings.json, sección "Sesion") ----------
         var configuracionSesion = configuration.GetSection("Sesion").Get<ConfiguracionSesion>() ?? new ConfiguracionSesion();

@@ -4,10 +4,21 @@
       <h1 class="pantalla__titulo">Bitácora de movimientos</h1>
       <p class="pantalla__descripcion">Entradas, salidas y bajas del inventario: quién las hizo, cuándo y de qué lotes.</p>
     </div>
-    <button type="button" class="boton boton--secundario" (click)="actualizar()" [disabled]="cargando()">
-      <span class="icono" aria-hidden="true">refresh</span>
-      Actualizar
-    </button>
+    <div class="encabezado__acciones">
+      <button type="button" class="boton boton--secundario" (click)="actualizar()" [disabled]="cargando()">
+        <span class="icono" aria-hidden="true">refresh</span>
+        Actualizar
+      </button>
+      <button
+        type="button"
+        class="boton boton--primario"
+        (click)="exportar()"
+        [disabled]="cargando() || error() || exportando()"
+      >
+        <span class="icono" aria-hidden="true">download</span>
+        Exportar a Excel
+      </button>
+    </div>
   </header>
 
   <form class="filtros" [formGroup]="filtros" (ngSubmit)="aplicarFiltros()" role="search" aria-label="Filtros de la bitácora">
@@ -62,6 +73,26 @@
       </button>
     </div>
   </form>
+
+  @if (descargaIniciada()) {
+    <app-alerta tipo="exito" [cerrable]="true" (cerrar)="cerrarAvisoExportacion()">Descarga iniciada</app-alerta>
+  }
+
+  @if (avisoExportacion(); as aviso) {
+    <app-alerta tipo="info" titulo="Nada que exportar" [cerrable]="true" (cerrar)="cerrarAvisoExportacion()">
+      {{ aviso }}
+    </app-alerta>
+  }
+
+  @if (errorExportacion()) {
+    <app-alerta tipo="error" titulo="No se pudo generar el archivo">
+      No se descargó ningún archivo. Revisa tu conexión e inténtalo de nuevo.
+      <button type="button" class="boton boton--secundario reintentar" (click)="exportar()">
+        <span class="icono" aria-hidden="true">refresh</span>
+        Intentar de nuevo
+      </button>
+    </app-alerta>
+  }
 
   @if (errorRango(); as mensaje) {
     <app-alerta tipo="aviso" titulo="Revisa las fechas">{{ mensaje }}</app-alerta>
@@ -153,4 +184,27 @@
       </nav>
     }
   }
+
+  <app-confirmacion
+    [abierta]="confirmandoExportacion()"
+    titulo="Exportar a Excel"
+    textoConfirmar="Confirmar"
+    textoCancelar="Cancelar"
+    icono="download"
+    [procesando]="exportando()"
+    (confirmar)="confirmarExportacion()"
+    (cancelar)="cancelarExportacion()"
+  >
+    <p>
+      El archivo incluirá
+      <strong>{{ totalAExportar() }} {{ totalAExportar() === 1 ? 'movimiento' : 'movimientos' }}</strong>
+      con estos filtros:
+    </p>
+    <dl class="resumen-filtros">
+      @for (filtro of resumenFiltros(); track filtro.etiqueta) {
+        <dt>{{ filtro.etiqueta }}</dt>
+        <dd>{{ filtro.valor }}</dd>
+      }
+    </dl>
+  </app-confirmacion>
 </div>

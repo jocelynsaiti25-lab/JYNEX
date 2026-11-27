@@ -57,3 +57,25 @@
 .paginacion__estado {
   color: var(--color-texto-secundario);
 }
+
+.encabezado__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+}
+
+.resumen-filtros {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--espacio-2) var(--espacio-4);
+  margin: var(--espacio-3) 0 0;
+
+  dt {
+    font-weight: 600;
+    color: var(--color-texto);
+  }
+
+  dd {
+    margin: 0;
+  }
+}

@@ -10,6 +10,8 @@ namespace EtbotFarma.Api.Historias.BitacoraMovimientos;
 [Authorize(Roles = "Administrador")]
 public sealed class BitacoraMovimientosController(ISender sender) : ControllerBase
 {
+    private const string TipoContenidoExcel = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
     [HttpGet("movimientos")]
     public async Task<ActionResult<PaginaBitacoraResponse>> Consultar(
         [FromQuery] DateOnly? desde,
@@ -59,5 +61,21 @@ public sealed class BitacoraMovimientosController(ISender sender) : ControllerBa
             .Select(m => new MedicamentoBitacoraResponse(
                 m.IdMedicamento, m.NombreComercial, m.NombreSustancia, m.Presentacion, m.Concentracion))
             .ToList());
+    }
+
+    [HttpGet("movimientos/exportacion")]
+    public async Task<IActionResult> Exportar(
+        [FromQuery] DateOnly? desde,
+        [FromQuery] DateOnly? hasta,
+        [FromQuery] int? idUsuario,
+        [FromQuery] int? idMedicamento,
+        [FromQuery] string? tipo,
+        CancellationToken cancellationToken)
+    {
+        var archivo = await sender.Send(
+            new ExportarBitacoraQuery(desde, hasta, idUsuario, idMedicamento, tipo),
+            cancellationToken);
+
+        return File(archivo.Contenido, TipoContenidoExcel, archivo.NombreArchivo);
     }
 }
