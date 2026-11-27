@@ -95,6 +95,11 @@ public sealed class MovimientoRepository(ConexionMySql conexion) : IMovimientoRe
         }
 
         var cabeceras = await LeerPaginaAsync(filtro, pagina, tamanoPagina, cancellationToken);
+        if (cabeceras.Count == 0)
+        {
+            return (Array.Empty<MovimientoBitacoraDto>(), total);
+        }
+
         var detalles = await LeerDetallesAsync(cabeceras.Select(c => c.IdMovimiento).ToList(), cancellationToken);
 
         var movimientos = cabeceras
